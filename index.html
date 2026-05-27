@@ -1,0 +1,4272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lana Rosa · CRM</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="apple-touch-icon" href="/logo-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Lana Rosa" />
+  <meta name="theme-color" content="#d8017c" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --rosa-principal: #d8017c;
+      --rosa-medio:    #ff8fd4;
+      --rosa-suave:    #f9ddf4;
+      --azul-acero:    #85a3c0;
+      --blanco-hueso:  #efebeb;
+      --blanco:        #ffffff;
+      --texto-oscuro:  #2d2d2d;
+      --texto-medio:   #6b6b6b;
+      --borde:         #f0d6ea;
+      --sombra:        rgba(216,1,124,0.10);
+      --sombra-lg:     rgba(216,1,124,0.18);
+      --sidebar-w:     260px;
+      --header-h:      64px;
+      --radius:        14px;
+      --radius-sm:     8px;
+      --transition:    0.22s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--blanco-hueso);
+      color: var(--texto-oscuro);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── AUTH SCREEN ─── */
+    #auth-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #fce4f5 0%, #f9ddf4 40%, #ffe4f0 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    #auth-screen::before {
+      content: '';
+      position: absolute;
+      width: 500px; height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(216,1,124,0.08) 0%, transparent 70%);
+      top: -100px; right: -100px;
+    }
+    #auth-screen::after {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,143,212,0.12) 0%, transparent 70%);
+      bottom: -80px; left: -80px;
+    }
+
+    .auth-card {
+      background: var(--blanco);
+      border-radius: 24px;
+      padding: 48px 44px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(216,1,124,0.15), 0 4px 16px rgba(0,0,0,0.06);
+      position: relative;
+      z-index: 1;
+    }
+    .auth-logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .auth-logo-icon {
+      width: 72px; height: 72px;
+      background: linear-gradient(135deg, var(--rosa-principal), var(--rosa-medio));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 14px;
+      font-size: 32px;
+      box-shadow: 0 8px 24px var(--sombra-lg);
+    }
+    .auth-logo h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--rosa-principal);
+      letter-spacing: -0.5px;
+    }
+    .auth-logo p {
+      font-size: 0.82rem;
+      color: var(--texto-medio);
+      margin-top: 2px;
+    }
+    .auth-tabs {
+      display: flex;
+      background: var(--rosa-suave);
+      border-radius: var(--radius-sm);
+      padding: 4px;
+      margin-bottom: 28px;
+    }
+    .auth-tab {
+      flex: 1;
+      padding: 8px;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 500;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--texto-medio);
+      transition: all var(--transition);
+      border: none;
+      background: transparent;
+    }
+    .auth-tab.active {
+      background: var(--blanco);
+      color: var(--rosa-principal);
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--texto-oscuro);
+      margin-bottom: 6px;
+      letter-spacing: 0.3px;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--borde);
+      border-radius: var(--radius-sm);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      color: var(--texto-oscuro);
+      background: var(--blanco);
+      transition: border-color var(--transition), box-shadow var(--transition);
+      outline: none;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--rosa-principal);
+      box-shadow: 0 0 0 3px rgba(216,1,124,0.10);
+    }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+
+    .btn-primary {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, var(--rosa-principal), #e8409a);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      box-shadow: 0 4px 16px var(--sombra);
+      letter-spacing: 0.3px;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px var(--sombra-lg);
+    }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .auth-error {
+      background: #fff0f5;
+      border: 1px solid #ffb3d1;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      color: var(--rosa-principal);
+      margin-bottom: 16px;
+      display: none;
+    }
+    .auth-error.show { display: block; }
+
+    /* ─── APP LAYOUT ─── */
+    #app { display: none; height: 100vh; overflow: hidden; }
+
+    /* SIDEBAR */
+    .sidebar {
+      position: fixed;
+      left: 0; top: 0; bottom: 0;
+      width: var(--sidebar-w);
+      background: var(--blanco);
+      border-right: 1.5px solid var(--borde);
+      display: flex;
+      flex-direction: column;
+      z-index: 300;
+      box-shadow: 2px 0 16px rgba(216,1,124,0.06);
+    }
+    .sidebar-header {
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--borde);
+    }
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sidebar-logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--rosa-principal), var(--rosa-medio));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 4px 12px var(--sombra);
+      flex-shrink: 0;
+    }
+    .sidebar-logo-text h2 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--rosa-principal);
+      line-height: 1.2;
+    }
+    .sidebar-logo-text span {
+      font-size: 0.7rem;
+      color: var(--texto-medio);
+      font-weight: 400;
+    }
+
+    .sidebar-user {
+      margin: 12px 12px 8px;
+      padding: 10px 12px;
+      background: var(--rosa-suave);
+      border-radius: var(--radius-sm);
+    }
+    .sidebar-user-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--rosa-principal);
+    }
+    .sidebar-user-role {
+      font-size: 0.7rem;
+      color: var(--texto-medio);
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 8px 12px;
+      overflow-y: auto;
+    }
+    .nav-section-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--azul-acero);
+      padding: 10px 8px 4px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--texto-medio);
+      font-size: 0.84rem;
+      font-weight: 500;
+      transition: all var(--transition);
+      margin-bottom: 2px;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+    }
+    .nav-item:hover { background: var(--rosa-suave); color: var(--rosa-principal); }
+    .nav-item.active { background: linear-gradient(135deg, rgba(216,1,124,0.12), rgba(255,143,212,0.08)); color: var(--rosa-principal); font-weight: 600; }
+    .nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+    .nav-badge {
+      margin-left: auto;
+      background: var(--rosa-principal);
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 20px;
+    }
+
+    .sidebar-footer {
+      padding: 12px;
+      border-top: 1px solid var(--borde);
+    }
+    .btn-logout {
+      width: 100%;
+      padding: 9px;
+      background: transparent;
+      border: 1.5px solid var(--borde);
+      border-radius: var(--radius-sm);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--texto-medio);
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-logout:hover { border-color: var(--rosa-principal); color: var(--rosa-principal); }
+
+    /* MAIN */
+    .main-content {
+      margin-left: var(--sidebar-w);
+      height: 100vh;
+      overflow-y: auto;
+      background: var(--blanco-hueso);
+    }
+    .page-header {
+      position: sticky;
+      top: 0;
+      background: rgba(239,235,235,0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--borde);
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 50;
+      height: var(--header-h);
+    }
+    .page-title h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--texto-oscuro);
+    }
+    .page-title p { font-size: 0.78rem; color: var(--texto-medio); }
+
+    .page-content { padding: 24px 28px; }
+
+    /* ─── CARDS ─── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--blanco);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+      border: 1px solid var(--borde);
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px var(--sombra); }
+    .stat-card-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+    .stat-card-icon.pink { background: rgba(216,1,124,0.10); }
+    .stat-card-icon.light-pink { background: rgba(255,143,212,0.15); }
+    .stat-card-icon.steel { background: rgba(133,163,192,0.15); }
+    .stat-card-icon.green { background: rgba(34,197,94,0.10); }
+    .stat-card h3 { font-size: 1.8rem; font-weight: 700; color: var(--texto-oscuro); line-height: 1; }
+    .stat-card p { font-size: 0.78rem; color: var(--texto-medio); margin-top: 4px; }
+
+    /* ─── TABLE ─── */
+    .table-card {
+      background: var(--blanco);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+      border: 1px solid var(--borde);
+      overflow: hidden;
+    }
+    .table-card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--borde);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .table-card-header h2 { font-size: 1rem; font-weight: 700; color: var(--texto-oscuro); }
+    .table-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .search-input {
+      padding: 8px 14px;
+      border: 1.5px solid var(--borde);
+      border-radius: var(--radius-sm);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.82rem;
+      color: var(--texto-oscuro);
+      background: var(--blanco-hueso);
+      outline: none;
+      transition: border-color var(--transition);
+      width: 200px;
+    }
+    .search-input:focus { border-color: var(--rosa-principal); }
+    .btn-add {
+      padding: 8px 16px;
+      background: linear-gradient(135deg, var(--rosa-principal), #e8409a);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      box-shadow: 0 2px 8px var(--sombra);
+      white-space: nowrap;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .btn-add:hover { transform: translateY(-1px); box-shadow: 0 4px 16px var(--sombra-lg); }
+
+    .table-wrapper { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: var(--rosa-suave); }
+    th {
+      padding: 11px 16px;
+      text-align: left;
+      font-size: 0.73rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--rosa-principal);
+      white-space: nowrap;
+    }
+    td {
+      padding: 13px 16px;
+      font-size: 0.82rem;
+      color: var(--texto-oscuro);
+      border-bottom: 1px solid var(--borde);
+      vertical-align: middle;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: rgba(249,221,244,0.3); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .badge-proceso        { background: rgba(251,191,36,0.15); color: #b45309; }
+    .badge-produccion-est { background: rgba(216,1,124,0.12);  color: #d8017c; }
+    .badge-listo          { background: rgba(99,102,241,0.12);  color: #4338ca; }
+    .badge-enviado        { background: rgba(14,165,233,0.12);  color: #0369a1; }
+    .badge-entregado      { background: rgba(34,197,94,0.12);   color: #166534; }
+    .badge-cancelado      { background: rgba(239,68,68,0.10);   color: #b91c1c; }
+
+    .btn-icon {
+      width: 30px; height: 30px;
+      border-radius: 7px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all var(--transition);
+      background: transparent;
+      color: var(--texto-medio);
+    }
+    .btn-icon:hover { background: var(--rosa-suave); color: var(--rosa-principal); }
+    .btn-icon.danger:hover { background: rgba(239,68,68,0.1); color: #dc2626; }
+
+    .table-empty {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--texto-medio);
+    }
+    .table-empty-icon { font-size: 40px; margin-bottom: 12px; }
+    .table-empty p { font-size: 0.85rem; }
+
+    /* ─── MODAL ─── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s ease;
+    }
+    .modal-overlay.open { opacity: 1; visibility: visible; }
+    .modal {
+      background: var(--blanco);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 620px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+      transform: scale(0.94) translateY(20px);
+      transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+    .modal-header {
+      padding: 22px 24px 16px;
+      border-bottom: 1px solid var(--borde);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: var(--blanco);
+      z-index: 1;
+    }
+    .modal-header h2 { font-size: 1.05rem; font-weight: 700; color: var(--texto-oscuro); }
+    .modal-close {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      border: 1.5px solid var(--borde);
+      background: transparent;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      color: var(--texto-medio);
+      transition: all var(--transition);
+    }
+    .modal-close:hover { background: var(--rosa-suave); color: var(--rosa-principal); border-color: var(--rosa-medio); }
+    .modal-body { padding: 20px 24px; }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--borde);
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    .btn-secondary {
+      padding: 9px 20px;
+      background: transparent;
+      border: 1.5px solid var(--borde);
+      border-radius: var(--radius-sm);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--texto-medio);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .btn-secondary:hover { border-color: var(--rosa-principal); color: var(--rosa-principal); }
+    .btn-save {
+      padding: 9px 24px;
+      background: linear-gradient(135deg, var(--rosa-principal), #e8409a);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      box-shadow: 0 4px 12px var(--sombra);
+    }
+    .btn-save:hover { box-shadow: 0 6px 20px var(--sombra-lg); transform: translateY(-1px); }
+    .btn-save:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    .section-divider {
+      border: none;
+      border-top: 1px solid var(--borde);
+      margin: 16px 0;
+    }
+    .section-label-modal {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--azul-acero);
+      margin-bottom: 14px;
+    }
+
+    /* IMAGE UPLOAD */
+    .upload-zone {
+      border: 2px dashed var(--borde);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition);
+      position: relative;
+      background: var(--rosa-suave);
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--rosa-principal);
+      background: rgba(216,1,124,0.05);
+    }
+    .upload-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+    .upload-icon { font-size: 28px; margin-bottom: 8px; }
+    .upload-text { font-size: 0.82rem; color: var(--texto-medio); }
+    .upload-text strong { color: var(--rosa-principal); }
+    .upload-preview {
+      margin-top: 12px;
+      position: relative;
+      display: inline-block;
+    }
+    .upload-preview img {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: var(--radius-sm);
+      object-fit: contain;
+      border: 2px solid var(--rosa-medio);
+    }
+    .upload-preview-remove {
+      position: absolute;
+      top: -8px; right: -8px;
+      width: 24px; height: 24px;
+      background: var(--rosa-principal);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* AVATAR */
+    .avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--rosa-principal), var(--rosa-medio));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+    .client-cell { display: flex; align-items: center; gap: 8px; }
+    .client-cell-info { line-height: 1.3; }
+    .client-cell-name { font-weight: 600; font-size: 0.83rem; }
+    .client-cell-channel { font-size: 0.72rem; color: var(--texto-medio); }
+
+    /* THUMBNAIL */
+    .ref-thumb {
+      width: 36px; height: 36px;
+      border-radius: 6px;
+      object-fit: cover;
+      border: 2px solid var(--rosa-suave);
+      cursor: pointer;
+      transition: transform var(--transition);
+    }
+    .ref-thumb:hover { transform: scale(1.1); }
+
+    /* DETAIL PANEL */
+    .detail-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(4px);
+      z-index: 900;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s ease;
+    }
+    .detail-overlay.open { opacity: 1; visibility: visible; }
+    .detail-panel {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: 100%;
+      max-width: 480px;
+      background: var(--blanco);
+      z-index: 901;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+      overflow-y: auto;
+      box-shadow: -8px 0 40px rgba(0,0,0,0.12);
+    }
+    .detail-overlay.open .detail-panel { transform: translateX(0); }
+    .detail-panel-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--borde);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: var(--blanco);
+      z-index: 1;
+    }
+    .detail-panel-body { padding: 20px 24px; }
+    .detail-section { margin-bottom: 24px; }
+    .detail-section h3 {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--azul-acero);
+      margin-bottom: 12px;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--rosa-suave);
+      gap: 12px;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { font-size: 0.78rem; color: var(--texto-medio); flex-shrink: 0; }
+    .detail-value { font-size: 0.82rem; font-weight: 500; color: var(--texto-oscuro); text-align: right; }
+    .detail-ref-image {
+      width: 100%;
+      border-radius: var(--radius);
+      object-fit: contain;
+      max-height: 240px;
+      border: 2px solid var(--borde);
+    }
+
+    /* STATUS UPDATE */
+    .status-select-inline {
+      padding: 5px 10px;
+      border: 1.5px solid var(--borde);
+      border-radius: 20px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: var(--blanco);
+      cursor: pointer;
+      outline: none;
+      color: var(--texto-oscuro);
+      transition: border-color var(--transition);
+    }
+    .status-select-inline:focus { border-color: var(--rosa-principal); }
+
+    /* TOAST */
+    .toast-container {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      background: var(--texto-oscuro);
+      color: white;
+      padding: 12px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 500;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      animation: toastIn 0.3s ease forwards;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 320px;
+    }
+    .toast.success { background: linear-gradient(135deg, #166534, #15803d); }
+    .toast.error { background: linear-gradient(135deg, #991b1b, #dc2626); }
+    .toast.info { background: linear-gradient(135deg, var(--rosa-principal), #e8409a); }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* LOADING */
+    .loading-spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--rosa-suave);
+      border-top-color: var(--rosa-principal);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 40px auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* CONFIG SCREEN */
+    .config-card {
+      background: var(--blanco);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+      border: 1px solid var(--borde);
+      margin-bottom: 20px;
+    }
+    .config-card h2 { font-size: 1rem; font-weight: 700; margin-bottom: 16px; color: var(--texto-oscuro); }
+
+    /* TABS */
+    .tab-bar {
+      display: flex;
+      gap: 4px;
+      background: var(--rosa-suave);
+      border-radius: var(--radius-sm);
+      padding: 4px;
+      margin-bottom: 20px;
+      width: fit-content;
+    }
+    .tab-btn {
+      padding: 7px 16px;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--texto-medio);
+      background: transparent;
+      transition: all var(--transition);
+    }
+    .tab-btn.active { background: var(--blanco); color: var(--rosa-principal); font-weight: 600; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+
+    /* FILTER ROW */
+    .filter-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .filter-select {
+      padding: 7px 12px;
+      border: 1.5px solid var(--borde);
+      border-radius: var(--radius-sm);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.8rem;
+      background: var(--blanco);
+      color: var(--texto-oscuro);
+      outline: none;
+      cursor: pointer;
+      transition: border-color var(--transition);
+    }
+    .filter-select:focus { border-color: var(--rosa-principal); }
+
+    /* SETUP SCREEN */
+    #setup-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #fce4f5 0%, #f9ddf4 40%, #ffe4f0 100%);
+      padding: 24px;
+    }
+    .setup-card {
+      background: var(--blanco);
+      border-radius: 24px;
+      padding: 40px 44px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 20px 60px rgba(216,1,124,0.15);
+    }
+    .setup-card h1 { font-size: 1.4rem; font-weight: 700; color: var(--rosa-principal); margin-bottom: 6px; }
+    .setup-card p { font-size: 0.85rem; color: var(--texto-medio); margin-bottom: 24px; }
+
+    .price-display { font-weight: 600; color: var(--rosa-principal); }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform var(--transition); }
+      .sidebar.mobile-open { transform: translateX(0); }
+      .main-content { margin-left: 0; padding-bottom: 80px; }
+      .form-row, .form-row-3 { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .page-content { padding: 14px; }
+      .page-header { padding: 12px 16px; }
+      #mobile-menu-btn { display: flex; }
+      .table-actions { flex-direction: column; align-items: stretch; }
+      .search-input { width: 100%; }
+      .modal { max-height: 95vh; border-radius: 20px 20px 0 0; }
+      .modal-overlay { align-items: flex-end; padding: 0; }
+      .detail-panel { max-width: 100%; }
+    }
+    #mobile-menu-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 36px; height: 36px;
+      border: 1.5px solid var(--borde);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      cursor: pointer;
+      font-size: 18px;
+      color: var(--texto-oscuro);
+    }
+    .mobile-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 250;
+    }
+    .mobile-overlay.show { display: block; }
+
+    /* BOTTOM NAV (solo movil) */
+    .bottom-nav {
+      display: flex;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 64px;
+      background: var(--blanco);
+      border-top: 1.5px solid var(--borde);
+      z-index: 200;
+      align-items: stretch;
+      box-shadow: 0 -4px 20px rgba(216,1,124,0.08);
+    }
+    /* Ocultar bottom-nav en escritorio */
+    @media (min-width: 769px) {
+      .bottom-nav { display: none; }
+    }
+    .bottom-nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      padding: 8px 4px;
+      position: relative;
+      transition: all var(--transition);
+      color: var(--texto-medio);
+      font-family: 'Poppins', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .bottom-nav-item:active { background: var(--rosa-suave); }
+    .bottom-nav-item.active { color: var(--rosa-principal); }
+    .bottom-nav-item.active::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 20%; right: 20%;
+      height: 3px;
+      background: var(--rosa-principal);
+      border-radius: 0 0 4px 4px;
+    }
+    .bottom-nav-icon { font-size: 22px; line-height: 1; }
+    .bottom-nav-label { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.2px; line-height: 1; }
+    .bottom-nav-badge {
+      position: absolute;
+      top: 5px;
+      right: calc(50% - 20px);
+      background: var(--rosa-principal);
+      color: white;
+      font-size: 0.55rem;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 10px;
+      min-width: 16px;
+      text-align: center;
+    }
+
+    /* PAGE SECTIONS */
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+
+    .rosina-tip {
+      background: linear-gradient(135deg, var(--rosa-suave), rgba(255,143,212,0.15));
+      border: 1px solid var(--rosa-medio);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .rosina-tip-icon { font-size: 24px; flex-shrink: 0; }
+    .rosina-tip p { font-size: 0.82rem; color: var(--texto-oscuro); line-height: 1.5; }
+    .rosina-tip strong { color: var(--rosa-principal); }
+
+    /* PAGINATION */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      border-top: 1px solid var(--borde);
+      font-size: 0.8rem;
+      color: var(--texto-medio);
+    }
+    .pagination-btns { display: flex; gap: 4px; }
+    .pag-btn {
+      width: 30px; height: 30px;
+      border: 1.5px solid var(--borde);
+      border-radius: 7px;
+      background: transparent;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      transition: all var(--transition);
+    }
+    .pag-btn:hover { border-color: var(--rosa-principal); color: var(--rosa-principal); }
+    .pag-btn.active { background: var(--rosa-principal); border-color: var(--rosa-principal); color: white; }
+    .pag-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .channel-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 500;
+    }
+    .channel-ig { background: rgba(225,48,108,0.1); color: #e1306c; }
+    .channel-fb { background: rgba(24,119,242,0.1); color: #1877f2; }
+    .channel-wa { background: rgba(37,211,102,0.1); color: #25d366; }
+    .channel-otro { background: rgba(133,163,192,0.15); color: var(--azul-acero); }
+
+    /* ─── ENVÍOS ─── */
+    .envio-card {
+      border: 1.5px solid var(--borde);
+      border-radius: var(--radius);
+      background: var(--blanco);
+      margin-bottom: 12px;
+      overflow: hidden;
+      transition: box-shadow var(--transition);
+    }
+    .envio-card:hover { box-shadow: 0 4px 16px var(--sombra); }
+    .envio-card-header {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--borde);
+      background: var(--rosa-suave);
+    }
+    .envio-card-body { padding: 16px 18px; }
+    .envio-campo { margin-bottom: 12px; }
+    .envio-campo label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--azul-acero);
+      margin-bottom: 5px;
+    }
+    .envio-campo .form-group { margin-bottom: 0; }
+    .transportadora-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .transp-btn {
+      padding: 8px 6px;
+      border: 1.5px solid var(--borde);
+      border-radius: 10px;
+      background: var(--blanco);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all var(--transition);
+      color: var(--texto-oscuro);
+    }
+    .transp-btn:hover { border-color: var(--rosa-medio); background: var(--rosa-suave); }
+    .transp-btn.selected { border-color: var(--rosa-principal); background: rgba(216,1,124,0.08); color: var(--rosa-principal); }
+    .tipo-entrega-btns { display: flex; gap: 8px; }
+    .tipo-btn {
+      flex: 1;
+      padding: 9px 8px;
+      border: 1.5px solid var(--borde);
+      border-radius: 10px;
+      background: var(--blanco);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all var(--transition);
+      color: var(--texto-oscuro);
+    }
+    .tipo-btn.selected { border-color: var(--rosa-principal); background: rgba(216,1,124,0.08); color: var(--rosa-principal); }
+    .guia-upload-zone {
+      border: 2px dashed var(--borde);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      text-align: center;
+      cursor: pointer;
+      background: var(--blanco-hueso);
+      position: relative;
+      transition: all var(--transition);
+      font-size: 0.8rem;
+      color: var(--texto-medio);
+    }
+    .guia-upload-zone:hover, .guia-upload-zone.drag-over { border-color: var(--rosa-principal); background: var(--rosa-suave); }
+    .guia-upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .badge-envio-estado {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 0.72rem; font-weight: 600;
+    }
+    .badge-listo-envio  { background: rgba(99,102,241,0.12); color: #4338ca; }
+    .badge-en-camino    { background: rgba(251,191,36,0.15);  color: #b45309; }
+    .badge-entregado-e  { background: rgba(34,197,94,0.12);   color: #166534; }
+    .badge-recogida     { background: rgba(133,163,192,0.15); color: #1e40af; }
+    .btn-confirmar-entrega {
+      width: 100%; padding: 10px;
+      background: linear-gradient(135deg,#16a34a,#22c55e);
+      color: white; border: none; border-radius: var(--radius-sm);
+      font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 700;
+      cursor: pointer; transition: all var(--transition);
+    }
+    .btn-confirmar-entrega:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-guardar-envio {
+      width: 100%; padding: 10px;
+      background: linear-gradient(135deg,var(--rosa-principal),#e8409a);
+      color: white; border: none; border-radius: var(--radius-sm);
+      font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; transition: all var(--transition); margin-top: 10px;
+    }
+    .btn-guardar-envio:hover { opacity: 0.9; transform: translateY(-1px); }
+    .guia-link {
+      display: inline-flex; align-items: center; gap: 5px;
+      color: var(--rosa-principal); font-size: 0.8rem; font-weight: 600;
+      text-decoration: none; background: var(--rosa-suave);
+      padding: 5px 12px; border-radius: 20px;
+    }
+    .guia-link:hover { background: rgba(216,1,124,0.15); }
+    .env-empty { text-align:center; padding: 40px 20px; color: var(--texto-medio); }
+    .env-empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+    /* Nota tejedora */
+    .nota-tejedora-box {
+      background: var(--rosa-suave);
+      border: 1.5px solid var(--rosa-medio);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-top: 6px;
+    }
+    .nota-tejedora-box textarea {
+      width: 100%;
+      border: none;
+      background: transparent;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.83rem;
+      color: var(--texto-oscuro);
+      resize: vertical;
+      min-height: 72px;
+      outline: none;
+      line-height: 1.5;
+    }
+    .nota-tejedora-box textarea::placeholder { color: var(--texto-medio); }
+    .btn-guardar-nota {
+      width: 100%;
+      margin-top: 8px;
+      padding: 9px;
+      background: linear-gradient(135deg, var(--rosa-principal), #e8409a);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .btn-guardar-nota:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-guardar-nota:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* ─── PRODUCCIÓN ─── */
+    .prod-card {
+      background: var(--blanco);
+      border-radius: var(--radius);
+      border: 1.5px solid var(--borde);
+      padding: 16px 18px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .prod-card:hover { border-color: var(--rosa-medio); box-shadow: 0 4px 16px var(--sombra); transform: translateY(-1px); }
+    .prod-card-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--rosa-suave); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .prod-card-info { flex: 1; min-width: 0; }
+    .prod-card-title { font-size: 0.9rem; font-weight: 700; color: var(--texto-oscuro); }
+    .prod-card-sub { font-size: 0.75rem; color: var(--texto-medio); margin-top: 2px; }
+    .prod-card-meta { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+    .paso-card {
+      background: var(--blanco);
+      border-radius: var(--radius);
+      border: 1.5px solid var(--borde);
+      margin-bottom: 10px;
+      overflow: hidden;
+      transition: all var(--transition);
+    }
+    .paso-card.completado { border-color: #bbf7d0; background: #f0fdf4; }
+    .paso-card.activo { border-color: var(--rosa-principal); box-shadow: 0 4px 16px var(--sombra); }
+    .paso-card.bloqueado { opacity: .5; pointer-events: none; }
+
+    .paso-header {
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .paso-numero {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      transition: all var(--transition);
+    }
+    .paso-numero.pendiente { background: var(--rosa-suave); color: var(--rosa-principal); }
+    .paso-numero.activo { background: var(--rosa-principal); color: white; }
+    .paso-numero.done { background: #16a34a; color: white; font-size: 14px; }
+
+    .paso-titulo { font-size: 0.88rem; font-weight: 600; color: var(--texto-oscuro); flex: 1; }
+    .paso-titulo.done { text-decoration: line-through; color: var(--texto-medio); }
+
+    .paso-body { padding: 0 16px 16px; }
+    .paso-desc { font-size: 0.8rem; color: var(--texto-medio); margin-bottom: 14px; line-height: 1.5; }
+
+    /* CRONÓMETRO */
+    .cronometro {
+      background: var(--texto-oscuro);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      color: white;
+      margin-bottom: 14px;
+    }
+    .crono-display {
+      font-size: 2.8rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+    .crono-sub { font-size: 0.72rem; color: rgba(255,255,255,.6); margin-bottom: 16px; letter-spacing: 0.5px; }
+    .crono-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .crono-btn {
+      padding: 9px 20px;
+      border-radius: 20px;
+      border: none;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .crono-btn.start { background: linear-gradient(135deg,#16a34a,#22c55e); color: white; }
+    .crono-btn.pause { background: linear-gradient(135deg,#d97706,#f59e0b); color: white; }
+    .crono-btn.reset { background: rgba(255,255,255,.15); color: white; }
+    .crono-btn:hover { transform: scale(1.05); }
+    .crono-alerta-info {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,.5);
+      margin-top: 10px;
+    }
+
+    /* PAUSA ACTIVA MODAL */
+    .pausa-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.7);
+      backdrop-filter: blur(8px);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all .3s ease;
+    }
+    .pausa-overlay.open { opacity: 1; visibility: visible; }
+    .pausa-modal {
+      background: white;
+      border-radius: 24px;
+      padding: 36px 32px;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 24px 64px rgba(0,0,0,.3);
+      transform: scale(.92);
+      transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+    }
+    .pausa-overlay.open .pausa-modal { transform: scale(1); }
+    .pausa-gif { font-size: 72px; margin-bottom: 12px; animation: pausaBounce 1s ease infinite; }
+    @keyframes pausaBounce {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .pausa-titulo { font-size: 1.5rem; font-weight: 700; color: var(--rosa-principal); margin-bottom: 8px; }
+    .pausa-sub { font-size: 0.9rem; color: var(--texto-medio); line-height: 1.6; margin-bottom: 24px; }
+    .pausa-ejercicios {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .pausa-ej {
+      background: var(--rosa-suave);
+      border-radius: 12px;
+      padding: 12px 8px;
+      font-size: 0.8rem;
+      color: var(--texto-oscuro);
+    }
+    .pausa-ej-icon { font-size: 24px; margin-bottom: 4px; }
+    .pausa-timer-display {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--rosa-principal);
+      margin-bottom: 20px;
+    }
+    .btn-pausa-close {
+      padding: 12px 32px;
+      background: linear-gradient(135deg, var(--rosa-principal), #e8409a);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 16px var(--sombra);
+      transition: all var(--transition);
+    }
+    .btn-pausa-close:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--sombra-lg); }
+
+    .btn-completar-paso {
+      width: 100%;
+      padding: 11px;
+      background: linear-gradient(135deg, #16a34a, #22c55e);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-completar-paso:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(22,163,74,.3); }
+
+    .tiempo-simple {
+      background: var(--rosa-suave);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .tiempo-simple-display {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--texto-oscuro);
+      font-variant-numeric: tabular-nums;
+    }
+    .tiempo-simple-label { font-size: 0.75rem; color: var(--texto-medio); margin-top: 2px; }
+    .tiempo-simple-btns { display: flex; gap: 6px; }
+    .ts-btn {
+      padding: 7px 14px;
+      border-radius: 16px;
+      border: none;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .ts-btn.start { background: #16a34a; color: white; }
+    .ts-btn.stop { background: #d97706; color: white; }
+    .ts-btn:hover { transform: scale(1.05); }
+
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     SETUP SCREEN (first-time config)
+═══════════════════════════════════════════════ -->
+<div id="setup-screen" style="display:none;">
+  <div class="setup-card">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div class="auth-logo-icon" style="margin:0 auto 12px;background:white;padding:4px;"><img src="/logo-192.png" style="width:100%;height:100%;object-fit:contain;" /></div>
+      <h1>Configuración inicial</h1>
+      <p>Conecta tu base de datos Supabase para comenzar a usar el CRM de Lana Rosa Crochet.</p>
+    </div>
+    <div class="form-group">
+      <label>URL del proyecto Supabase</label>
+      <input type="url" id="setup-url" placeholder="https://xyzxyz.supabase.co" />
+    </div>
+    <div class="form-group">
+      <label>Clave anónima (anon key)</label>
+      <input type="text" id="setup-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..." />
+    </div>
+    <div class="auth-error" id="setup-error"></div>
+    <button class="btn-primary" onclick="saveConfig()">Guardar y continuar →</button>
+    <p style="font-size:0.75rem;color:var(--texto-medio);text-align:center;margin-top:16px;">
+      Estas credenciales se guardan solo en tu navegador.<br>
+      Las encuentras en tu proyecto Supabase → Settings → API.
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     AUTH SCREEN
+═══════════════════════════════════════════════ -->
+<div id="auth-screen" style="display:none;">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon" style="background:white;padding:4px;"><img src="/logo-192.png" style="width:100%;height:100%;object-fit:contain;" /></div>
+      <h1>Lana Rosa CRM</h1>
+      <p>Gestión de clientes y pedidos</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Iniciar sesión</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">Crear cuenta</button>
+    </div>
+    <div class="auth-error" id="auth-error"></div>
+    <div id="login-form">
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="login-email" placeholder="sara@lanarosacrochet.co" />
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="login-password" placeholder="••••••••" />
+      </div>
+      <button class="btn-primary" id="btn-login" onclick="handleLogin()">Ingresar</button>
+    </div>
+    <div id="register-form" style="display:none;">
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" id="reg-name" placeholder="Sara" />
+      </div>
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="reg-email" placeholder="sara@lanarosacrochet.co" />
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" />
+      </div>
+      <div class="form-group">
+        <label>Rol</label>
+        <select id="reg-role">
+          <option value="admin">Administradora</option>
+          <option value="tejedora">Tejedora</option>
+        </select>
+      </div>
+      <button class="btn-primary" id="btn-register" onclick="handleRegister()">Crear cuenta</button>
+    </div>
+    <p style="font-size:0.72rem;color:var(--texto-medio);text-align:center;margin-top:16px;">
+      <a href="#" onclick="showSetup()" style="color:var(--rosa-principal);text-decoration:none;">⚙️ Cambiar configuración de Supabase</a>
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     MAIN APP
+═══════════════════════════════════════════════ -->
+<div id="app">
+  <!-- Mobile overlay -->
+  <div class="mobile-overlay" id="mobile-overlay" onclick="closeSidebar()"></div>
+
+    <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon" style="background:white;padding:2px;"><img src="/logo-192.png" style="width:100%;height:100%;object-fit:contain;border-radius:8px;" /></div>
+        <div class="sidebar-logo-text">
+          <h2>Lana Rosa</h2>
+          <span>CRM · Crochet</span>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-user-name" id="sidebar-user-name">Cargando...</div>
+      <div class="sidebar-user-role" id="sidebar-user-role">—</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <button class="nav-item active" onclick="showSection('dashboard')">
+        <span class="nav-icon">🏠</span> Inicio
+      </button>
+      <button class="nav-item" onclick="showSection('pedidos')">
+        <span class="nav-icon">📦</span> Pedidos
+        <span class="nav-badge" id="badge-pedidos">0</span>
+      </button>
+      <button class="nav-item" id="nav-clientes" onclick="showSection('clientes')">
+        <span class="nav-icon">👤</span> Clientes
+      </button>
+      <button class="nav-item" onclick="showSection('produccion')">
+        <span class="nav-icon">🧵</span> Producción
+        <span class="nav-badge" id="badge-produccion">0</span>
+      </button>
+      <div class="nav-section-label">Seguimiento</div>
+      <button class="nav-item" onclick="showSection('envios')">
+        <span class="nav-icon">🚚</span> Envíos
+        <span class="nav-badge" id="badge-envios">0</span>
+      </button>
+      <button class="nav-item" onclick="showSection('calendario')">
+        <span class="nav-icon">📅</span> Entregas próximas
+      </button>
+      <button class="nav-item" id="nav-finanzas" onclick="showSection('finanzas')">
+        <span class="nav-icon">💰</span> Finanzas
+      </button>
+      <div class="nav-section-label" id="admin-section" style="display:none;">Administración</div>
+      <button class="nav-item" id="btn-informes" onclick="showSection('informes')" style="display:none;">
+        <span class="nav-icon">📊</span> Informes Excel
+      </button>
+      <button class="nav-item" id="btn-equipo" onclick="showSection('equipo')" style="display:none;">
+        <span class="nav-icon">👥</span> Equipo
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="handleLogout()">🚪 Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <!-- Header -->
+    <header class="page-header">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button id="mobile-menu-btn" onclick="openSidebar()">☰</button>
+        <div class="page-title">
+          <h1 id="page-title-text">Inicio</h1>
+          <p id="page-subtitle-text">Bienvenida al CRM de Lana Rosa Crochet 🌸</p>
+        </div>
+      </div>
+      <div style="font-size:0.78rem;color:var(--texto-medio);" id="header-date"></div>
+    </header>
+
+    <div class="page-content">
+      <!-- ─── DASHBOARD ─── -->
+      <section class="page-section active" id="section-dashboard">
+        <div class="rosina-tip">
+          <div class="rosina-tip-icon">🐑</div>
+          <p><strong>Tip de Rosina:</strong> Aquí puedes ver un resumen rápido de todo lo que está pasando en Lana Rosa. ¡Que fluya el tejido! 🌸</p>
+        </div>
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card-icon pink">📦</div>
+            <h3 id="stat-total">0</h3>
+            <p>Total de pedidos</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon light-pink">🧵</div>
+            <h3 id="stat-proceso">0</h3>
+            <p>En proceso</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon steel">✅</div>
+            <h3 id="stat-listos">0</h3>
+            <p>Listos para entrega</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon green">🎁</div>
+            <h3 id="stat-entregados">0</h3>
+            <p>Entregados</p>
+          </div>
+          <div class="stat-card" id="card-clientes">
+            <div class="stat-card-icon pink">👤</div>
+            <h3 id="stat-clientes">0</h3>
+            <p>Clientes registrados</p>
+          </div>
+          <div class="stat-card" id="card-ingresos">
+            <div class="stat-card-icon green">💰</div>
+            <h3 id="stat-ingresos">$0</h3>
+            <p>Ingresos totales</p>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-card-header">
+            <h2>📋 Pedidos recientes</h2>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Cliente</th>
+                  <th>Descripción</th>
+                  <th>Estado</th>
+                  <th>Entrega</th>
+                  <th>Valor</th>
+                </tr>
+              </thead>
+              <tbody id="tb-recientes">
+                <tr><td colspan="5"><div class="loading-spinner"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── PEDIDOS ─── -->
+      <section class="page-section" id="section-pedidos">
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="filterPedidos('todos')">Todos</button>
+          <button class="tab-btn" onclick="filterPedidos('en proceso')">En proceso</button>
+          <button class="tab-btn" onclick="filterPedidos('listo')">Listos</button>
+          <button class="tab-btn" onclick="filterPedidos('entregado')">Entregados</button>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header">
+            <h2>📦 Pedidos</h2>
+            <div class="table-actions">
+              <input class="search-input" type="text" placeholder="🔍 Buscar pedido..." oninput="searchPedidos(this.value)" />
+              <div class="filter-row" id="filter-tejedora-row">
+                <select class="filter-select" id="filter-tejedora" onchange="loadPedidos()">
+                  <option value="">Todas las tejedoras</option>
+                </select>
+              </div>
+              <button class="btn-add" id="btn-nuevo-pedido" onclick="openModalPedido()">+ Nuevo pedido</button>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Cliente</th>
+                  <th>Descripción</th>
+                  <th>Ref.</th>
+                  <th>Tejedora</th>
+                  <th>Estado</th>
+                  <th>Entrega</th>
+                  <th>Valor</th>
+                  <th>Pago</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="tb-pedidos">
+                <tr><td colspan="9"><div class="loading-spinner"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="pagination-pedidos"></div>
+        </div>
+      </section>
+
+      <!-- ─── CLIENTES ─── -->
+      <section class="page-section" id="section-clientes">
+        <div class="table-card">
+          <div class="table-card-header">
+            <h2>👤 Clientes</h2>
+            <div class="table-actions">
+              <input class="search-input" type="text" placeholder="🔍 Buscar cliente..." oninput="searchClientes(this.value)" />
+              <button class="btn-add" onclick="openModalCliente()">+ Nuevo cliente</button>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Canal</th>
+                  <th>Ciudad</th>
+                  <th>Cómo llegó</th>
+                  <th>Pedidos</th>
+                  <th>Recompra</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="tb-clientes">
+                <tr><td colspan="7"><div class="loading-spinner"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── ENTREGAS PRÓXIMAS ─── -->
+      <section class="page-section" id="section-calendario">
+        <div class="rosina-tip">
+          <div class="rosina-tip-icon">🐑</div>
+          <p><strong>Tip de Rosina:</strong> Aquí ves todos los pedidos con fechas de entrega próximas. ¡No dejes que se pasen los plazos!</p>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h2>📅 Próximas entregas (30 días)</h2></div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr><th>Cliente</th><th>Descripción</th><th>Tejedora</th><th>Estado</th><th>Fecha entrega</th><th>Días restantes</th></tr>
+              </thead>
+              <tbody id="tb-calendario">
+                <tr><td colspan="6"><div class="loading-spinner"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── FINANZAS ─── -->
+      <section class="page-section" id="section-finanzas">
+        <div class="stats-grid" style="margin-bottom:24px;">
+          <div class="stat-card">
+            <div class="stat-card-icon green">💵</div>
+            <h3 id="fin-total">$0</h3>
+            <p>Ingresos totales</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon pink">✅</div>
+            <h3 id="fin-cobrado">$0</h3>
+            <p>Total cobrado</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon light-pink">⏳</div>
+            <h3 id="fin-pendiente">$0</h3>
+            <p>Saldo pendiente</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon steel">📊</div>
+            <h3 id="fin-promedio">$0</h3>
+            <p>Valor promedio pedido</p>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-card-header"><h2>💰 Detalle financiero</h2></div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr><th>Cliente</th><th>Descripción</th><th>Valor total</th><th>Anticipo</th><th>Saldo</th><th>Método de pago</th><th>Estado</th></tr>
+              </thead>
+              <tbody id="tb-finanzas">
+                <tr><td colspan="7"><div class="loading-spinner"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── INFORMES ─── -->
+      <section class="page-section" id="section-informes">
+        <div class="rosina-tip">
+          <div class="rosina-tip-icon">🐑</div>
+          <p><strong>Tip de Rosina:</strong> Descarga los informes en Excel para llevar el control del negocio. Los datos siempre están actualizados al momento de descargar. 📊</p>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;">
+
+          <!-- Clientes -->
+          <div class="config-card" style="border:1.5px solid var(--borde);">
+            <div style="font-size:32px;margin-bottom:10px;">👤</div>
+            <h2 style="margin-bottom:6px;">Base de clientes</h2>
+            <p style="font-size:0.8rem;color:var(--texto-medio);margin-bottom:16px;line-height:1.5;">Nombre, teléfono, correo, cédula, ciudad, dirección, canal, cómo llegó, número de pedidos.</p>
+            <button class="btn-primary" onclick="exportarExcel('clientes')">⬇️ Descargar Excel</button>
+          </div>
+
+          <!-- Ventas mensuales -->
+          <div class="config-card" style="border:1.5px solid var(--borde);">
+            <div style="font-size:32px;margin-bottom:10px;">💰</div>
+            <h2 style="margin-bottom:6px;">Ventas mensuales</h2>
+            <p style="font-size:0.8rem;color:var(--texto-medio);margin-bottom:16px;line-height:1.5;">Pedidos agrupados por mes con total de ingresos, anticipo cobrado y saldo pendiente.</p>
+            <button class="btn-primary" onclick="exportarExcel('ventas_mensuales')">⬇️ Descargar Excel</button>
+          </div>
+
+          <!-- Todos los pedidos -->
+          <div class="config-card" style="border:1.5px solid var(--borde);">
+            <div style="font-size:32px;margin-bottom:10px;">📦</div>
+            <h2 style="margin-bottom:6px;">Todos los pedidos</h2>
+            <p style="font-size:0.8rem;color:var(--texto-medio);margin-bottom:16px;line-height:1.5;">Historial completo: número, cliente, descripción, tejedora, estado, valor, anticipo, fechas.</p>
+            <button class="btn-primary" onclick="exportarExcel('pedidos')">⬇️ Descargar Excel</button>
+          </div>
+
+          <!-- Producción -->
+          <div class="config-card" style="border:1.5px solid var(--borde);">
+            <div style="font-size:32px;margin-bottom:10px;">🧵</div>
+            <h2 style="margin-bottom:6px;">Tiempos de producción</h2>
+            <p style="font-size:0.8rem;color:var(--texto-medio);margin-bottom:16px;line-height:1.5;">Pedido, tejedora, tiempo de tejido, tiempo de detalles y pasos completados.</p>
+            <button class="btn-primary" onclick="exportarExcel('produccion')">⬇️ Descargar Excel</button>
+          </div>
+
+          <!-- Envíos -->
+          <div class="config-card" style="border:1.5px solid var(--borde);">
+            <div style="font-size:32px;margin-bottom:10px;">🚚</div>
+            <h2 style="margin-bottom:6px;">Envíos</h2>
+            <p style="font-size:0.8rem;color:var(--texto-medio);margin-bottom:16px;line-height:1.5;">Pedido, cliente, dirección, transportadora, número de guía, estado de entrega.</p>
+            <button class="btn-primary" onclick="exportarExcel('envios')">⬇️ Descargar Excel</button>
+          </div>
+
+          <!-- Saldos pendientes -->
+          <div class="config-card" style="border:1.5px solid var(--borde);">
+            <div style="font-size:32px;margin-bottom:10px;">⏳</div>
+            <h2 style="margin-bottom:6px;">Saldos pendientes</h2>
+            <p style="font-size:0.8rem;color:var(--texto-medio);margin-bottom:16px;line-height:1.5;">Solo pedidos con saldo sin cobrar: cliente, valor total, anticipo y saldo pendiente.</p>
+            <button class="btn-primary" onclick="exportarExcel('saldos')">⬇️ Descargar Excel</button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ─── EQUIPO (admin only) ─── -->
+      <section class="page-section" id="section-equipo">
+        <div class="config-card">
+          <h2>👥 Usuarios del equipo</h2>
+          <div id="equipo-list"><div class="loading-spinner"></div></div>
+        </div>
+      </section>
+
+      <!-- ─── ENVÍOS ─── -->
+      <section class="page-section" id="section-envios">
+        <div class="rosina-tip">
+          <div class="rosina-tip-icon">🐑</div>
+          <p><strong>Tip de Rosina:</strong> Aquí aparecen los pedidos listos para enviar. Registra la transportadora, sube la guía y confirma la entrega cuando llegue al cliente. 📦</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" style="margin-bottom:20px;">
+          <div class="stat-card">
+            <div class="stat-card-icon light-pink">📦</div>
+            <h3 id="env-stat-listos">0</h3>
+            <p>Listos para enviar</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon steel">🚚</div>
+            <h3 id="env-stat-en-camino">0</h3>
+            <p>En camino</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon green">✅</div>
+            <h3 id="env-stat-entregados">0</h3>
+            <p>Entregados</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon pink">🏪</div>
+            <h3 id="env-stat-recogida">0</h3>
+            <p>Recogida en tienda</p>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-bar" id="env-tabs">
+          <button class="tab-btn active" onclick="filterEnvios('listos')">📦 Listos</button>
+          <button class="tab-btn" onclick="filterEnvios('en_camino')">🚚 En camino</button>
+          <button class="tab-btn" onclick="filterEnvios('entregado')">✅ Entregados</button>
+          <button class="tab-btn" onclick="filterEnvios('todos')">Todos</button>
+        </div>
+
+        <div class="table-card">
+          <div class="table-card-header">
+            <h2 id="env-table-title">📦 Listos para enviar</h2>
+          </div>
+          <div id="env-lista"></div>
+        </div>
+      </section>
+
+      <!-- ─── PRODUCCIÓN ─── -->
+      <section class="page-section" id="section-produccion">
+
+        <!-- Selector de pedido activo -->
+        <div id="prod-selector">
+          <div class="rosina-tip">
+            <div class="rosina-tip-icon">🐑</div>
+            <p><strong>Tip de Rosina:</strong> Selecciona un pedido para comenzar. Los pasos deben completarse en orden — cada uno importa para la calidad final. ✨</p>
+          </div>
+          <div id="prod-pedidos-lista"></div>
+        </div>
+
+        <!-- Estación de trabajo -->
+        <div id="prod-estacion" style="display:none;">
+
+          <!-- Header pedido activo -->
+          <div style="background:linear-gradient(135deg,var(--rosa-medio),#ffb3e0);border-radius:var(--radius);padding:18px 20px;margin-bottom:20px;color:white;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div id="prod-header-img-wrap" style="display:none;flex-shrink:0;">
+                <img id="prod-header-img" src="" style="width:52px;height:52px;border-radius:10px;object-fit:cover;border:2px solid rgba(255,255,255,0.6);cursor:pointer;" onclick="openImagePreview(this.src)" />
+              </div>
+              <div>
+                <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:.8;">Pedido activo</div>
+                <div style="font-size:1.1rem;font-weight:700;margin-top:2px;" id="prod-header-titulo">—</div>
+                <div style="font-size:0.8rem;opacity:.85;margin-top:2px;" id="prod-header-cliente">—</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="background:rgba(255,255,255,.2);border-radius:8px;padding:8px 14px;text-align:center;">
+                <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;opacity:.8;">Entrega</div>
+                <div style="font-size:0.9rem;font-weight:700;" id="prod-header-fecha">—</div>
+              </div>
+              <button onclick="cerrarEstacion()" style="background:rgba(255,255,255,.2);border:none;border-radius:8px;color:white;padding:8px 12px;cursor:pointer;font-size:0.8rem;font-weight:600;">← Volver</button>
+            </div>
+          </div>
+
+          <!-- Progreso general -->
+          <div style="background:var(--blanco);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;border:1px solid var(--borde);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <span style="font-size:0.82rem;font-weight:600;color:var(--texto-oscuro);">Progreso del pedido</span>
+              <span style="font-size:0.82rem;font-weight:700;color:var(--rosa-principal);" id="prod-progreso-pct">0%</span>
+            </div>
+            <div style="background:var(--rosa-suave);border-radius:20px;height:10px;overflow:hidden;">
+              <div id="prod-progreso-bar" style="height:100%;background:linear-gradient(90deg,var(--rosa-principal),var(--rosa-medio));border-radius:20px;transition:width .5s ease;width:0%;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:8px;">
+              <span style="font-size:0.7rem;color:var(--texto-medio);" id="prod-pasos-completados">0 de 7 pasos</span>
+              <span style="font-size:0.7rem;color:var(--texto-medio);">Tiempo total: <strong id="prod-tiempo-total">00:00:00</strong></span>
+            </div>
+          </div>
+
+          <!-- Pasos -->
+          <div id="prod-pasos-lista"></div>
+
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- ═══════════════ MODAL PEDIDO ═══════════════ -->
+<div class="modal-overlay" id="modal-pedido">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-pedido-title">Nuevo pedido</h2>
+      <button class="modal-close" onclick="closeModal('modal-pedido')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pedido-id" />
+
+      <div class="section-label-modal">👤 Cliente</div>
+      <div class="form-group">
+        <label>Cliente *</label>
+        <select id="pedido-cliente" required>
+          <option value="">Selecciona un cliente...</option>
+        </select>
+      </div>
+
+      <hr class="section-divider"/>
+      <div class="section-label-modal">📦 Descripción del pedido</div>
+      <div class="form-group">
+        <label>Tipo de pieza *</label>
+        <select id="pedido-tipo">
+          <option value="Amigurumi personalizado">Amigurumi personalizado</option>
+          <option value="Peluche">Peluche</option>
+          <option value="Llavero">Llavero</option>
+          <option value="Accesorio">Accesorio</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Descripción / detalles específicos *</label>
+        <textarea id="pedido-descripcion" placeholder="Color de ojos, gafas, ropa, accesorios, tamaño, etc."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Ocasión del regalo</label>
+        <select id="pedido-ocasion">
+          <option value="">Sin especificar</option>
+          <option value="Cumpleaños">Cumpleaños</option>
+          <option value="Amor y amistad">Amor y amistad</option>
+          <option value="Grado">Grado</option>
+          <option value="Navidad">Navidad</option>
+          <option value="Día de la madre">Día de la madre</option>
+          <option value="Aniversario">Aniversario</option>
+          <option value="Sin ocasión especial">Sin ocasión especial</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Para quién es el regalo</label>
+          <input type="text" id="pedido-para-quien" placeholder="Nombre del receptor" />
+        </div>
+        <div class="form-group">
+          <label>Tamaño</label>
+          <select id="pedido-tamano">
+            <option value="">Sin especificar</option>
+            <option value="Pequeño (10–15 cm)">Pequeño (10–15 cm)</option>
+            <option value="Mediano (15–25 cm)">Mediano (15–25 cm)</option>
+            <option value="Grande (25–35 cm)">Grande (25–35 cm)</option>
+            <option value="Personalizado">Personalizado</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Mensaje para tarjeta personalizada</label>
+        <textarea id="pedido-mensaje" placeholder="Texto que irá en la tarjeta de regalo..." style="min-height:60px;"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>🖼️ Imagen de referencia</label>
+        <div class="upload-zone" id="upload-zone"
+          ondragover="event.preventDefault(); this.classList.add('drag-over')"
+          ondragleave="this.classList.remove('drag-over')"
+          ondrop="handleDrop(event)">
+          <input type="file" id="pedido-imagen" accept="image/*" onchange="handleImageSelect(event)" />
+          <div id="upload-placeholder">
+            <div class="upload-icon">📷</div>
+            <div class="upload-text"><strong>Haz clic</strong> o arrastra aquí la imagen de referencia</div>
+            <div class="upload-text" style="font-size:0.72rem;margin-top:4px;">PNG, JPG, WEBP — máx 5 MB</div>
+          </div>
+          <div id="upload-preview-container" style="display:none;"></div>
+        </div>
+      </div>
+
+      <hr class="section-divider"/>
+      <div class="section-label-modal">👩‍🎨 Tejedora responsable</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tejedora asignada</label>
+          <select id="pedido-tejedora">
+            <option value="">Sin asignar</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Estado del pedido</label>
+          <select id="pedido-estado">
+            <option value="en proceso">En proceso</option>
+            <option value="en produccion">En producción</option>
+            <option value="listo">Listo para entrega</option>
+            <option value="enviado">Enviado</option>
+            <option value="entregado">Entregado</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
+        </div>
+      </div>
+
+      <hr class="section-divider"/>
+      <div class="section-label-modal">💰 Información financiera</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Precio total (COP) *</label>
+          <input type="number" id="pedido-precio" placeholder="120000" min="0" />
+        </div>
+        <div class="form-group">
+          <label>Anticipo recibido (COP)</label>
+          <input type="number" id="pedido-anticipo" placeholder="60000" min="0" value="0" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Método de pago</label>
+          <select id="pedido-metodo-pago">
+            <option value="Nequi">Nequi</option>
+            <option value="Bancolombia">Bancolombia / PSE</option>
+            <option value="Efectivo">Efectivo</option>
+            <option value="Daviplata">Daviplata</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Fecha de entrega prometida *</label>
+          <input type="date" id="pedido-fecha-entrega" />
+        </div>
+      </div>
+
+      <hr class="section-divider"/>
+      <div class="section-label-modal">📝 Notas internas</div>
+      <div class="form-group">
+        <label>Notas del pedido</label>
+        <textarea id="pedido-notas" placeholder="Comentarios internos, reacciones del cliente, detalles importantes..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>¿Compartió en redes?</label>
+          <select id="pedido-compartio">
+            <option value="false">No</option>
+            <option value="true">Sí</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>¿Recomendó la marca?</label>
+          <select id="pedido-recomendo">
+            <option value="false">No</option>
+            <option value="true">Sí</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('modal-pedido')">Cancelar</button>
+      <button class="btn-save" id="btn-save-pedido" onclick="savePedido()">💾 Guardar pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL CLIENTE ═══════════════ -->
+<div class="modal-overlay" id="modal-cliente">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-cliente-title">Nuevo cliente</h2>
+      <button class="modal-close" onclick="closeModal('modal-cliente')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cliente-id" />
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nombre completo *</label>
+          <input type="text" id="cliente-nombre" placeholder="Sara Gómez" />
+        </div>
+        <div class="form-group">
+          <label>Teléfono / WhatsApp</label>
+          <input type="text" id="cliente-telefono" placeholder="+57 300 000 0000" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Canal de contacto *</label>
+        <select id="cliente-canal">
+          <option value="instagram">Instagram</option>
+          <option value="facebook">Facebook</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="presencial">Presencial</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Usuario en redes (opcional)</label>
+        <input type="text" id="cliente-usuario-redes" placeholder="@nombre_usuario" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Ciudad</label>
+          <input type="text" id="cliente-ciudad" placeholder="Manizales" />
+        </div>
+        <div class="form-group">
+          <label>Cómo llegó a la marca</label>
+          <select id="cliente-como-llego">
+            <option value="Instagram">Instagram</option>
+            <option value="Facebook">Facebook</option>
+            <option value="Referido">Referido / voz a voz</option>
+            <option value="TikTok">TikTok</option>
+            <option value="Feria">Feria / evento</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Correo electrónico</label>
+          <input type="email" id="cliente-email" placeholder="correo@gmail.com" />
+        </div>
+        <div class="form-group">
+          <label>Cédula / Documento</label>
+          <input type="text" id="cliente-cedula" placeholder="1234567890" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Dirección de envío</label>
+        <input type="text" id="cliente-direccion" placeholder="Calle 10 # 5-23, Apto 401" />
+      </div>
+      <div class="form-group">
+        <label>Barrio / Municipio de entrega</label>
+        <input type="text" id="cliente-barrio" placeholder="La Enea, Villamaría..." />
+      </div>
+      <div class="form-group">
+        <label>Notas del cliente</label>
+        <textarea id="cliente-notas" placeholder="Preferencias, detalles importantes, historial de relación..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('modal-cliente')">Cancelar</button>
+      <button class="btn-save" id="btn-save-cliente" onclick="saveCliente()">💾 Guardar cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DETAIL PANEL ═══════════════ -->
+<div class="detail-overlay" id="detail-overlay" onclick="closeDetailPanel()">
+  <div class="detail-panel" onclick="event.stopPropagation()">
+    <div class="detail-panel-header">
+      <h2 id="detail-title">Detalle del pedido</h2>
+      <button class="modal-close" onclick="closeDetailPanel()">✕</button>
+    </div>
+    <div class="detail-panel-body" id="detail-body"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ BOTTOM NAV ═══════════════ -->
+<nav class="bottom-nav" id="bottom-nav" style="display:none;">
+  <button class="bottom-nav-item active" onclick="showSection('dashboard')" data-section="dashboard">
+    <span class="bottom-nav-icon">🏠</span>
+    <span class="bottom-nav-label">Inicio</span>
+  </button>
+  <button class="bottom-nav-item" onclick="showSection('pedidos')" data-section="pedidos">
+    <span class="bottom-nav-icon">📦</span>
+    <span class="bottom-nav-label">Pedidos</span>
+    <span class="bottom-nav-badge" id="bnav-badge" style="display:none;">0</span>
+  </button>
+  <button class="bottom-nav-item" id="bnav-clientes" onclick="showSection('clientes')" data-section="clientes">
+    <span class="bottom-nav-icon">👤</span>
+    <span class="bottom-nav-label">Clientes</span>
+  </button>
+  <button class="bottom-nav-item" onclick="showSection('envios')" data-section="envios">
+    <span class="bottom-nav-icon">🚚</span>
+    <span class="bottom-nav-label">Envíos</span>
+  </button>
+  <button class="bottom-nav-item" onclick="showSection('calendario')" data-section="calendario">
+    <span class="bottom-nav-icon">📅</span>
+    <span class="bottom-nav-label">Entregas</span>
+  </button>
+  <button class="bottom-nav-item" id="bnav-finanzas" onclick="showSection('finanzas')" data-section="finanzas">
+    <span class="bottom-nav-icon">💰</span>
+    <span class="bottom-nav-label">Finanzas</span>
+  </button>
+  <button class="bottom-nav-item" onclick="showSection('produccion')" data-section="produccion">
+    <span class="bottom-nav-icon">🧵</span>
+    <span class="bottom-nav-label">Producción</span>
+  </button>
+</nav>
+
+<!-- ═══════════════ PAUSA ACTIVA ═══════════════ -->
+<div class="pausa-overlay" id="pausa-overlay">
+  <div class="pausa-modal">
+    <div class="pausa-gif">🐑</div>
+    <div class="pausa-titulo">¡Pausa Activa!</div>
+    <div class="pausa-sub">Llevas 60 minutos tejiendo. Tu cuerpo necesita moverse. ¡Tómate 3 minutos! 🌸</div>
+    <div class="pausa-ejercicios">
+      <div class="pausa-ej">
+        <div class="pausa-ej-icon">🙆‍♀️</div>
+        <div>Estira los brazos hacia arriba</div>
+      </div>
+      <div class="pausa-ej">
+        <div class="pausa-ej-icon">🤲</div>
+        <div>Gira las muñecas 10 veces</div>
+      </div>
+      <div class="pausa-ej">
+        <div class="pausa-ej-icon">👀</div>
+        <div>Mira lejos por 20 segundos</div>
+      </div>
+      <div class="pausa-ej">
+        <div class="pausa-ej-icon">🧘‍♀️</div>
+        <div>Respira profundo 5 veces</div>
+      </div>
+    </div>
+    <div class="pausa-timer-display" id="pausa-countdown">3:00</div>
+    <button class="btn-pausa-close" onclick="cerrarPausa()">¡Ya descansé! Continuar →</button>
+  </div>
+</div>
+
+<!-- ═══════════════ TOAST ═══════════════ -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+//  CONFIGURACIÓN & SUPABASE
+// ══════════════════════════════════════════════════════════
+let supabase_client = null;
+let currentUser     = null;
+let currentProfile  = null;
+let pedidosFilter   = 'todos';
+let pedidosSearch   = '';
+let clientesSearch  = '';
+let imageFile       = null;
+let editingPedidoId = null;
+let editingClienteId = null;
+
+function getConfig() {
+  return {
+    url: localStorage.getItem('sb_url') || '',
+    key: localStorage.getItem('sb_key') || ''
+  };
+}
+
+function initSupabase() {
+  const cfg = getConfig();
+  if (!cfg.url || !cfg.key) return false;
+  try {
+    supabase_client = supabase.createClient(cfg.url, cfg.key);
+    return true;
+  } catch(e) { return false; }
+}
+
+function saveConfig() {
+  const url = document.getElementById('setup-url').value.trim();
+  const key = document.getElementById('setup-key').value.trim();
+  const err = document.getElementById('setup-error');
+  if (!url || !key) { showSetupError('Por favor completa ambos campos.'); return; }
+  if (!url.startsWith('https://')) { showSetupError('La URL debe comenzar con https://'); return; }
+  localStorage.setItem('sb_url', url);
+  localStorage.setItem('sb_key', key);
+  if (!initSupabase()) { showSetupError('No se pudo conectar. Verifica las credenciales.'); return; }
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('auth-screen').style.display  = 'flex';
+}
+
+function showSetupError(msg) {
+  const el = document.getElementById('setup-error');
+  el.textContent = msg; el.classList.add('show');
+}
+function showSetup() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'flex';
+}
+
+// ══════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', async () => {
+  // Date header
+  const now = new Date();
+  document.getElementById('header-date').textContent =
+    now.toLocaleDateString('es-CO', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  const ok = initSupabase();
+  if (!ok) {
+    document.getElementById('setup-screen').style.display = 'flex';
+    return;
+  }
+
+  // Check session
+  const { data: { session } } = await supabase_client.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    await loadProfile();
+    showApp();
+  } else {
+    document.getElementById('auth-screen').style.display = 'flex';
+  }
+});
+
+// ══════════════════════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════════════════════
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', i === (tab==='login'?0:1)));
+  document.getElementById('login-form').style.display    = tab === 'login'    ? 'block' : 'none';
+  document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('auth-error').classList.remove('show');
+}
+
+async function handleLogin() {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const btn      = document.getElementById('btn-login');
+  if (!email || !password) { showAuthError('Completa todos los campos.'); return; }
+  btn.disabled = true; btn.textContent = 'Ingresando...';
+  const { data, error } = await supabase_client.auth.signInWithPassword({ email, password });
+  btn.disabled = false; btn.textContent = 'Ingresar';
+  if (error) { showAuthError(error.message); return; }
+  currentUser = data.user;
+  await loadProfile();
+  document.getElementById('auth-screen').style.display = 'none';
+  showApp();
+}
+
+async function handleRegister() {
+  const name     = document.getElementById('reg-name').value.trim();
+  const email    = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const role     = document.getElementById('reg-role').value;
+  const btn      = document.getElementById('btn-register');
+  if (!name || !email || !password) { showAuthError('Completa todos los campos.'); return; }
+  btn.disabled = true; btn.textContent = 'Creando cuenta...';
+  const { data, error } = await supabase_client.auth.signUp({ email, password,
+    options: { data: { full_name: name, role } }
+  });
+  btn.disabled = false; btn.textContent = 'Crear cuenta';
+  if (error) { showAuthError(error.message); return; }
+  // Insert profile
+  if (data.user) {
+    await supabase_client.from('profiles').upsert({ id: data.user.id, full_name: name, email, role });
+  }
+  showAuthError('¡Cuenta creada! Revisa tu correo para verificar (o inicia sesión si la verificación está desactivada).', 'info');
+}
+
+async function handleLogout() {
+  await supabase_client.auth.signOut();
+  currentUser = null; currentProfile = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('bottom-nav').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+}
+
+function showAuthError(msg, type='error') {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg; el.classList.add('show');
+  if (type !== 'error') el.style.background = '#f0f7ff', el.style.borderColor = '#93c5fd', el.style.color = '#1d4ed8';
+  else el.style = '';
+}
+
+// ══════════════════════════════════════════════════════════
+//  PROFILE
+// ══════════════════════════════════════════════════════════
+async function loadProfile() {
+  if (!currentUser) return;
+  const { data } = await supabase_client.from('profiles').select('*').eq('id', currentUser.id).single();
+  currentProfile = data || { full_name: currentUser.email, role: 'tejedora' };
+}
+
+// ══════════════════════════════════════════════════════════
+//  APP INIT
+// ══════════════════════════════════════════════════════════
+function showApp() {
+  document.getElementById('app').style.display = 'flex';
+  // Show bottom nav (it manages its own visibility via CSS media query)
+  document.getElementById('bottom-nav').style.display = '';
+  const name = currentProfile?.full_name || currentUser?.email || 'Usuario';
+  const role = currentProfile?.role === 'admin' ? 'Administradora' : 'Tejedora';
+  document.getElementById('sidebar-user-name').textContent = name;
+  document.getElementById('sidebar-user-role').textContent = role;
+  if (currentProfile?.role === 'admin') {
+    document.getElementById('admin-section').style.display = 'block';
+    document.getElementById('btn-equipo').style.display    = 'flex';
+    document.getElementById('btn-informes').style.display  = 'flex';
+  } else {
+    // Tejedoras: ocultar Clientes y Finanzas en sidebar y bottom nav
+    const hide = ['nav-clientes','nav-finanzas','bnav-clientes','bnav-finanzas','btn-nuevo-pedido','filter-tejedora-row','card-clientes','card-ingresos'];
+    hide.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+  }
+  loadDashboard();
+  actualizarBadgeProduccion();
+  actualizarBadgeEnvios();
+}
+
+async function actualizarBadgeEnvios() {
+  const { count } = await supabase_client
+    .from('pedidos')
+    .select('id', { count: 'exact', head: true })
+    .eq('estado', 'listo');
+  const badge = document.getElementById('badge-envios');
+  if (badge) badge.textContent = count || 0;
+}
+
+async function actualizarBadgeProduccion() {
+  if (!currentUser) return;
+  const { count } = await supabase_client
+    .from('pedidos')
+    .select('id', { count: 'exact', head: true })
+    .eq('tejedora_id', currentUser.id)
+    .not('estado', 'in', '("entregado","cancelado")');
+  const n = count || 0;
+  const badge = document.getElementById('badge-produccion');
+  if (badge) badge.textContent = n;
+}
+
+// ══════════════════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════════════════
+const sections = {
+  dashboard:   { title: 'Inicio',              subtitle: 'Resumen general del negocio 🌸', load: loadDashboard },
+  pedidos:     { title: 'Pedidos',             subtitle: 'Gestión de todos los pedidos', load: loadPedidos },
+  clientes:    { title: 'Clientes',            subtitle: 'Base de datos de clientes', load: loadClientes },
+  calendario:  { title: 'Próximas entregas',   subtitle: 'Pedidos con fecha de entrega cercana 📅', load: loadCalendario },
+  finanzas:    { title: 'Finanzas',            subtitle: 'Seguimiento de ingresos y pagos 💰', load: loadFinanzas },
+  equipo:      { title: 'Equipo',              subtitle: 'Usuarios registrados', load: loadEquipo },
+  produccion:  { title: 'Producción',          subtitle: 'Estación de trabajo por tejedora 🧵', load: loadProduccion },
+  envios:      { title: 'Envíos',              subtitle: 'Gestión de envíos y entregas 🚚', load: loadEnvios },
+  informes:    { title: 'Informes Excel',      subtitle: 'Descarga reportes del negocio 📊', load: () => {} },
+};
+
+function showSection(name) {
+  // Tejedoras no tienen acceso a clientes ni finanzas
+  if (currentProfile?.role !== 'admin' && (name === 'clientes' || name === 'finanzas')) {
+    showToast('🔒 Solo las administradoras pueden acceder a esta sección', 'error');
+    return;
+  }
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('section-' + name)?.classList.add('active');
+  // Sidebar nav active
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  const navBtns = document.querySelectorAll('.nav-item');
+  navBtns.forEach(b => { if (b.textContent.toLowerCase().includes(name === 'dashboard' ? 'inicio' : name.slice(0,5))) b.classList.add('active'); });
+  // Bottom nav active
+  document.querySelectorAll('.bottom-nav-item').forEach(b => {
+    b.classList.toggle('active', b.dataset.section === name);
+  });
+  const sec = sections[name];
+  if (sec) {
+    document.getElementById('page-title-text').textContent    = sec.title;
+    document.getElementById('page-subtitle-text').textContent = sec.subtitle;
+    sec.load();
+  }
+  closeSidebar();
+}
+
+// MOBILE SIDEBAR
+function openSidebar()  { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('mobile-overlay').classList.add('show'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('mobile-overlay').classList.remove('show'); }
+
+// ══════════════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════════════
+function formatCOP(v) {
+  if (!v && v !== 0) return '—';
+  return '$' + Number(v).toLocaleString('es-CO');
+}
+function formatDate(d) {
+  if (!d) return '—';
+  return new Date(d + 'T12:00:00').toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' });
+}
+function daysUntil(d) {
+  if (!d) return null;
+  const diff = Math.ceil((new Date(d + 'T12:00:00') - new Date()) / 86400000);
+  return diff;
+}
+function badgeEstado(estado) {
+  const map    = { 'en proceso':'badge-proceso', 'en produccion':'badge-produccion-est', 'listo':'badge-listo', 'enviado':'badge-enviado', 'entregado':'badge-entregado', 'cancelado':'badge-cancelado' };
+  const icons  = { 'en proceso':'📋', 'en produccion':'🧵', 'listo':'📦', 'enviado':'🚚', 'entregado':'✅', 'cancelado':'❌' };
+  const labels = { 'en proceso':'En proceso', 'en produccion':'En producción', 'listo':'Listo', 'enviado':'Enviado', 'entregado':'Entregado', 'cancelado':'Cancelado' };
+  return `<span class="badge ${map[estado]||'badge-proceso'}">${icons[estado]||''} ${labels[estado]||estado}</span>`;
+}
+function channelTag(canal) {
+  const map = { instagram:'channel-ig', facebook:'channel-fb', whatsapp:'channel-wa' };
+  const icons = { instagram:'📷', facebook:'👤', whatsapp:'💬', presencial:'🏪', otro:'💡' };
+  return `<span class="channel-tag ${map[canal]||'channel-otro'}">${icons[canal]||'💡'} ${canal}</span>`;
+}
+function initials(name) {
+  if (!name) return '?';
+  return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+}
+
+function showToast(msg, type='info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = (type==='success'?'✅ ':type==='error'?'❌ ':'🌸 ') + msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ══════════════════════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════════════════════
+async function loadDashboard() {
+  const [pedidosRes, clientesRes] = await Promise.all([
+    supabase_client.from('pedidos').select('estado, precio_total, anticipo, fecha_pedido').order('fecha_pedido', { ascending: false }),
+    supabase_client.from('clientes').select('id', { count: 'exact', head: true })
+  ]);
+  const pedidos   = pedidosRes.data || [];
+  const clientes  = clientesRes.count || 0;
+  const total     = pedidos.length;
+  const proceso   = pedidos.filter(p => ['en proceso','en produccion'].includes(p.estado)).length;
+  const listos    = pedidos.filter(p => p.estado === 'listo').length;
+  const entregados= pedidos.filter(p => p.estado === 'entregado').length;
+  const ingresos  = pedidos.reduce((s,p) => s + (Number(p.precio_total)||0), 0);
+
+  document.getElementById('stat-total').textContent     = total;
+  document.getElementById('stat-proceso').textContent   = proceso;
+  document.getElementById('stat-listos').textContent    = listos;
+  document.getElementById('stat-entregados').textContent= entregados;
+  document.getElementById('stat-clientes').textContent  = clientes;
+  document.getElementById('stat-ingresos').textContent  = formatCOP(ingresos);
+  document.getElementById('badge-pedidos').textContent  = proceso + listos;
+  const bnavBadge = document.getElementById('bnav-badge');
+  if (bnavBadge) { bnavBadge.textContent = proceso + listos; bnavBadge.style.display = (proceso+listos)>0 ? 'block' : 'none'; }
+
+  // Recent pedidos
+  const recent = await supabase_client.from('pedidos').select('*, clientes(nombre)').order('fecha_pedido', { ascending: false }).limit(6);
+  const tb = document.getElementById('tb-recientes');
+  if (!recent.data?.length) { tb.innerHTML = '<tr><td colspan="5"><div class="table-empty"><div class="table-empty-icon">🧶</div><p>No hay pedidos aún</p></div></td></tr>'; return; }
+  tb.innerHTML = recent.data.map(p => `
+    <tr>
+      <td><div style="font-size:0.78rem;font-weight:700;color:var(--rosa-principal);">${p.numero_pedido||'—'}</div></td>
+      <td><div class="client-cell"><div class="avatar">${initials(p.clientes?.nombre)}</div><span class="client-cell-name">${p.clientes?.nombre||'—'}</span></div></td>
+      <td>${p.descripcion?.slice(0,40)||'—'}${p.descripcion?.length>40?'…':''}</td>
+      <td>${badgeEstado(p.estado)}</td>
+      <td>${formatDate(p.fecha_entrega)}</td>
+      <td class="price-display">${formatCOP(p.precio_total)}</td>
+    </tr>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+//  PEDIDOS
+// ══════════════════════════════════════════════════════════
+async function loadPedidos() {
+  const tb = document.getElementById('tb-pedidos');
+  tb.innerHTML = '<tr><td colspan="9"><div class="loading-spinner"></div></td></tr>';
+
+  // Load tejedoras for filter
+  await populateTejedorasFilter();
+
+  let q = supabase_client.from('pedidos').select('*, clientes(nombre, canal)').order('fecha_pedido', { ascending: false });
+  if (pedidosFilter === 'en proceso') q = q.in('estado', ['en proceso','en produccion']);
+  else if (pedidosFilter !== 'todos') q = q.eq('estado', pedidosFilter);
+  const tid = document.getElementById('filter-tejedora')?.value;
+  if (tid) q = q.eq('tejedora_id', tid);
+
+  const { data, error } = await q;
+  if (error) { tb.innerHTML = `<tr><td colspan="9">Error: ${error.message}</td></tr>`; return; }
+
+  let rows = data || [];
+  if (pedidosSearch) {
+    const s = pedidosSearch.toLowerCase();
+    rows = rows.filter(p => (p.clientes?.nombre||'').toLowerCase().includes(s) || (p.descripcion||'').toLowerCase().includes(s));
+  }
+
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="9"><div class="table-empty"><div class="table-empty-icon">📦</div><p>No hay pedidos con estos filtros</p></div></td></tr>'; return; }
+
+  // Get tejedoras names
+  const tejedoraIds = [...new Set(rows.filter(p=>p.tejedora_id).map(p=>p.tejedora_id))];
+  let tejedorasMap = {};
+  if (tejedoraIds.length) {
+    const { data: tv } = await supabase_client.from('profiles').select('id, full_name').in('id', tejedoraIds);
+    (tv||[]).forEach(t => tejedorasMap[t.id] = t.full_name);
+  }
+
+  tb.innerHTML = rows.map(p => `
+    <tr onclick="openDetail(${JSON.stringify(p).replace(/"/g,'&quot;')})" style="cursor:pointer;">
+      <td>
+        <div style="font-size:0.78rem;font-weight:700;color:var(--rosa-principal);white-space:nowrap;">${p.numero_pedido || '—'}</div>
+        <div style="font-size:0.65rem;color:var(--texto-medio);">${formatDate(p.fecha_pedido)}</div>
+      </td>
+      <td>
+        <div class="client-cell">
+          <div class="avatar">${initials(p.clientes?.nombre)}</div>
+          <div class="client-cell-info">
+            <div class="client-cell-name">${p.clientes?.nombre||'—'}</div>
+            <div class="client-cell-channel">${channelTag(p.clientes?.canal||'otro')}</div>
+          </div>
+        </div>
+      </td>
+      <td style="max-width:160px;white-space:normal;">${p.tipo||''} ${p.descripcion?.slice(0,50)||''}${(p.descripcion?.length||0)>50?'…':''}</td>
+      <td>${p.imagen_url ? `<img src="${p.imagen_url}" class="ref-thumb" onclick="event.stopPropagation();openImagePreview('${p.imagen_url}')" alt="ref" />` : '<span style="color:var(--texto-medio);font-size:0.75rem;">—</span>'}</td>
+      <td>${tejedorasMap[p.tejedora_id]||'<span style="color:var(--texto-medio);font-size:0.75rem;">Sin asignar</span>'}</td>
+      <td>
+        ${badgeEstado(p.estado)}
+      </td>
+      <td>${formatDate(p.fecha_entrega)}</td>
+      <td class="price-display">${formatCOP(p.precio_total)}</td>
+      <td>
+        <div style="font-size:0.72rem;color:var(--texto-medio);">
+          ${formatCOP(p.anticipo)} anticipo<br>
+          <span style="color:${(p.precio_total-p.anticipo)>0?'#d97706':'#166534'};">${formatCOP(p.precio_total-p.anticipo)} saldo</span>
+        </div>
+      </td>
+      <td>
+        <div style="display:flex;gap:4px;">
+          ${currentProfile?.role === 'admin' ? `
+          <button class="btn-icon" title="Editar" onclick="event.stopPropagation();editPedido('${p.id}')">✏️</button>
+          <button class="btn-icon danger" title="Eliminar" onclick="event.stopPropagation();deletePedido('${p.id}')">🗑️</button>
+          ` : ''}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function filterPedidos(f) {
+  pedidosFilter = f;
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['todos','en proceso','listo','entregado'][i] === f);
+  });
+  loadPedidos();
+}
+
+function searchPedidos(v) { pedidosSearch = v; loadPedidos(); }
+function searchClientes(v) { clientesSearch = v; loadClientes(); }
+
+async function updateEstado(id, estado) {
+  const { error } = await supabase_client.from('pedidos').update({ estado }).eq('id', id);
+  if (error) { showToast('Error al actualizar estado', 'error'); return; }
+  showToast('Estado actualizado ✨', 'success');
+  loadDashboard();
+}
+
+async function deletePedido(id) {
+  if (currentProfile?.role !== 'admin') { showToast('🔒 Solo las administradoras pueden eliminar pedidos', 'error'); return; }
+  if (!confirm('¿Eliminar este pedido? Esta acción no se puede deshacer.')) return;
+  const { error } = await supabase_client.from('pedidos').delete().eq('id', id);
+  if (error) { showToast('Error al eliminar', 'error'); return; }
+  showToast('Pedido eliminado', 'success');
+  loadPedidos(); loadDashboard();
+}
+
+// ══════════════════════════════════════════════════════════
+//  MODAL PEDIDO
+// ══════════════════════════════════════════════════════════
+async function openModalPedido() {
+  if (currentProfile?.role !== 'admin') { showToast('🔒 Solo las administradoras pueden crear pedidos', 'error'); return; }
+  editingPedidoId = null;
+  document.getElementById('modal-pedido-title').textContent = 'Nuevo pedido';
+  document.getElementById('pedido-id').value = '';
+  // Reset fields
+  ['pedido-tipo','pedido-descripcion','pedido-ocasion','pedido-para-quien','pedido-tamano',
+   'pedido-mensaje','pedido-estado','pedido-precio','pedido-anticipo','pedido-metodo-pago',
+   'pedido-fecha-entrega','pedido-notas'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.tagName==='SELECT' ? (el.selectedIndex=0) : (el.value='');
+  });
+  document.getElementById('pedido-anticipo').value = '0';
+  document.getElementById('pedido-compartio').value = 'false';
+  document.getElementById('pedido-recomendo').value = 'false';
+  resetImageUpload();
+  await populateClienteSelect();
+  await populateTejedorasSelect('pedido-tejedora');
+  openModal('modal-pedido');
+}
+
+async function editPedido(id) {
+  if (currentProfile?.role !== 'admin') { showToast('🔒 Solo las administradoras pueden editar pedidos', 'error'); return; }
+  editingPedidoId = id;
+  const { data: p } = await supabase_client.from('pedidos').select('*').eq('id', id).single();
+  if (!p) return;
+  document.getElementById('modal-pedido-title').textContent = 'Editar pedido';
+  document.getElementById('pedido-id').value           = p.id;
+  document.getElementById('pedido-descripcion').value  = p.descripcion || '';
+  document.getElementById('pedido-ocasion').value      = p.ocasion     || '';
+  document.getElementById('pedido-para-quien').value   = p.para_quien  || '';
+  document.getElementById('pedido-tamano').value       = p.tamano      || '';
+  document.getElementById('pedido-mensaje').value      = p.mensaje_tarjeta || '';
+  document.getElementById('pedido-estado').value       = p.estado      || 'en proceso';
+  document.getElementById('pedido-precio').value       = p.precio_total || '';
+  document.getElementById('pedido-anticipo').value     = p.anticipo    || 0;
+  document.getElementById('pedido-metodo-pago').value  = p.metodo_pago || 'Nequi';
+  document.getElementById('pedido-fecha-entrega').value= p.fecha_entrega || '';
+  document.getElementById('pedido-notas').value        = p.notas       || '';
+  document.getElementById('pedido-compartio').value    = String(p.compartio_redes || false);
+  document.getElementById('pedido-recomendo').value    = String(p.recomendo || false);
+  await populateClienteSelect(p.cliente_id);
+  await populateTejedorasSelect('pedido-tejedora', p.tejedora_id);
+  // Tipo
+  const tipoSel = document.getElementById('pedido-tipo');
+  tipoSel.value = p.tipo || 'Amigurumi personalizado';
+  // Image
+  resetImageUpload();
+  if (p.imagen_url) {
+    document.getElementById('upload-placeholder').style.display = 'none';
+    document.getElementById('upload-preview-container').style.display = 'block';
+    document.getElementById('upload-preview-container').innerHTML =
+      `<div class="upload-preview"><img src="${p.imagen_url}" /><button class="upload-preview-remove" onclick="resetImageUpload()">✕</button></div>`;
+  }
+  openModal('modal-pedido');
+}
+
+async function savePedido() {
+  const btn = document.getElementById('btn-save-pedido');
+  btn.disabled = true; btn.textContent = '⏳ Guardando...';
+
+  const clienteId   = document.getElementById('pedido-cliente').value;
+  const descripcion = document.getElementById('pedido-descripcion').value.trim();
+  const precio      = parseFloat(document.getElementById('pedido-precio').value) || 0;
+  const entrega     = document.getElementById('pedido-fecha-entrega').value;
+
+  if (!clienteId || !descripcion || !precio || !entrega) {
+    showToast('Completa los campos obligatorios *', 'error');
+    btn.disabled = false; btn.textContent = '💾 Guardar pedido'; return;
+  }
+
+  let imagen_url = null;
+  // Upload image if new
+  if (imageFile) {
+    const ext  = imageFile.name.split('.').pop();
+    const path = `referencias/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error: upErr } = await supabase_client.storage.from('pedidos-imagenes').upload(path, imageFile, { upsert: true });
+    if (!upErr) {
+      const { data: urlData } = supabase_client.storage.from('pedidos-imagenes').getPublicUrl(path);
+      imagen_url = urlData.publicUrl;
+    } else {
+      showToast('No se pudo subir la imagen: ' + upErr.message, 'error');
+    }
+  } else if (editingPedidoId) {
+    // Keep existing
+    const { data: existing } = await supabase_client.from('pedidos').select('imagen_url').eq('id', editingPedidoId).single();
+    imagen_url = existing?.imagen_url || null;
+  }
+
+  const payload = {
+    cliente_id:      clienteId,
+    tipo:            document.getElementById('pedido-tipo').value,
+    descripcion,
+    ocasion:         document.getElementById('pedido-ocasion').value,
+    para_quien:      document.getElementById('pedido-para-quien').value,
+    tamano:          document.getElementById('pedido-tamano').value,
+    mensaje_tarjeta: document.getElementById('pedido-mensaje').value,
+    tejedora_id:     document.getElementById('pedido-tejedora').value || null,
+    estado:          document.getElementById('pedido-estado').value,
+    precio_total:    precio,
+    anticipo:        parseFloat(document.getElementById('pedido-anticipo').value) || 0,
+    metodo_pago:     document.getElementById('pedido-metodo-pago').value,
+    fecha_entrega:   entrega,
+    notas:           document.getElementById('pedido-notas').value,
+    compartio_redes: document.getElementById('pedido-compartio').value === 'true',
+    recomendo:       document.getElementById('pedido-recomendo').value === 'true',
+    ...(imagen_url !== null ? { imagen_url } : {}),
+  };
+
+  let error;
+  if (editingPedidoId) {
+    ({ error } = await supabase_client.from('pedidos').update(payload).eq('id', editingPedidoId));
+  } else {
+    payload.fecha_pedido = new Date().toISOString().split('T')[0];
+    ({ error } = await supabase_client.from('pedidos').insert(payload));
+  }
+
+  btn.disabled = false; btn.textContent = '💾 Guardar pedido';
+  if (error) { showToast('Error: ' + error.message, 'error'); return; }
+  showToast(editingPedidoId ? 'Pedido actualizado ✨' : 'Pedido creado 🎉', 'success');
+  closeModal('modal-pedido');
+  loadPedidos(); loadDashboard();
+
+}
+
+// ══════════════════════════════════════════════════════════
+//  IMAGE UPLOAD
+// ══════════════════════════════════════════════════════════
+function handleImageSelect(e) {
+  const file = e.target.files[0];
+  if (file) setImagePreview(file);
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) setImagePreview(file);
+}
+function setImagePreview(file) {
+  imageFile = file;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    document.getElementById('upload-placeholder').style.display = 'none';
+    const c = document.getElementById('upload-preview-container');
+    c.style.display = 'block';
+    c.innerHTML = `<div class="upload-preview"><img src="${ev.target.result}" /><button class="upload-preview-remove" onclick="resetImageUpload()">✕</button></div>`;
+  };
+  reader.readAsDataURL(file);
+}
+function resetImageUpload() {
+  imageFile = null;
+  document.getElementById('pedido-imagen').value = '';
+  document.getElementById('upload-placeholder').style.display = 'block';
+  const c = document.getElementById('upload-preview-container');
+  c.style.display = 'none'; c.innerHTML = '';
+}
+function openImagePreview(url) {
+  window.open(url, '_blank');
+}
+
+// ══════════════════════════════════════════════════════════
+//  CLIENTES
+// ══════════════════════════════════════════════════════════
+async function loadClientes() {
+  const tb = document.getElementById('tb-clientes');
+  tb.innerHTML = '<tr><td colspan="7"><div class="loading-spinner"></div></td></tr>';
+  let q = supabase_client.from('clientes').select('*').order('nombre');
+  const { data, error } = await q;
+  if (error) { tb.innerHTML = `<tr><td colspan="7">Error: ${error.message}</td></tr>`; return; }
+
+  let rows = data || [];
+  if (clientesSearch) {
+    const s = clientesSearch.toLowerCase();
+    rows = rows.filter(c => (c.nombre||'').toLowerCase().includes(s) || (c.telefono||'').includes(s));
+  }
+
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="7"><div class="table-empty"><div class="table-empty-icon">👤</div><p>No hay clientes aún</p></div></td></tr>'; return; }
+
+  // Count pedidos per client
+  const ids = rows.map(c=>c.id);
+  const { data: counts } = await supabase_client.from('pedidos').select('cliente_id').in('cliente_id', ids);
+  const countMap = {};
+  (counts||[]).forEach(p => countMap[p.cliente_id] = (countMap[p.cliente_id]||0)+1);
+
+  tb.innerHTML = rows.map(c => `
+    <tr>
+      <td>
+        <div class="client-cell">
+          <div class="avatar">${initials(c.nombre)}</div>
+          <div class="client-cell-info">
+            <div class="client-cell-name">${c.nombre}</div>
+            <div class="client-cell-channel" style="color:var(--texto-medio);font-size:0.72rem;">${c.telefono||'Sin teléfono'}</div>
+          </div>
+        </div>
+      </td>
+      <td>${channelTag(c.canal||'otro')}</td>
+      <td>${c.ciudad||'—'}</td>
+      <td>${c.como_llego||'—'}</td>
+      <td><span style="font-weight:600;color:var(--rosa-principal);">${countMap[c.id]||0}</span></td>
+      <td>${(countMap[c.id]||0)>1?'<span style="color:#166534;font-weight:600;">✅ Sí</span>':'—'}</td>
+      <td>
+        <div style="display:flex;gap:4px;">
+          <button class="btn-icon" onclick="editCliente('${c.id}')">✏️</button>
+          <button class="btn-icon danger" onclick="deleteCliente('${c.id}')">🗑️</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+async function populateClienteSelect(selectedId='') {
+  const { data } = await supabase_client.from('clientes').select('id, nombre').order('nombre');
+  const sel = document.getElementById('pedido-cliente');
+  sel.innerHTML = '<option value="">Selecciona un cliente...</option>' +
+    (data||[]).map(c=>`<option value="${c.id}" ${c.id===selectedId?'selected':''}>${c.nombre}</option>`).join('');
+}
+
+async function openModalCliente() {
+  editingClienteId = null;
+  document.getElementById('modal-cliente-title').textContent = 'Nuevo cliente';
+  document.getElementById('cliente-id').value = '';
+  ['cliente-nombre','cliente-telefono','cliente-email','cliente-cedula','cliente-usuario-redes','cliente-ciudad','cliente-direccion','cliente-barrio','cliente-notas'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  document.getElementById('cliente-canal').selectedIndex = 0;
+  document.getElementById('cliente-como-llego').selectedIndex = 0;
+  openModal('modal-cliente');
+}
+
+async function editCliente(id) {
+  editingClienteId = id;
+  const { data: c } = await supabase_client.from('clientes').select('*').eq('id', id).single();
+  if (!c) return;
+  document.getElementById('modal-cliente-title').textContent = 'Editar cliente';
+  document.getElementById('cliente-id').value            = c.id;
+  document.getElementById('cliente-nombre').value        = c.nombre || '';
+  document.getElementById('cliente-telefono').value      = c.telefono || '';
+  document.getElementById('cliente-canal').value         = c.canal || 'instagram';
+  document.getElementById('cliente-usuario-redes').value = c.usuario_redes || '';
+  document.getElementById('cliente-ciudad').value        = c.ciudad || '';
+  document.getElementById('cliente-como-llego').value    = c.como_llego || 'Instagram';
+  document.getElementById('cliente-email').value         = c.email || '';
+  document.getElementById('cliente-cedula').value        = c.cedula || '';
+  document.getElementById('cliente-direccion').value     = c.direccion || '';
+  document.getElementById('cliente-barrio').value        = c.barrio || '';
+  document.getElementById('cliente-notas').value         = c.notas || '';
+  openModal('modal-cliente');
+}
+
+async function saveCliente() {
+  const btn = document.getElementById('btn-save-cliente');
+  btn.disabled = true; btn.textContent = '⏳ Guardando...';
+  const nombre = document.getElementById('cliente-nombre').value.trim();
+  if (!nombre) { showToast('El nombre es obligatorio', 'error'); btn.disabled=false; btn.textContent='💾 Guardar cliente'; return; }
+  const payload = {
+    nombre,
+    telefono:      document.getElementById('cliente-telefono').value,
+    canal:         document.getElementById('cliente-canal').value,
+    usuario_redes: document.getElementById('cliente-usuario-redes').value,
+    ciudad:        document.getElementById('cliente-ciudad').value,
+    como_llego:    document.getElementById('cliente-como-llego').value,
+    email:         document.getElementById('cliente-email').value,
+    cedula:        document.getElementById('cliente-cedula').value,
+    direccion:     document.getElementById('cliente-direccion').value,
+    barrio:        document.getElementById('cliente-barrio').value,
+    notas:         document.getElementById('cliente-notas').value,
+  };
+  let error;
+  if (editingClienteId) {
+    ({ error } = await supabase_client.from('clientes').update(payload).eq('id', editingClienteId));
+  } else {
+    payload.fecha_primer_contacto = new Date().toISOString().split('T')[0];
+    ({ error } = await supabase_client.from('clientes').insert(payload));
+  }
+  btn.disabled = false; btn.textContent = '💾 Guardar cliente';
+  if (error) { showToast('Error: ' + error.message, 'error'); return; }
+  showToast(editingClienteId ? 'Cliente actualizado ✨' : 'Cliente creado 🎉', 'success');
+  closeModal('modal-cliente');
+  loadClientes();
+}
+
+async function deleteCliente(id) {
+  if (!confirm('¿Eliminar este cliente? Se eliminarán también sus pedidos.')) return;
+  await supabase_client.from('pedidos').delete().eq('cliente_id', id);
+  const { error } = await supabase_client.from('clientes').delete().eq('id', id);
+  if (error) { showToast('Error al eliminar', 'error'); return; }
+  showToast('Cliente eliminado', 'success');
+  loadClientes(); loadDashboard();
+}
+
+// ══════════════════════════════════════════════════════════
+//  TEJEDORAS
+// ══════════════════════════════════════════════════════════
+async function populateTejedorasSelect(selectId, selectedId='') {
+  const { data } = await supabase_client.from('profiles').select('id, full_name').order('full_name');
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Sin asignar</option>' +
+    (data||[]).map(t=>`<option value="${t.id}" ${t.id===(selectedId||current)?'selected':''}>${t.full_name}</option>`).join('');
+}
+
+async function populateTejedorasFilter() {
+  const { data } = await supabase_client.from('profiles').select('id, full_name').order('full_name');
+  const sel = document.getElementById('filter-tejedora');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Todas las tejedoras</option>' +
+    (data||[]).map(t=>`<option value="${t.id}" ${t.id===current?'selected':''}>${t.full_name}</option>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+//  CALENDARIO
+// ══════════════════════════════════════════════════════════
+async function loadCalendario() {
+  const tb = document.getElementById('tb-calendario');
+  const today = new Date().toISOString().split('T')[0];
+  const in30  = new Date(Date.now() + 30*86400000).toISOString().split('T')[0];
+  const { data } = await supabase_client.from('pedidos').select('*, clientes(nombre)')
+    .gte('fecha_entrega', today).lte('fecha_entrega', in30)
+    .not('estado', 'eq', 'entregado').order('fecha_entrega');
+
+  const tejedoraIds = [...new Set((data||[]).filter(p=>p.tejedora_id).map(p=>p.tejedora_id))];
+  let tm = {};
+  if (tejedoraIds.length) {
+    const { data: tv } = await supabase_client.from('profiles').select('id, full_name').in('id', tejedoraIds);
+    (tv||[]).forEach(t => tm[t.id] = t.full_name);
+  }
+
+  if (!data?.length) { tb.innerHTML = '<tr><td colspan="6"><div class="table-empty"><div class="table-empty-icon">🎉</div><p>Sin entregas próximas en los próximos 30 días</p></div></td></tr>'; return; }
+
+  tb.innerHTML = data.map(p => {
+    const days = daysUntil(p.fecha_entrega);
+    const urgency = days <= 2 ? 'color:#dc2626;font-weight:700;' : days <= 7 ? 'color:#d97706;font-weight:600;' : 'color:#166534;';
+    return `<tr>
+      <td><div class="client-cell"><div class="avatar">${initials(p.clientes?.nombre)}</div><span>${p.clientes?.nombre||'—'}</span></div></td>
+      <td>${p.tipo||''}: ${p.descripcion?.slice(0,40)||'—'}${(p.descripcion?.length||0)>40?'…':''}</td>
+      <td>${tm[p.tejedora_id]||'—'}</td>
+      <td>${badgeEstado(p.estado)}</td>
+      <td>${formatDate(p.fecha_entrega)}</td>
+      <td style="${urgency}">${days===0?'¡HOY!':days<0?`Vencido hace ${Math.abs(days)} días`:`${days} días`}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+//  FINANZAS
+// ══════════════════════════════════════════════════════════
+async function loadFinanzas() {
+  const { data } = await supabase_client.from('pedidos').select('*, clientes(nombre)').order('fecha_pedido', { ascending: false });
+  const rows = data || [];
+  const total    = rows.reduce((s,p) => s + (Number(p.precio_total)||0), 0);
+  const cobrado  = rows.reduce((s,p) => s + (Number(p.anticipo)||0), 0);
+  const pendiente= total - cobrado;
+  const promedio = rows.length ? total/rows.length : 0;
+
+  document.getElementById('fin-total').textContent    = formatCOP(total);
+  document.getElementById('fin-cobrado').textContent  = formatCOP(cobrado);
+  document.getElementById('fin-pendiente').textContent= formatCOP(pendiente);
+  document.getElementById('fin-promedio').textContent = formatCOP(Math.round(promedio));
+
+  const tb = document.getElementById('tb-finanzas');
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="7"><div class="table-empty"><div class="table-empty-icon">💰</div><p>No hay datos financieros</p></div></td></tr>'; return; }
+  tb.innerHTML = rows.map(p => {
+    const saldo = (p.precio_total||0) - (p.anticipo||0);
+    return `<tr>
+      <td>${p.clientes?.nombre||'—'}</td>
+      <td>${p.tipo||''} ${p.descripcion?.slice(0,35)||''}${(p.descripcion?.length||0)>35?'…':''}</td>
+      <td class="price-display">${formatCOP(p.precio_total)}</td>
+      <td>${formatCOP(p.anticipo)}</td>
+      <td style="color:${saldo>0?'#d97706':'#166534'};font-weight:600;">${formatCOP(saldo)}</td>
+      <td>${p.metodo_pago||'—'}</td>
+      <td>${badgeEstado(p.estado)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+//  EQUIPO
+// ══════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════
+//  INFORMES EXCEL
+// ══════════════════════════════════════════════════════════
+
+// Genera y descarga un archivo .xlsx sin librerías externas
+// usando el formato XML de Excel (SpreadsheetML)
+function exportarExcel(tipo) {
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = '⏳ Generando...';
+  _generarExcel(tipo).then(() => {
+    btn.disabled = false;
+    btn.textContent = '⬇️ Descargar Excel';
+  }).catch(e => {
+    showToast('Error generando informe: ' + e.message, 'error');
+    btn.disabled = false;
+    btn.textContent = '⬇️ Descargar Excel';
+  });
+}
+
+async function _generarExcel(tipo) {
+  let rows = [];
+  let headers = [];
+  let filename = '';
+
+  if (tipo === 'clientes') {
+    const { data } = await supabase_client
+      .from('clientes')
+      .select('*, pedidos(id)')
+      .order('nombre');
+    headers = ['Nombre','Teléfono','Correo','Cédula','Canal','Usuario redes','Ciudad','Barrio','Dirección','Cómo llegó','N° pedidos','Fecha primer contacto','Notas'];
+    rows = (data||[]).map(c => [
+      c.nombre||'', c.telefono||'', c.email||'', c.cedula||'',
+      c.canal||'', c.usuario_redes||'', c.ciudad||'', c.barrio||'',
+      c.direccion||'', c.como_llego||'',
+      (c.pedidos||[]).length,
+      c.fecha_primer_contacto||'', c.notas||''
+    ]);
+    filename = 'Clientes_LanaRosa';
+  }
+
+  else if (tipo === 'pedidos') {
+    const { data } = await supabase_client
+      .from('pedidos')
+      .select('*, clientes(nombre), tejedora:profiles!pedidos_tejedora_id_fkey(full_name)')
+      .order('fecha_pedido', { ascending: false });
+    headers = ['N° Pedido','Fecha pedido','Cliente','Tejedora','Tipo','Descripción','Ocasión','Para quién','Estado','Valor total','Anticipo','Saldo','Método pago','Fecha entrega','Fecha entrega real','Compartió redes','Recomendó'];
+    rows = (data||[]).map(p => [
+      p.numero_pedido||'', p.fecha_pedido||'',
+      p.clientes?.nombre||'', p.tejedora?.full_name||'',
+      p.tipo||'', p.descripcion||'', p.ocasion||'', p.para_quien||'',
+      p.estado||'',
+      Number(p.precio_total||0), Number(p.anticipo||0),
+      Number(p.precio_total||0)-Number(p.anticipo||0),
+      p.metodo_pago||'', p.fecha_entrega||'', p.fecha_entrega_real||'',
+      p.compartio_redes?'Sí':'No', p.recomendo?'Sí':'No'
+    ]);
+    filename = 'Pedidos_LanaRosa';
+  }
+
+  else if (tipo === 'ventas_mensuales') {
+    const { data } = await supabase_client
+      .from('pedidos')
+      .select('fecha_pedido, precio_total, anticipo, estado')
+      .not('estado', 'eq', 'cancelado')
+      .order('fecha_pedido');
+    // Agrupar por mes
+    const meses = {};
+    (data||[]).forEach(p => {
+      if (!p.fecha_pedido) return;
+      const mes = p.fecha_pedido.slice(0, 7); // YYYY-MM
+      if (!meses[mes]) meses[mes] = { pedidos:0, total:0, anticipo:0, entregados:0 };
+      meses[mes].pedidos++;
+      meses[mes].total    += Number(p.precio_total||0);
+      meses[mes].anticipo += Number(p.anticipo||0);
+      if (p.estado === 'entregado') meses[mes].entregados++;
+    });
+    headers = ['Mes','N° pedidos','Ingresos totales','Anticipo cobrado','Saldo pendiente','Pedidos entregados'];
+    const mesesNombres = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    rows = Object.entries(meses).map(([k,v]) => {
+      const [y, m] = k.split('-');
+      return [`${mesesNombres[parseInt(m)-1]} ${y}`, v.pedidos, v.total, v.anticipo, v.total-v.anticipo, v.entregados];
+    });
+    filename = 'Ventas_Mensuales_LanaRosa';
+  }
+
+  else if (tipo === 'produccion') {
+    const { data } = await supabase_client
+      .from('produccion_progreso')
+      .select('*, pedido:pedidos(numero_pedido,tipo,descripcion,estado), tejedora:profiles(full_name)');
+    headers = ['N° Pedido','Tipo','Descripción','Tejedora','Pasos completados','Tiempo tejido (min)','Tiempo detalles (min)','Tiempo total (min)','Estado pedido'];
+    rows = (data||[]).map(p => {
+      const pasos = Object.values(p.pasos_estado||{}).filter(v=>v==='done').length;
+      const tejMin = Math.round((p.tiempos?.tejido||0)/60);
+      const detMin = Math.round((p.tiempos?.detalles||0)/60);
+      return [
+        p.pedido?.numero_pedido||'', p.pedido?.tipo||'', p.pedido?.descripcion||'',
+        p.tejedora?.full_name||'', pasos+'/8',
+        tejMin, detMin, tejMin+detMin, p.pedido?.estado||''
+      ];
+    });
+    filename = 'Produccion_LanaRosa';
+  }
+
+  else if (tipo === 'envios') {
+    const { data } = await supabase_client
+      .from('pedidos')
+      .select('*, clientes(nombre,telefono,email,cedula,ciudad)')
+      .not('envio_estado', 'is', null)
+      .order('fecha_pedido', { ascending: false });
+    headers = ['N° Pedido','Cliente','Teléfono','Cédula','Ciudad','Dirección envío','Tipo entrega','Transportadora','N° Guía','Estado envío','Fecha entrega','Fecha entrega real'];
+    rows = (data||[]).map(p => [
+      p.numero_pedido||'', p.clientes?.nombre||'', p.clientes?.telefono||'',
+      p.clientes?.cedula||'', p.clientes?.ciudad||'',
+      p.direccion_envio||'', p.tipo_entrega||'', p.transportadora||'',
+      p.numero_guia||'', p.envio_estado||'',
+      p.fecha_entrega||'', p.fecha_entrega_real||''
+    ]);
+    filename = 'Envios_LanaRosa';
+  }
+
+  else if (tipo === 'saldos') {
+    const { data } = await supabase_client
+      .from('pedidos')
+      .select('*, clientes(nombre,telefono,email)')
+      .not('estado', 'in', '("entregado","cancelado")')
+      .order('fecha_entrega');
+    const conSaldo = (data||[]).filter(p => (Number(p.precio_total||0)-Number(p.anticipo||0)) > 0);
+    headers = ['N° Pedido','Cliente','Teléfono','Correo','Valor total','Anticipo cobrado','Saldo pendiente','Fecha entrega','Estado'];
+    rows = conSaldo.map(p => [
+      p.numero_pedido||'', p.clientes?.nombre||'', p.clientes?.telefono||'', p.clientes?.email||'',
+      Number(p.precio_total||0), Number(p.anticipo||0),
+      Number(p.precio_total||0)-Number(p.anticipo||0),
+      p.fecha_entrega||'', p.estado||''
+    ]);
+    filename = 'Saldos_Pendientes_LanaRosa';
+  }
+
+  if (!rows.length && tipo !== 'ventas_mensuales') {
+    showToast('No hay datos para exportar', 'info');
+    return;
+  }
+
+  const fecha = new Date().toISOString().split('T')[0];
+  descargarXLSX(headers, rows, `${filename}_${fecha}`);
+  showToast('✅ Informe descargado', 'success');
+}
+
+function descargarXLSX(headers, rows, filename) {
+  // Genera XML de Excel (SpreadsheetML) — compatible con Excel y Google Sheets
+  const esc = v => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const isNum = v => typeof v === 'number' || (!isNaN(v) && v !== '' && v !== null);
+
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+  xmlns:x="urn:schemas-microsoft-com:office:excel">
+<Styles>
+  <Style ss:ID="header">
+    <Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="11"/>
+    <Interior ss:Color="#D8017C" ss:Pattern="Solid"/>
+    <Alignment ss:Horizontal="Center"/>
+  </Style>
+  <Style ss:ID="num">
+    <NumberFormat ss:Format="#,##0"/>
+  </Style>
+  <Style ss:ID="alt">
+    <Interior ss:Color="#F9DDF4" ss:Pattern="Solid"/>
+  </Style>
+</Styles>
+<Worksheet ss:Name="Datos">
+<Table>`;
+
+  // Header row
+  xml += '<Row>';
+  headers.forEach(h => { xml += `<Cell ss:StyleID="header"><Data ss:Type="String">${esc(h)}</Data></Cell>`; });
+  xml += '</Row>';
+
+  // Data rows
+  rows.forEach((row, ri) => {
+    const style = ri % 2 === 1 ? ' ss:StyleID="alt"' : '';
+    xml += '<Row>';
+    row.forEach(v => {
+      if (isNum(v)) {
+        xml += `<Cell${style} ss:StyleID="num"><Data ss:Type="Number">${Number(v)}</Data></Cell>`;
+      } else {
+        xml += `<Cell${style}><Data ss:Type="String">${esc(v)}</Data></Cell>`;
+      }
+    });
+    xml += '</Row>';
+  });
+
+  xml += '</Table></Worksheet></Workbook>';
+
+  const blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = filename + '.xls';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+async function loadEquipo() {
+  if (currentProfile?.role !== 'admin') return;
+  const { data } = await supabase_client.from('profiles').select('*').order('full_name');
+  const el = document.getElementById('equipo-list');
+  if (!data?.length) { el.innerHTML = '<p style="color:var(--texto-medio);font-size:0.85rem;">No hay usuarios registrados.</p>'; return; }
+  el.innerHTML = `<div style="display:flex;flex-direction:column;gap:10px;">` +
+    data.map(u => `
+      <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--blanco-hueso);border-radius:var(--radius-sm);border:1px solid var(--borde);">
+        <div class="avatar" style="width:40px;height:40px;font-size:0.85rem;">${initials(u.full_name)}</div>
+        <div>
+          <div style="font-weight:600;font-size:0.88rem;">${u.full_name}</div>
+          <div style="font-size:0.75rem;color:var(--texto-medio);">${u.email||'—'} · ${u.role==='admin'?'Administradora':'Tejedora'}</div>
+        </div>
+        <span class="badge ${u.role==='admin'?'badge-listo':'badge-proceso'}" style="margin-left:auto;">${u.role==='admin'?'Admin':'Tejedora'}</span>
+      </div>`).join('') + '</div>';
+}
+
+
+// ══════════════════════════════════════════════════════════
+//  PRODUCCIÓN
+// ══════════════════════════════════════════════════════════
+const PASOS = [
+  { id: 'patron',      icon: '📋', titulo: 'Selección de patrón',    desc: 'Elige el patrón correcto para este pedido. Verifica que coincida con la imagen de referencia del cliente.' },
+  { id: 'materiales',  icon: '🎨', titulo: 'Selección de materiales', desc: 'Prepara todos los materiales: lana del color correcto, aguja adecuada, relleno, ojos, accesorios específicos.' },
+  { id: 'tejido',      icon: '🧵', titulo: 'Tiempo de tejido',        desc: 'Teje la pieza siguiendo el patrón. Usa el cronómetro para registrar el tiempo. Habrá una alarma de pausa activa cada 30 minutos.' },
+  { id: 'detalles',    icon: '✨', titulo: 'Tiempo de detalles',      desc: 'Agrega todos los detalles específicos del cliente: gafas, ropa, accesorios, color de ojos, bordados, etc.' },
+  { id: 'marquilla',   icon: '🏷️', titulo: 'Poner marquilla',         desc: 'Coloca la marquilla de Lana Rosa Crochet. Asegúrate de que esté bien cosida y visible.' },
+  { id: 'calidad',     icon: '🔍', titulo: 'Control de calidad',      desc: 'Revisa toda la pieza: puntadas uniformes, relleno parejo, detalles correctos, sin hilos sueltos. Si hay algo mal, corrígelo antes de continuar.' },
+  { id: 'foto',        icon: '📷', titulo: 'Tomar foto del resultado', desc: 'Toma una foto de la pieza terminada antes de empacar. Esta foto queda guardada en el pedido y puede usarse para redes sociales o portafolio.' },
+  { id: 'empaquetado', icon: '📦', titulo: 'Empaquetado',             desc: 'Empaca la pieza con el packaging de Lana Rosa. Incluye la tarjeta con el mensaje personalizado del cliente. Deja todo listo para entrega.' },
+];
+
+let prodPedidoActivo = null;
+let prodPasosEstado  = {};   // { patron: 'pendiente'|'activo'|'done', ... }
+let prodTiempos      = {};   // { tejido: segundos, detalles: segundos }
+let fotoResultadoFile = null;  // archivo de foto del resultado
+
+// Cronómetros
+let cronoTejidoSeg   = 0;
+let cronoTejidoTimer = null;
+let cronoTejidoRun   = false;
+let cronoDetallesSeg  = 0;
+let cronoDetallesTimer = null;
+let cronoDetallesRun   = false;
+
+// Pausa activa
+const PAUSA_INTERVALO = 60 * 60; // 60 min en segundos
+let tejidoSegDesdeUltimaPausa = 0;
+let pausaCountdown   = null;
+let pausaSegRestantes = 180; // 3 min
+
+// Audio (beep sintetizado)
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playBeep(freq = 880, dur = 0.3, vol = 0.5) {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + dur);
+  } catch(e) {}
+}
+function playAlarmaPausa() {
+  // Secuencia de beeps llamativos
+  const notas = [880, 1100, 880, 1100, 880];
+  notas.forEach((f, i) => {
+    setTimeout(() => playBeep(f, 0.35, 0.6), i * 350);
+  });
+}
+
+// ─── CARGAR LISTA DE PEDIDOS ───
+async function loadProduccion() {
+  const lista = document.getElementById('prod-pedidos-lista');
+  lista.innerHTML = '<div class="loading-spinner"></div>';
+
+  // Admin ve todos, tejedora ve solo los suyos
+  let q = supabase_client
+    .from('pedidos')
+    .select('*, clientes(nombre)')
+    .not('estado', 'in', '("entregado","cancelado")')
+    .order('fecha_entrega', { ascending: true });
+
+  if (currentProfile?.role !== 'admin') {
+    q = q.eq('tejedora_id', currentUser.id);
+  }
+
+  const { data, error } = await q;
+
+  if (error) { lista.innerHTML = `<p style="color:red">Error: ${error.message}</p>`; return; }
+
+  if (!data?.length) {
+    lista.innerHTML = `
+      <div class="table-empty">
+        <div class="table-empty-icon">🎉</div>
+        <p>${currentProfile?.role === 'admin' ? 'No hay pedidos activos.' : 'No tienes pedidos asignados en este momento.'}</p>
+      </div>`;
+    return;
+  }
+
+  // Get tejedoras if admin
+  let tejedorasMap = {};
+  if (currentProfile?.role === 'admin') {
+    const ids = [...new Set(data.filter(p=>p.tejedora_id).map(p=>p.tejedora_id))];
+    if (ids.length) {
+      const { data: tv } = await supabase_client.from('profiles').select('id, full_name').in('id', ids);
+      (tv||[]).forEach(t => tejedorasMap[t.id] = t.full_name);
+    }
+  }
+
+  lista.innerHTML = data.map(p => {
+    const days   = daysUntil(p.fecha_entrega);
+    const urgCol = days !== null && days <= 2 ? '#dc2626' : days !== null && days <= 5 ? '#d97706' : '#166534';
+    const tejedora = tejedorasMap[p.tejedora_id] ? `· ${tejedorasMap[p.tejedora_id]}` : '';
+    return `
+    <div class="prod-card" onclick="abrirEstacion(${JSON.stringify(p).replace(/"/g,'&quot;')})">
+      <div class="prod-card-icon">${p.tipo?.includes('Llave') ? '🔑' : p.tipo?.includes('Acces') ? '💎' : '🧸'}</div>
+      <div class="prod-card-info">
+        <div class="prod-card-title">${p.tipo || 'Amigurumi'}: ${p.descripcion?.slice(0,45)||''}${(p.descripcion?.length||0)>45?'…':''}</div>
+        <div class="prod-card-sub">👤 ${p.clientes?.nombre || '—'} ${tejedora}</div>
+      </div>
+      <div class="prod-card-meta">
+        ${p.imagen_url ? `<img src="${p.imagen_url}" style="width:36px;height:36px;border-radius:8px;object-fit:cover;border:2px solid var(--borde);" />` : ''}
+        <div style="text-align:right;">
+          ${badgeEstado(p.estado)}
+          ${days !== null ? `<div style="font-size:0.7rem;font-weight:700;color:${urgCol};margin-top:4px;">${days===0?'¡Hoy!':days<0?`${Math.abs(days)}d vencido`:`${days}d`}</div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  actualizarBadgeProduccion();
+}
+
+// ─── ABRIR ESTACIÓN DE TRABAJO ───
+async function abrirEstacion(pedido) {
+  detenerCronos();
+  prodPedidoActivo = pedido;
+
+  // 1. Intentar cargar desde Supabase
+  let progCargado = false;
+  const { data: prog, error: progErr } = await supabase_client
+    .from('produccion_progreso')
+    .select('*')
+    .eq('pedido_id', pedido.id)
+    .single();
+
+  if (prog && !progErr) {
+    prodPasosEstado  = prog.pasos_estado  || {};
+    prodTiempos      = prog.tiempos       || {};
+    cronoTejidoSeg   = prodTiempos.tejido  || 0;
+    cronoDetallesSeg = prodTiempos.detalles || 0;
+    progCargado = true;
+    // Sincronizar localStorage con lo que tiene Supabase
+    try { localStorage.setItem('prod_prog_' + pedido.id, JSON.stringify(prog)); } catch(e) {}
+  }
+
+  // 2. Si Supabase falló, intentar localStorage
+  if (!progCargado) {
+    try {
+      const local = localStorage.getItem('prod_prog_' + pedido.id);
+      if (local) {
+        const parsed = JSON.parse(local);
+        prodPasosEstado  = parsed.pasos_estado  || {};
+        prodTiempos      = parsed.tiempos       || {};
+        cronoTejidoSeg   = prodTiempos.tejido   || 0;
+        cronoDetallesSeg = prodTiempos.detalles || 0;
+        progCargado = true;
+        showToast('📱 Progreso cargado desde caché local', 'info');
+      }
+    } catch(e) {}
+  }
+
+  // 3. Sin ningún progreso previo — empezar desde cero
+  if (!progCargado) {
+    prodPasosEstado  = {};
+    prodTiempos      = {};
+    cronoTejidoSeg   = 0;
+    cronoDetallesSeg = 0;
+  }
+
+  tejidoSegDesdeUltimaPausa = 0;
+  fotoResultadoFile = null;
+
+  // Header
+  // Marcar como "en proceso" al abrir la estación
+  if (pedido.estado !== 'en proceso' && pedido.estado !== 'listo' && pedido.estado !== 'entregado') {
+    await supabase_client.from('pedidos').update({ estado: 'en proceso' }).eq('id', pedido.id);
+    pedido.estado = 'en proceso';
+  }
+  document.getElementById('prod-header-titulo').textContent  = `${pedido.tipo || 'Amigurumi'}: ${(pedido.descripcion||'').slice(0,60)}`;
+  document.getElementById('prod-header-cliente').textContent = `👤 ${pedido.clientes?.nombre || '—'}`;
+  document.getElementById('prod-header-fecha').textContent   = formatDate(pedido.fecha_entrega);
+  // Foto de referencia en el header
+  const imgWrap = document.getElementById('prod-header-img-wrap');
+  const img     = document.getElementById('prod-header-img');
+  if (pedido.imagen_url && imgWrap && img) {
+    img.src = pedido.imagen_url;
+    imgWrap.style.display = 'block';
+  } else if (imgWrap) {
+    imgWrap.style.display = 'none';
+  }
+
+  // Auto: marcar como 'en produccion' si aún está 'en proceso'
+  if (prodPedidoActivo.estado === 'en proceso') {
+    await supabase_client.from('pedidos').update({ estado: 'en produccion' }).eq('id', prodPedidoActivo.id);
+    prodPedidoActivo.estado = 'en produccion';
+  }
+
+  // Mostrar estación
+  document.getElementById('prod-selector').style.display  = 'none';
+  document.getElementById('prod-estacion').style.display  = 'block';
+
+  renderPasos();
+}
+
+function cerrarEstacion() {
+  detenerCronos();
+  guardarProgreso();
+  prodPedidoActivo = null;
+  document.getElementById('prod-selector').style.display  = 'block';
+  document.getElementById('prod-estacion').style.display  = 'none';
+}
+
+// ─── RENDERIZAR PASOS ───
+function renderPasos() {
+  const lista = document.getElementById('prod-pasos-lista');
+
+  // Calcular cuál es el primer paso no completado (activo)
+  let primerPendiente = null;
+  for (const p of PASOS) {
+    if (prodPasosEstado[p.id] !== 'done') { primerPendiente = p.id; break; }
+  }
+
+  const completados = PASOS.filter(p => prodPasosEstado[p.id] === 'done').length;
+  const pct = Math.round((completados / PASOS.length) * 100);
+  document.getElementById('prod-progreso-pct').textContent      = pct + '%';
+  document.getElementById('prod-progreso-bar').style.width      = pct + '%';
+  document.getElementById('prod-pasos-completados').textContent = `${completados} de ${PASOS.length} pasos`;
+
+  // Tiempo total acumulado
+  const totalSeg = (cronoTejidoSeg) + (cronoDetallesSeg);
+  document.getElementById('prod-tiempo-total').textContent = formatSeg(totalSeg);
+
+  lista.innerHTML = PASOS.map((paso, idx) => {
+    const estado   = prodPasosEstado[paso.id] || 'pendiente';
+    const isDone   = estado === 'done';
+    const isActivo = paso.id === primerPendiente;
+    const bloq     = !isDone && !isActivo;
+
+    let cardClass = 'paso-card';
+    if (isDone)    cardClass += ' completado';
+    else if (isActivo) cardClass += ' activo';
+    else           cardClass += ' bloqueado';
+
+    let numClass = isDone ? 'done' : isActivo ? 'activo' : 'pendiente';
+    let numContent = isDone ? '✓' : (idx + 1);
+
+    let bodyHTML = '';
+    if (isActivo) {
+      bodyHTML = `<div class="paso-body">
+        <p class="paso-desc">${paso.desc}</p>
+        ${renderPasoInterior(paso.id)}
+      </div>`;
+    }
+
+    return `
+    <div class="${cardClass}" id="paso-card-${paso.id}">
+      <div class="paso-header">
+        <div class="paso-numero ${numClass}">${numContent}</div>
+        <div class="paso-titulo ${isDone?'done':''}">${paso.icon} ${paso.titulo}</div>
+        ${isDone ? '<span style="font-size:0.75rem;color:#16a34a;font-weight:600;">Completado ✓</span>' : ''}
+        ${isActivo ? '<span style="font-size:0.7rem;font-weight:700;color:var(--rosa-principal);background:var(--rosa-suave);padding:3px 10px;border-radius:20px;">Activo</span>' : ''}
+      </div>
+      ${bodyHTML}
+    </div>`;
+  }).join('');
+
+  // Reactivar cronómetros si estaban corriendo (re-render)
+  if (cronoTejidoRun)   iniciarDisplayTejido();
+  if (cronoDetallesRun) iniciarDisplayDetalles();
+}
+
+function renderPasoInterior(pasoId) {
+  if (pasoId === 'tejido') {
+    return `
+      <div class="cronometro">
+        <div class="crono-display" id="crono-tejido-display">${formatSeg(cronoTejidoSeg)}</div>
+        <div class="crono-sub">TIEMPO ACUMULADO DE TEJIDO</div>
+        <div class="crono-btns">
+          <button class="crono-btn start"  id="btn-tejido-start" onclick="toggleCronoTejido()">▶ Iniciar</button>
+          <button class="crono-btn reset"  onclick="resetCronoTejido()">↺ Reiniciar</button>
+        </div>
+        <div class="crono-alerta-info">🔔 Alarma de pausa activa cada 60 minutos</div>
+      </div>
+      <button class="btn-completar-paso" onclick="completarPaso('tejido')">✓ Tejido terminado — continuar</button>`;
+  }
+  if (pasoId === 'detalles') {
+    return `
+      <div class="tiempo-simple">
+        <div>
+          <div class="tiempo-simple-display" id="crono-detalles-display">${formatSeg(cronoDetallesSeg)}</div>
+          <div class="tiempo-simple-label">Tiempo en detalles</div>
+        </div>
+        <div class="tiempo-simple-btns">
+          <button class="ts-btn start" id="btn-detalles-start" onclick="toggleCronoDetalles()">▶</button>
+        </div>
+      </div>
+      <button class="btn-completar-paso" onclick="completarPaso('detalles')">✓ Detalles listos — continuar</button>`;
+  }
+  if (pasoId === 'foto') {
+    const fotoGuardada = prodPasosEstado['_foto_url'] || null;
+    return `
+      <div style="margin-bottom:14px;">
+        ${fotoGuardada ? `
+          <div style="margin-bottom:12px;text-align:center;">
+            <img src="${fotoGuardada}" style="max-width:100%;max-height:220px;border-radius:var(--radius);border:2px solid var(--rosa-medio);object-fit:contain;" />
+            <div style="font-size:0.72rem;color:var(--texto-medio);margin-top:6px;">📷 Foto guardada</div>
+          </div>` : ''}
+        <div class="upload-zone" id="foto-upload-zone"
+          style="margin-bottom:12px;"
+          ondragover="event.preventDefault();this.classList.add('drag-over')"
+          ondragleave="this.classList.remove('drag-over')"
+          ondrop="handleFotoResultadoDrop(event)">
+          <input type="file" accept="image/*" capture="environment"
+            onchange="handleFotoResultadoSelect(event)"
+            style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" />
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">
+            <strong>${fotoGuardada ? 'Cambiar foto' : 'Tomar foto o subir imagen'}</strong>
+          </div>
+          <div class="upload-text" style="font-size:0.72rem;margin-top:4px;">
+            Desde la cámara o galería del celular
+          </div>
+        </div>
+        <div id="foto-resultado-preview" style="display:none;text-align:center;margin-bottom:12px;"></div>
+      </div>
+      <button class="btn-completar-paso" id="btn-completar-foto"
+        onclick="completarPasoFoto()"
+        ${!fotoGuardada && !fotoResultadoFile ? 'style="background:var(--azul-acero);"' : ''}>
+        ${fotoGuardada || fotoResultadoFile ? '✓ Foto lista — continuar' : '📷 Sube una foto para continuar'}
+      </button>`;
+  }
+  return `<button class="btn-completar-paso" onclick="completarPaso('${pasoId}')">✓ Paso completado — continuar</button>`;
+}
+
+// ─── CRONÓMETRO TEJIDO ───
+function toggleCronoTejido() {
+  if (cronoTejidoRun) {
+    pausarCronoTejido();
+  } else {
+    iniciarCronoTejido();
+  }
+}
+function iniciarCronoTejido() {
+  if (cronoTejidoRun) return;
+  cronoTejidoRun = true;
+  const btn = document.getElementById('btn-tejido-start');
+  if (btn) { btn.textContent = '⏸ Pausar'; btn.className = 'crono-btn pause'; }
+  cronoTejidoTimer = setInterval(() => {
+    cronoTejidoSeg++;
+    tejidoSegDesdeUltimaPausa++;
+    const disp = document.getElementById('crono-tejido-display');
+    if (disp) disp.textContent = formatSeg(cronoTejidoSeg);
+    // Actualizar tiempo total
+    const total = document.getElementById('prod-tiempo-total');
+    if (total) total.textContent = formatSeg(cronoTejidoSeg + cronoDetallesSeg);
+    // Autoguardado cada 30 segundos
+    if (cronoTejidoSeg % 30 === 0) guardarProgreso();
+    // Alarma cada 60 min
+    if (tejidoSegDesdeUltimaPausa >= PAUSA_INTERVALO) {
+      tejidoSegDesdeUltimaPausa = 0;
+      pausarCronoTejido();
+      abrirPausa();
+    }
+  }, 1000);
+}
+function pausarCronoTejido() {
+  cronoTejidoRun = false;
+  clearInterval(cronoTejidoTimer);
+  cronoTejidoTimer = null;
+  const btn = document.getElementById('btn-tejido-start');
+  if (btn) { btn.textContent = '▶ Continuar'; btn.className = 'crono-btn start'; }
+  guardarProgreso();
+}
+function resetCronoTejido() {
+  pausarCronoTejido();
+  cronoTejidoSeg = 0;
+  tejidoSegDesdeUltimaPausa = 0;
+  const disp = document.getElementById('crono-tejido-display');
+  if (disp) disp.textContent = '00:00:00';
+  guardarProgreso();
+}
+function iniciarDisplayTejido() {
+  // Solo actualiza display sin arrancar de nuevo (usado en re-render)
+  const disp = document.getElementById('crono-tejido-display');
+  if (disp) disp.textContent = formatSeg(cronoTejidoSeg);
+  const btn = document.getElementById('btn-tejido-start');
+  if (btn && cronoTejidoRun) { btn.textContent = '⏸ Pausar'; btn.className = 'crono-btn pause'; }
+}
+
+// ─── CRONÓMETRO DETALLES ───
+function toggleCronoDetalles() {
+  if (cronoDetallesRun) {
+    cronoDetallesRun = false;
+    clearInterval(cronoDetallesTimer);
+    const btn = document.getElementById('btn-detalles-start');
+    if (btn) { btn.textContent = '▶'; btn.className = 'ts-btn start'; }
+    guardarProgreso();
+  } else {
+    cronoDetallesRun = true;
+    const btn = document.getElementById('btn-detalles-start');
+    if (btn) { btn.textContent = '⏸'; btn.className = 'ts-btn stop'; }
+    cronoDetallesTimer = setInterval(() => {
+      cronoDetallesSeg++;
+      const disp = document.getElementById('crono-detalles-display');
+      if (disp) disp.textContent = formatSeg(cronoDetallesSeg);
+      const total = document.getElementById('prod-tiempo-total');
+      if (total) total.textContent = formatSeg(cronoTejidoSeg + cronoDetallesSeg);
+      // Autoguardado cada 30 segundos
+      if (cronoDetallesSeg % 30 === 0) {
+        guardarProgreso();
+      }
+    }, 1000);
+  }
+}
+function iniciarDisplayDetalles() {
+  const disp = document.getElementById('crono-detalles-display');
+  if (disp) disp.textContent = formatSeg(cronoDetallesSeg);
+}
+
+function detenerCronos() {
+  if (cronoTejidoTimer)   { clearInterval(cronoTejidoTimer);   cronoTejidoTimer   = null; cronoTejidoRun   = false; }
+  if (cronoDetallesTimer) { clearInterval(cronoDetallesTimer); cronoDetallesTimer = null; cronoDetallesRun = false; }
+}
+
+// ─── COMPLETAR PASO ───
+async function completarPaso(pasoId) {
+  prodPasosEstado[pasoId] = 'done';
+
+  // Si termina tejido, detener crono
+  if (pasoId === 'tejido') pausarCronoTejido();
+  if (pasoId === 'detalles') {
+    cronoDetallesRun = false;
+    clearInterval(cronoDetallesTimer);
+    cronoDetallesTimer = null;
+  }
+
+  // Si termina el último paso → marcar pedido como 'listo'
+  const todosCompletos = PASOS.every(p => prodPasosEstado[p.id] === 'done');
+  if (todosCompletos && prodPedidoActivo) {
+    await supabase_client.from('pedidos')
+      .update({ estado: 'listo' })
+      .eq('id', prodPedidoActivo.id);
+    prodPedidoActivo.estado = 'listo';
+    showToast('🎉 ¡Pedido terminado! Estado actualizado a "Listo para entrega"', 'success');
+  }
+
+  await guardarProgreso();
+  renderPasos();
+  playBeep(660, 0.2); // beep suave de confirmación
+  // Scroll al siguiente paso
+  setTimeout(() => {
+    const cards = document.querySelectorAll('.paso-card.activo');
+    if (cards.length) cards[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 200);
+}
+
+// ─── GUARDAR PROGRESO EN SUPABASE ───
+async function guardarProgreso() {
+  if (!prodPedidoActivo) return;
+  prodTiempos = { tejido: cronoTejidoSeg, detalles: cronoDetallesSeg };
+  const payload = {
+    pedido_id:    prodPedidoActivo.id,
+    tejedora_id:  currentUser.id,
+    pasos_estado: prodPasosEstado,
+    tiempos:      prodTiempos,
+    updated_at:   new Date().toISOString(),
+  };
+  // Siempre guardar en localStorage como respaldo inmediato
+  try {
+    localStorage.setItem('prod_prog_' + prodPedidoActivo.id, JSON.stringify(payload));
+  } catch(e) {}
+  // Guardar en Supabase
+  const { error } = await supabase_client
+    .from('produccion_progreso')
+    .upsert(payload, { onConflict: 'pedido_id' });
+  if (error) {
+    console.warn('Supabase guardar progreso error:', error.message);
+    showToast('⚠️ Guardado local (Supabase: ' + error.message + ')', 'error');
+  }
+}
+
+// ─── PAUSA ACTIVA ───
+function abrirPausa() {
+  playAlarmaPausa();
+  pausaSegRestantes = 180;
+  document.getElementById('pausa-countdown').textContent = '3:00';
+  document.getElementById('pausa-overlay').classList.add('open');
+  pausaCountdown = setInterval(() => {
+    pausaSegRestantes--;
+    const m = Math.floor(pausaSegRestantes / 60);
+    const s = pausaSegRestantes % 60;
+    const el = document.getElementById('pausa-countdown');
+    if (el) el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+    if (pausaSegRestantes <= 0) cerrarPausa();
+  }, 1000);
+}
+function cerrarPausa() {
+  clearInterval(pausaCountdown);
+  document.getElementById('pausa-overlay').classList.remove('open');
+  // Reactivar cronómetro automáticamente
+  if (prodPedidoActivo && prodPasosEstado['tejido'] !== 'done') {
+    iniciarCronoTejido();
+    showToast('▶ Cronómetro reiniciado. ¡Sigue tejiendo! 🧵', 'info');
+  }
+}
+
+// ─── FOTO RESULTADO ───
+function handleFotoResultadoSelect(e) {
+  const file = e.target.files[0];
+  if (file) previewFotoResultado(file);
+}
+function handleFotoResultadoDrop(e) {
+  e.preventDefault();
+  document.getElementById('foto-upload-zone')?.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) previewFotoResultado(file);
+}
+function previewFotoResultado(file) {
+  fotoResultadoFile = file;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const preview = document.getElementById('foto-resultado-preview');
+    if (preview) {
+      preview.style.display = 'block';
+      preview.innerHTML = `
+        <img src="${ev.target.result}" style="max-width:100%;max-height:200px;border-radius:var(--radius);border:2px solid var(--rosa-medio);object-fit:contain;" />
+        <div style="font-size:0.72rem;color:var(--texto-medio);margin-top:6px;">✅ Lista para guardar</div>`;
+    }
+    // Update button
+    const btn = document.getElementById('btn-completar-foto');
+    if (btn) {
+      btn.textContent = '✓ Foto lista — continuar';
+      btn.style.background = '';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+async function completarPasoFoto() {
+  // Si no hay foto nueva ni guardada, pedir que suban una
+  const fotoGuardada = prodPasosEstado['_foto_url'];
+  if (!fotoResultadoFile && !fotoGuardada) {
+    showToast('📷 Sube una foto del resultado antes de continuar', 'error');
+    return;
+  }
+  const btn = document.getElementById('btn-completar-foto');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Subiendo foto...'; }
+
+  let fotoUrl = fotoGuardada;
+
+  if (fotoResultadoFile) {
+    const ext  = fotoResultadoFile.name.split('.').pop() || 'jpg';
+    const path = `resultados/${prodPedidoActivo.id}_${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase_client.storage
+      .from('pedidos-imagenes')
+      .upload(path, fotoResultadoFile, { upsert: true });
+
+    if (upErr) {
+      showToast('Error al subir la foto: ' + upErr.message, 'error');
+      if (btn) { btn.disabled = false; btn.textContent = '✓ Foto lista — continuar'; }
+      return;
+    }
+    const { data: urlData } = supabase_client.storage
+      .from('pedidos-imagenes')
+      .getPublicUrl(path);
+    fotoUrl = urlData.publicUrl;
+
+    // Guardar URL en el estado del pedido
+    prodPasosEstado['_foto_url'] = fotoUrl;
+
+    // También guardar en la tabla pedidos como foto_resultado
+    await supabase_client.from('pedidos')
+      .update({ foto_resultado: fotoUrl })
+      .eq('id', prodPedidoActivo.id);
+
+    fotoResultadoFile = null;
+  }
+
+  await completarPaso('foto');
+}
+
+// ─── FORMATO TIEMPO ───
+function formatSeg(s) {
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+}
+
+
+// ══════════════════════════════════════════════════════════
+//  ENVÍOS
+// ══════════════════════════════════════════════════════════
+const TRANSPORTADORAS = ['Servientrega','Coordinadora','Interrapidísimo','TCC','Deprisa','Otra'];
+let enviosFilter = 'listos';
+let enviosData   = [];
+
+async function loadEnvios() {
+  const lista = document.getElementById('env-lista');
+  lista.innerHTML = '<div class="loading-spinner"></div>';
+
+  // Traer pedidos listos + en_camino + entregados (todos con envio_estado)
+  const { data, error } = await supabase_client
+    .from('pedidos')
+    .select('*, clientes(nombre, telefono, ciudad, direccion, barrio)')
+    .in('estado', ['listo','enviado','entregado'])
+    .order('fecha_entrega', { ascending: true });
+
+  if (error) { lista.innerHTML = `<p style="color:red">Error: ${error.message}</p>`; return; }
+  enviosData = data || [];
+
+  // Stats
+  const listos     = enviosData.filter(p => (p.estado === 'listo') && p.envio_estado !== 'en_camino').length;
+  const enCamino   = enviosData.filter(p => p.envio_estado === 'en_camino' || p.estado === 'enviado').length;
+  const entregados = enviosData.filter(p => p.envio_estado === 'entregado' || p.estado === 'entregado').length;
+  const recogida   = enviosData.filter(p => p.tipo_entrega === 'recogida').length;
+
+  document.getElementById('env-stat-listos').textContent    = listos;
+  document.getElementById('env-stat-en-camino').textContent = enCamino;
+  document.getElementById('env-stat-entregados').textContent= entregados;
+  document.getElementById('env-stat-recogida').textContent  = recogida;
+
+  // Badge sidebar
+  const badge = document.getElementById('badge-envios');
+  if (badge) badge.textContent = listos + enCamino;
+
+  renderEnvios();
+}
+
+function filterEnvios(f) {
+  enviosFilter = f;
+  document.querySelectorAll('#env-tabs .tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['listos','en_camino','entregado','todos'][i] === f);
+  });
+  const titles = { listos:'📦 Listos para enviar', en_camino:'🚚 En camino', entregado:'✅ Entregados', todos:'Todos los envíos' };
+  document.getElementById('env-table-title').textContent = titles[f] || '';
+  renderEnvios();
+}
+
+function renderEnvios() {
+  const lista = document.getElementById('env-lista');
+  let rows = enviosData;
+
+  if (enviosFilter === 'listos')     rows = rows.filter(p => p.estado === 'listo' && p.envio_estado !== 'en_camino');
+  else if (enviosFilter === 'en_camino')  rows = rows.filter(p => p.envio_estado === 'en_camino' || p.estado === 'enviado');
+  else if (enviosFilter === 'entregado')  rows = rows.filter(p => p.envio_estado === 'entregado' || p.estado === 'entregado');
+
+  if (!rows.length) {
+    lista.innerHTML = `<div class="env-empty"><div class="env-empty-icon">📭</div><p>No hay pedidos en esta categoría</p></div>`;
+    return;
+  }
+
+  lista.innerHTML = rows.map(p => renderEnvioCard(p)).join('');
+}
+
+function renderEnvioCard(p) {
+  const cliente   = p.clientes || {};
+  const estaEnCamino = p.envio_estado === 'en_camino';
+  const estaEntregado= p.envio_estado === 'entregado' || p.estado === 'entregado';
+  const esRecogida   = p.tipo_entrega === 'recogida';
+
+  let badgeHtml = '';
+  if (estaEntregado)    badgeHtml = '<span class="badge-envio-estado badge-entregado-e">✅ Entregado</span>';
+  else if (estaEnCamino) badgeHtml = '<span class="badge-envio-estado badge-en-camino">🚚 En camino</span>';
+  else if (esRecogida)   badgeHtml = '<span class="badge-envio-estado badge-recogida">🏪 Recogida en tienda</span>';
+  else                   badgeHtml = '<span class="badge-envio-estado badge-listo-envio">📦 Listo para enviar</span>';
+
+  // Dirección combinada
+  const dirParts = [cliente.direccion, cliente.barrio, cliente.ciudad].filter(Boolean);
+  const dirCompleta = dirParts.join(', ') || '';
+
+  return `
+  <div class="envio-card" id="envio-card-${p.id}">
+    <div class="envio-card-header">
+      <div>
+        <div style="font-weight:700;font-size:0.9rem;color:var(--texto-oscuro);">${p.numero_pedido||'—'} · ${p.tipo||'Amigurumi'}</div>
+        <div style="font-size:0.78rem;color:var(--texto-medio);margin-top:2px;">👤 ${cliente.nombre||'—'} ${cliente.telefono ? '· '+cliente.telefono : ''} ${cliente.email ? '· '+cliente.email : ''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        ${badgeHtml}
+        <div style="font-size:0.72rem;color:var(--texto-medio);">📅 ${formatDate(p.fecha_entrega)}</div>
+      </div>
+    </div>
+    <div class="envio-card-body">
+      ${estaEntregado ? renderEnvioResumen(p, dirCompleta) : renderEnvioForm(p, dirCompleta)}
+    </div>
+  </div>`;
+}
+
+function renderEnvioResumen(p, dir) {
+  return `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.82rem;">
+      <div><span style="color:var(--texto-medio);font-size:0.72rem;text-transform:uppercase;font-weight:700;">Tipo entrega</span><br>${p.tipo_entrega==='recogida'?'🏪 Recogida en tienda':'🚚 Envío a domicilio'}</div>
+      <div><span style="color:var(--texto-medio);font-size:0.72rem;text-transform:uppercase;font-weight:700;">Transportadora</span><br>${p.transportadora||'—'}</div>
+      <div><span style="color:var(--texto-medio);font-size:0.72rem;text-transform:uppercase;font-weight:700;">Cédula</span><br>${cliente.cedula||'—'}</div>
+      <div><span style="color:var(--texto-medio);font-size:0.72rem;text-transform:uppercase;font-weight:700;">Dirección</span><br>${dir||'—'}</div>
+      <div><span style="color:var(--texto-medio);font-size:0.72rem;text-transform:uppercase;font-weight:700;">N° Guía</span><br>${p.numero_guia||'—'}</div>
+    </div>
+    ${p.guia_url ? `<div style="margin-top:12px;"><a href="${p.guia_url}" target="_blank" class="guia-link">📄 Ver guía de envío</a></div>` : ''}
+    ${p.foto_resultado ? `<div style="margin-top:10px;"><img src="${p.foto_resultado}" style="width:60px;height:60px;border-radius:8px;object-fit:cover;border:2px solid var(--borde);" /></div>` : ''}`;
+}
+
+function renderEnvioForm(p, dir) {
+  const esRecogida = p.tipo_entrega === 'recogida';
+  const estaEnCamino = p.envio_estado === 'en_camino';
+  const transpActual = p.transportadora || '';
+  const guiaActual   = p.numero_guia   || '';
+  const dirActual    = p.direccion_envio || dir;
+
+  return `
+    <!-- Tipo de entrega -->
+    <div class="envio-campo">
+      <label>Tipo de entrega</label>
+      <div class="tipo-entrega-btns">
+        <button class="tipo-btn ${!esRecogida?'selected':''}" onclick="seleccionarTipoEntrega('${p.id}', 'envio', this)">🚚 Envío a domicilio</button>
+        <button class="tipo-btn ${esRecogida?'selected':''}" onclick="seleccionarTipoEntrega('${p.id}', 'recogida', this)">🏪 Recogida en tienda</button>
+      </div>
+    </div>
+
+    <!-- Sección envío (se oculta si es recogida) -->
+    <div id="env-detalle-${p.id}" style="display:${esRecogida?'none':'block'};">
+      <!-- Dirección -->
+      <div class="envio-campo">
+        <label>Dirección de entrega</label>
+        <div class="form-group">
+          <input type="text" id="env-dir-${p.id}" value="${dirActual}" placeholder="Dirección del cliente..." />
+        </div>
+      </div>
+
+      <!-- Transportadora -->
+      <div class="envio-campo">
+        <label>Transportadora</label>
+        <div class="transportadora-grid">
+          ${TRANSPORTADORAS.map(t => `
+            <button class="transp-btn ${transpActual===t?'selected':''}"
+              onclick="seleccionarTransp('${p.id}', '${t}', this)">${t}</button>`).join('')}
+        </div>
+        <input type="text" id="env-transp-otra-${p.id}"
+          placeholder="Especifica si elegiste Otra..."
+          style="display:${transpActual&&!TRANSPORTADORAS.slice(0,-1).includes(transpActual)?'block':'none'};margin-top:8px;"
+          value="${transpActual&&!TRANSPORTADORAS.slice(0,-1).includes(transpActual)?transpActual:''}" />
+        <input type="hidden" id="env-transp-${p.id}" value="${transpActual}" />
+      </div>
+
+      <!-- Número de guía -->
+      <div class="envio-campo">
+        <label>Número de guía</label>
+        <div class="form-group">
+          <input type="text" id="env-guia-num-${p.id}" value="${guiaActual}" placeholder="Ej: 9050012345678" />
+        </div>
+      </div>
+
+      <!-- Subir guía -->
+      <div class="envio-campo">
+        <label>Guía física (imagen o PDF)</label>
+        ${p.guia_url ? `<div style="margin-bottom:8px;"><a href="${p.guia_url}" target="_blank" class="guia-link">📄 Ver guía actual</a></div>` : ''}
+        <div class="guia-upload-zone" id="guia-zone-${p.id}"
+          ondragover="event.preventDefault();this.classList.add('drag-over')"
+          ondragleave="this.classList.remove('drag-over')"
+          ondrop="handleGuiaDrop(event,'${p.id}')">
+          <input type="file" accept="image/*,application/pdf" onchange="handleGuiaSelect(event,'${p.id}')" />
+          <span id="guia-label-${p.id}">📎 ${p.guia_url?'Cambiar guía':'Subir imagen o PDF de la guía'}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <button class="btn-guardar-envio" onclick="guardarEnvio('${p.id}')">
+      ${estaEnCamino ? '💾 Actualizar envío' : '🚚 Registrar envío'}
+    </button>
+    ${estaEnCamino ? `
+    <button class="btn-confirmar-entrega" style="margin-top:8px;" onclick="confirmarEntrega('${p.id}')">
+      ✅ Confirmar entrega al cliente
+    </button>` : ''}`;
+}
+
+// ─── TIPO ENTREGA ───
+function seleccionarTipoEntrega(pedidoId, tipo, btn) {
+  btn.closest('.tipo-entrega-btns').querySelectorAll('.tipo-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const det = document.getElementById('env-detalle-' + pedidoId);
+  if (det) det.style.display = tipo === 'recogida' ? 'none' : 'block';
+}
+
+// ─── TRANSPORTADORA ───
+function seleccionarTransp(pedidoId, transp, btn) {
+  btn.closest('.transportadora-grid').querySelectorAll('.transp-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const hidden = document.getElementById('env-transp-' + pedidoId);
+  if (hidden) hidden.value = transp;
+  const otraInput = document.getElementById('env-transp-otra-' + pedidoId);
+  if (otraInput) otraInput.style.display = transp === 'Otra' ? 'block' : 'none';
+}
+
+// ─── GUÍA UPLOAD ───
+function handleGuiaSelect(e, pedidoId) {
+  const file = e.target.files[0];
+  if (file) {
+    const label = document.getElementById('guia-label-' + pedidoId);
+    if (label) label.textContent = '✅ ' + file.name;
+    // store for upload
+    window['_guiaFile_' + pedidoId] = file;
+  }
+}
+function handleGuiaDrop(e, pedidoId) {
+  e.preventDefault();
+  document.getElementById('guia-zone-' + pedidoId)?.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    const label = document.getElementById('guia-label-' + pedidoId);
+    if (label) label.textContent = '✅ ' + file.name;
+    window['_guiaFile_' + pedidoId] = file;
+  }
+}
+
+// ─── GUARDAR ENVÍO ───
+async function guardarEnvio(pedidoId) {
+  const btn = document.querySelector(`#envio-card-${pedidoId} .btn-guardar-envio`);
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Guardando...'; }
+
+  // Detect tipo entrega
+  const tipoBtn = document.querySelector(`#envio-card-${pedidoId} .tipo-btn.selected`);
+  const tipoEntrega = tipoBtn?.textContent.includes('Recogida') ? 'recogida' : 'envio';
+
+  let payload = {
+    tipo_entrega:  tipoEntrega,
+    envio_estado:  tipoEntrega === 'recogida' ? 'recogida' : 'en_camino',
+    estado:        tipoEntrega === 'recogida' ? 'entregado' : 'enviado',
+  };
+
+  if (tipoEntrega === 'envio') {
+    // Transportadora
+    const transpHidden = document.getElementById('env-transp-' + pedidoId);
+    const transpOtra   = document.getElementById('env-transp-otra-' + pedidoId);
+    let transp = transpHidden?.value || '';
+    if (transp === 'Otra' && transpOtra?.value) transp = transpOtra.value;
+    payload.transportadora  = transp;
+    payload.numero_guia     = document.getElementById('env-guia-num-' + pedidoId)?.value || '';
+    payload.direccion_envio = document.getElementById('env-dir-' + pedidoId)?.value || '';
+
+    // Upload guía if new file
+    const guiaFile = window['_guiaFile_' + pedidoId];
+    if (guiaFile) {
+      const ext  = guiaFile.name.split('.').pop() || 'jpg';
+      const path = `guias/${pedidoId}_${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase_client.storage
+        .from('pedidos-imagenes').upload(path, guiaFile, { upsert: true });
+      if (!upErr) {
+        const { data: urlData } = supabase_client.storage.from('pedidos-imagenes').getPublicUrl(path);
+        payload.guia_url = urlData.publicUrl;
+        delete window['_guiaFile_' + pedidoId];
+      } else {
+        showToast('Error subiendo guía: ' + upErr.message, 'error');
+      }
+    }
+  }
+
+  const { error } = await supabase_client.from('pedidos').update(payload).eq('id', pedidoId);
+  if (error) {
+    showToast('Error al guardar: ' + error.message, 'error');
+  } else {
+    showToast(tipoEntrega === 'recogida' ? '🏪 Recogida registrada' : '🚚 Envío registrado', 'success');
+    playBeep(660, 0.15);
+    loadEnvios();
+  }
+  if (btn) { btn.disabled = false; }
+}
+
+// ─── CONFIRMAR ENTREGA ───
+async function confirmarEntrega(pedidoId) {
+  if (!confirm('¿Confirmas que el pedido ya fue entregado al cliente?')) return;
+  const { error } = await supabase_client.from('pedidos').update({
+    envio_estado: 'entregado',
+    estado:       'entregado',
+    fecha_entrega_real: new Date().toISOString().split('T')[0],
+  }).eq('id', pedidoId);
+  if (error) { showToast('Error: ' + error.message, 'error'); return; }
+  showToast('🎉 ¡Pedido entregado! Estado actualizado', 'success');
+  playBeep(880, 0.2);
+  loadEnvios();
+  loadDashboard();
+}
+
+// ══════════════════════════════════════════════════════════
+//  DETAIL PANEL
+// ══════════════════════════════════════════════════════════
+async function openDetail(p) {
+  const overlay = document.getElementById('detail-overlay');
+  const body    = document.getElementById('detail-body');
+  // Get tejedora name
+  let tejedoraNombre = '—';
+  if (p.tejedora_id) {
+    const { data: t } = await supabase_client.from('profiles').select('full_name').eq('id', p.tejedora_id).single();
+    tejedoraNombre = t?.full_name || '—';
+  }
+
+  body.innerHTML = `
+    ${p.imagen_url ? `<div class="detail-section"><h3>🖼️ Imagen de referencia</h3><img src="${p.imagen_url}" class="detail-ref-image" /></div>` : ''}
+    ${p.foto_resultado ? `<div class="detail-section"><h3>📷 Foto del resultado</h3><img src="${p.foto_resultado}" class="detail-ref-image" style="border-color:var(--rosa-medio);" /></div>` : ''}
+    <div class="detail-section">
+      <h3>📦 Descripción del pedido</h3>
+      <div class="detail-row"><span class="detail-label">Tipo</span><span class="detail-value">${p.tipo||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Descripción</span><span class="detail-value" style="text-align:right;max-width:220px;">${p.descripcion||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Tamaño</span><span class="detail-value">${p.tamano||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Ocasión</span><span class="detail-value">${p.ocasion||'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Para quién</span><span class="detail-value">${p.para_quien||'—'}</span></div>
+      ${p.mensaje_tarjeta?`<div class="detail-row"><span class="detail-label">Mensaje tarjeta</span><span class="detail-value" style="font-style:italic;max-width:220px;">"${p.mensaje_tarjeta}"</span></div>`:''}
+    </div>
+    <div class="detail-section">
+      <h3>👩‍🎨 Tejedora & Estado</h3>
+      <div class="detail-row"><span class="detail-label">Tejedora</span><span class="detail-value">${tejedoraNombre}</span></div>
+      <div class="detail-row"><span class="detail-label">Estado</span><span class="detail-value">${badgeEstado(p.estado)}</span></div>
+      ${p.numero_pedido ? `<div class="detail-row"><span class="detail-label">N° Pedido</span><span class="detail-value" style="font-weight:700;color:var(--rosa-principal);">${p.numero_pedido}</span></div>` : ''}
+      <div class="detail-row"><span class="detail-label">Fecha pedido</span><span class="detail-value">${formatDate(p.fecha_pedido)}</span></div>
+      <div class="detail-row"><span class="detail-label">Fecha entrega</span><span class="detail-value">${formatDate(p.fecha_entrega)}</span></div>
+    </div>
+    <div class="detail-section">
+      <h3>💰 Finanzas</h3>
+      <div class="detail-row"><span class="detail-label">Precio total</span><span class="detail-value price-display">${formatCOP(p.precio_total)}</span></div>
+      <div class="detail-row"><span class="detail-label">Anticipo</span><span class="detail-value">${formatCOP(p.anticipo)}</span></div>
+      <div class="detail-row"><span class="detail-label">Saldo pendiente</span><span class="detail-value" style="color:${((p.precio_total||0)-(p.anticipo||0))>0?'#d97706':'#166534'};font-weight:600;">${formatCOP((p.precio_total||0)-(p.anticipo||0))}</span></div>
+      <div class="detail-row"><span class="detail-label">Método de pago</span><span class="detail-value">${p.metodo_pago||'—'}</span></div>
+    </div>
+    ${p.notas?`<div class="detail-section"><h3>📝 Notas</h3><p style="font-size:0.83rem;color:var(--texto-oscuro);line-height:1.5;background:var(--rosa-suave);padding:12px;border-radius:var(--radius-sm);">${p.notas}</p></div>`:''}
+    <div class="detail-section">
+      <h3>🌟 Engagement</h3>
+      <div class="detail-row"><span class="detail-label">Compartió en redes</span><span class="detail-value">${p.compartio_redes?'✅ Sí':'—'}</span></div>
+      <div class="detail-row"><span class="detail-label">Recomendó la marca</span><span class="detail-value">${p.recomendo?'✅ Sí':'—'}</span></div>
+    </div>
+    ${currentProfile?.role === 'admin' ? `
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="btn-add" onclick="closeDetailPanel();editPedido('${p.id}')" style="flex:1;">✏️ Editar pedido</button>
+    </div>` : ''}
+    <!-- Nota de tejedora — visible para todos, editable para la tejedora asignada y admin -->
+    ${(currentProfile?.role === 'admin' || currentUser?.id === p.tejedora_id) ? `
+    <div class="detail-section" style="margin-top:8px;">
+      <h3>🖊️ Nota de tejedora</h3>
+      <div class="nota-tejedora-box">
+        <textarea id="nota-tejedora-input" placeholder="Escribe aquí tus notas del proceso: avance, materiales usados, detalles especiales, observaciones...">${p.nota_tejedora||''}</textarea>
+        <button class="btn-guardar-nota" id="btn-guardar-nota" onclick="guardarNotaTejedora('${p.id}')">💾 Guardar nota</button>
+      </div>
+    </div>` : `
+    ${p.nota_tejedora ? `<div class="detail-section" style="margin-top:8px;">
+      <h3>🖊️ Nota de tejedora</h3>
+      <p style="font-size:0.83rem;color:var(--texto-oscuro);line-height:1.5;background:var(--rosa-suave);padding:12px;border-radius:var(--radius-sm);">${p.nota_tejedora}</p>
+    </div>` : ''}
+    `}`;
+
+  overlay.classList.add('open');
+}
+function closeDetailPanel() { document.getElementById('detail-overlay').classList.remove('open'); }
+
+async function guardarNotaTejedora(pedidoId) {
+  const textarea = document.getElementById('nota-tejedora-input');
+  const btn      = document.getElementById('btn-guardar-nota');
+  if (!textarea || !btn) return;
+  const nota = textarea.value;
+  btn.disabled = true; btn.textContent = '⏳ Guardando...';
+  const { error } = await supabase_client
+    .from('pedidos')
+    .update({ nota_tejedora: nota })
+    .eq('id', pedidoId);
+  if (error) {
+    showToast('Error al guardar: ' + error.message, 'error');
+  } else {
+    showToast('✅ Nota guardada', 'success');
+    playBeep(660, 0.15);
+  }
+  btn.disabled = false; btn.textContent = '💾 Guardar nota';
+}
+
+// Guardar progreso al cerrar/cambiar pestaña
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && prodPedidoActivo) {
+    guardarProgreso();
+  }
+});
+window.addEventListener('beforeunload', () => {
+  if (prodPedidoActivo) guardarProgreso();
+});
+</script>
+</body>
+</html>

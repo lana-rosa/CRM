@@ -1,0 +1,24 @@
+{
+  "name": "Lana Rosa CRM",
+  "short_name": "Lana Rosa",
+  "description": "CRM de Lana Rosa Crochet — Manizales, Colombia",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9ddf4",
+  "theme_color": "#d8017c",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
