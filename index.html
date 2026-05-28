@@ -4177,7 +4177,15 @@ async function openDetail(p) {
       <h3>💰 Finanzas</h3>
       <div class="detail-row"><span class="detail-label">Precio total</span><span class="detail-value price-display">${formatCOP(p.precio_total)}</span></div>
       <div class="detail-row"><span class="detail-label">Anticipo</span><span class="detail-value">${formatCOP(p.anticipo)}</span></div>
-      <div class="detail-row"><span class="detail-label">Saldo pendiente</span><span class="detail-value" style="color:${((p.precio_total||0)-(p.anticipo||0))>0?'#d97706':'#166534'};font-weight:600;">${formatCOP((p.precio_total||0)-(p.anticipo||0))}</span></div>
+      <div class="detail-row"><span class="detail-label">Saldo pendiente</span>
+        <span class="detail-value">
+          <span style="color:${((p.precio_total||0)-(p.anticipo||0))>0?'#d97706':'#166534'};font-weight:700;">${formatCOP((p.precio_total||0)-(p.anticipo||0))}</span>
+          ${((p.precio_total||0)-(p.anticipo||0))>0 ? `
+          <button onclick="marcarPagado('${p.id}', ${p.precio_total||0})" style="margin-left:8px;padding:3px 10px;background:linear-gradient(135deg,#16a34a,#22c55e);color:white;border:none;border-radius:20px;font-size:0.7rem;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;">
+            ✅ Pagado
+          </button>` : '<span style="font-size:0.72rem;color:#16a34a;margin-left:6px;">✓ Saldado</span>'}
+        </span>
+      </div>
       <div class="detail-row"><span class="detail-label">Método de pago</span><span class="detail-value">${p.metodo_pago||'—'}</span></div>
     </div>
     ${p.notas?`<div class="detail-section"><h3>📝 Notas</h3><p style="font-size:0.83rem;color:var(--texto-oscuro);line-height:1.5;background:var(--rosa-suave);padding:12px;border-radius:var(--radius-sm);">${p.notas}</p></div>`:''}
@@ -4208,6 +4216,25 @@ async function openDetail(p) {
   overlay.classList.add('open');
 }
 function closeDetailPanel() { document.getElementById('detail-overlay').classList.remove('open'); }
+
+async function marcarPagado(pedidoId, precioTotal) {
+  if (!confirm(`¿Confirmas que se recibió el pago completo de ${formatCOP(precioTotal)}?`)) return;
+  const { error } = await supabase_client
+    .from('pedidos')
+    .update({ anticipo: precioTotal })
+    .eq('id', pedidoId);
+  if (error) {
+    showToast('Error al registrar pago: ' + error.message, 'error');
+    return;
+  }
+  showToast('💰 ¡Pago completo registrado!', 'success');
+  playBeep(660, 0.2);
+  closeDetailPanel();
+  loadPedidos();
+  loadDashboard();
+  // Refresh finanzas if visible
+  if (document.getElementById('section-finanzas')?.classList.contains('active')) loadFinanzas();
+}
 
 async function guardarNotaTejedora(pedidoId) {
   const textarea = document.getElementById('nota-tejedora-input');
