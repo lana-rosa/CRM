@@ -3211,57 +3211,27 @@ async function _generarExcel(tipo) {
 }
 
 function descargarXLSX(headers, rows, filename) {
-  // Genera XML de Excel (SpreadsheetML) — compatible con Excel y Google Sheets
-  const esc = v => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  const isNum = v => typeof v === 'number' || (!isNaN(v) && v !== '' && v !== null);
+  // Genera CSV con BOM UTF-8 — abre perfectamente en Excel, Google Sheets y Numbers
+  const escCSV = v => {
+    const s = String(v ?? '');
+    if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r')) {
+      return '"' + s.replace(/"/g, '""') + '"';
+    }
+    return s;
+  };
 
-  let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
-  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
-  xmlns:x="urn:schemas-microsoft-com:office:excel">
-<Styles>
-  <Style ss:ID="header">
-    <Font ss:Bold="1" ss:Color="#FFFFFF" ss:Size="11"/>
-    <Interior ss:Color="#D8017C" ss:Pattern="Solid"/>
-    <Alignment ss:Horizontal="Center"/>
-  </Style>
-  <Style ss:ID="num">
-    <NumberFormat ss:Format="#,##0"/>
-  </Style>
-  <Style ss:ID="alt">
-    <Interior ss:Color="#F9DDF4" ss:Pattern="Solid"/>
-  </Style>
-</Styles>
-<Worksheet ss:Name="Datos">
-<Table>`;
+  const lines = [];
+  lines.push(headers.map(escCSV).join(','));
+  rows.forEach(row => lines.push(row.map(escCSV).join(',')));
 
-  // Header row
-  xml += '<Row>';
-  headers.forEach(h => { xml += `<Cell ss:StyleID="header"><Data ss:Type="String">${esc(h)}</Data></Cell>`; });
-  xml += '</Row>';
-
-  // Data rows
-  rows.forEach((row, ri) => {
-    const style = ri % 2 === 1 ? ' ss:StyleID="alt"' : '';
-    xml += '<Row>';
-    row.forEach(v => {
-      if (isNum(v)) {
-        xml += `<Cell${style} ss:StyleID="num"><Data ss:Type="Number">${Number(v)}</Data></Cell>`;
-      } else {
-        xml += `<Cell${style}><Data ss:Type="String">${esc(v)}</Data></Cell>`;
-      }
-    });
-    xml += '</Row>';
-  });
-
-  xml += '</Table></Worksheet></Workbook>';
-
-  const blob = new Blob([xml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+  // BOM para que Excel reconozca UTF-8 correctamente (tildes, ñ, etc.)
+  const bom  = '\uFEFF';
+  const csv  = bom + lines.join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href     = url;
-  a.download = filename + '.xls';
+  a.download = filename + '.csv';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
