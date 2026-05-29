@@ -3947,13 +3947,18 @@ function renderEnvioCard(p) {
 }
 
 function renderEnvioResumen(p, dir) {
+  const cli = p.clientes || {};
+  const tipoLabel = p.tipo_entrega === 'recogida' ? '🏪 Recogida en tienda'
+    : p.tipo_entrega === 'domicilio' ? '🛵 Domicilio'
+    : '📦 Envío nacional';
   return `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.82rem;">
-      <div><span style="color:var(--texto-medio);font-size:0.72rem;text-transform:uppercase;font-weight:700;">Tipo entrega</span><br>${p.tipo_entrega==='recogida'?'🏪 Recogida en tienda':'🚚 Envío a domicilio'}</div>
+      <div><span style="color:var(--texto-medio);font-size:0.72rem;text-transform:uppercase;font-weight:700;">Tipo entrega</span><br>${tipoLabel}</div>
       <div><span style="color:var(--texto-medio);font-size:0.72rem;text-transform:uppercase;font-weight:700;">Transportadora</span><br>${p.transportadora||'—'}</div>
-      <div><span style="color:var(--texto-medio);font-size:0.72rem;text-transform:uppercase;font-weight:700;">Cédula</span><br>${cliente.cedula||'—'}</div>
+      <div><span style="color:var(--texto-medio);font-size:0.72rem;text-transform:uppercase;font-weight:700;">Cédula cliente</span><br>${cli.cedula||'—'}</div>
       <div><span style="color:var(--texto-medio);font-size:0.72rem;text-transform:uppercase;font-weight:700;">Dirección</span><br>${dir||'—'}</div>
       <div><span style="color:var(--texto-medio);font-size:0.72rem;text-transform:uppercase;font-weight:700;">N° Guía</span><br>${p.numero_guia||'—'}</div>
+      ${p.notas_domicilio ? `<div style="grid-column:1/-1;"><span style="color:var(--texto-medio);font-size:0.72rem;text-transform:uppercase;font-weight:700;">Notas domicilio</span><br>${p.notas_domicilio}</div>` : ''}
     </div>
     ${p.guia_url ? `<div style="margin-top:12px;"><a href="${p.guia_url}" target="_blank" class="guia-link">📄 Ver guía de envío</a></div>` : ''}
     ${p.foto_resultado ? `<div style="margin-top:10px;"><img src="${p.foto_resultado}" style="width:60px;height:60px;border-radius:8px;object-fit:cover;border:2px solid var(--borde);" /></div>` : ''}`;
