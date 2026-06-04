@@ -3636,12 +3636,12 @@ function renderPasoInterior(pasoId) {
           ondragover="event.preventDefault();this.classList.add('drag-over')"
           ondragleave="this.classList.remove('drag-over')"
           ondrop="handleFotoResultadoDrop(event)">
-          <input type="file" accept="image/*" capture="environment"
+          <input type="file" accept="image/*"
             onchange="handleFotoResultadoSelect(event)"
             style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;" />
           <div class="upload-icon">📷</div>
           <div class="upload-text">
-            <strong>${fotoGuardada ? 'Cambiar foto' : 'Tomar foto o subir imagen'}</strong>
+            <strong>${fotoGuardada ? 'Cambiar foto' : '📷 Tomar foto &nbsp;·&nbsp; 🖼️ Galería'}</strong>
           </div>
           <div class="upload-text" style="font-size:0.72rem;margin-top:4px;">
             Desde la cámara o galería del celular
