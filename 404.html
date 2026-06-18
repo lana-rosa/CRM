@@ -3,10 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <script>
-    // Redirigir al index correcto
-    const repo = '/lanarosa_crm';
-    const path = window.location.pathname.replace(repo, '') || '/';
-    window.location.replace(repo + '/' + window.location.search + window.location.hash);
+    window.location.replace('/CRM/' + window.location.search + window.location.hash);
   </script>
 </head>
 <body></body>
