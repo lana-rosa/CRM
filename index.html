@@ -2001,7 +2001,7 @@
         <label>Descripción / detalles específicos *</label>
         <textarea id="pedido-descripcion" placeholder="Color de ojos, gafas, ropa, accesorios, tamaño, etc."></textarea>
       </div>
-      <div class="form-group">
+      <div class="form-group" id="bloque-ocasion">
         <label>Ocasión del regalo</label>
         <select id="pedido-ocasion">
           <option value="">Sin especificar</option>
@@ -2085,7 +2085,7 @@
           <input type="number" id="pedido-anticipo" placeholder="60000" min="0" value="0" />
         </div>
       </div>
-      <div class="form-row">
+      <div class="form-row" id="bloque-metodo-fecha">
         <div class="form-group">
           <label>Método de pago</label>
           <select id="pedido-metodo-pago">
@@ -2108,7 +2108,7 @@
         <label>Notas del pedido</label>
         <textarea id="pedido-notas" placeholder="Comentarios internos, reacciones del cliente, detalles importantes..."></textarea>
       </div>
-      <div class="form-row">
+      <div class="form-row" id="bloque-engagement">
         <div class="form-group">
           <label>¿Compartió en redes?</label>
           <select id="pedido-compartio">
@@ -2747,7 +2747,8 @@ function toggleTipoPedido(tipo) {
     btnStock.style.fontWeight  = esStock ? '700' : '600';
   }
   // Show/hide blocks
-  ['bloque-cliente','bloque-para-quien','bloque-mensaje','bloque-anticipo'].forEach(id => {
+  ['bloque-cliente','bloque-para-quien','bloque-mensaje','bloque-anticipo',
+   'bloque-ocasion','bloque-metodo-fecha','bloque-engagement'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = esStock ? 'none' : '';
   });
@@ -2821,14 +2822,18 @@ async function savePedido() {
   const clienteId   = document.getElementById('pedido-cliente').value;
   const descripcion = document.getElementById('pedido-descripcion').value.trim();
   const precio      = parseFloat(document.getElementById('pedido-precio').value) || 0;
-  const entrega     = document.getElementById('pedido-fecha-entrega').value;
 
+  const entrega = document.getElementById('pedido-fecha-entrega').value;
   if (!descripcion || !precio) {
     showToast('Completa la descripción y el precio', 'error');
     btn.disabled = false; btn.textContent = '💾 Guardar pedido'; return;
   }
   if (!esStock && !clienteId) {
     showToast('Selecciona un cliente', 'error');
+    btn.disabled = false; btn.textContent = '💾 Guardar pedido'; return;
+  }
+  if (!esStock && !entrega) {
+    showToast('Ingresa la fecha de entrega', 'error');
     btn.disabled = false; btn.textContent = '💾 Guardar pedido'; return;
   }
 
