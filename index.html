@@ -1963,12 +1963,26 @@
     <div class="modal-body">
       <input type="hidden" id="pedido-id" />
 
-      <div class="section-label-modal">👤 Cliente</div>
-      <div class="form-group">
-        <label>Cliente *</label>
-        <select id="pedido-cliente" required>
-          <option value="">Selecciona un cliente...</option>
-        </select>
+      <!-- Tipo de pedido -->
+      <div style="display:flex;gap:8px;margin-bottom:18px;">
+        <button type="button" id="btn-tipo-cliente" onclick="toggleTipoPedido('cliente')"
+          style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1.5px solid var(--rosa-principal);background:rgba(216,1,124,0.08);color:var(--rosa-principal);font-family:'Poppins',sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;">
+          👤 Pedido de cliente
+        </button>
+        <button type="button" id="btn-tipo-stock" onclick="toggleTipoPedido('stock')"
+          style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1.5px solid var(--borde);background:transparent;color:var(--texto-medio);font-family:'Poppins',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">
+          📦 Para stock / vitrina
+        </button>
+      </div>
+
+      <div id="bloque-cliente">
+        <div class="section-label-modal">👤 Cliente</div>
+        <div class="form-group">
+          <label>Cliente</label>
+          <select id="pedido-cliente">
+            <option value="">Selecciona un cliente...</option>
+          </select>
+        </div>
       </div>
 
       <hr class="section-divider"/>
@@ -2000,7 +2014,7 @@
           <option value="Sin ocasión especial">Sin ocasión especial</option>
         </select>
       </div>
-      <div class="form-row">
+      <div class="form-row" id="bloque-para-quien">
         <div class="form-group">
           <label>Para quién es el regalo</label>
           <input type="text" id="pedido-para-quien" placeholder="Nombre del receptor" />
@@ -2016,7 +2030,7 @@
           </select>
         </div>
       </div>
-      <div class="form-group">
+      <div class="form-group" id="bloque-mensaje">
         <label>Mensaje para tarjeta personalizada</label>
         <textarea id="pedido-mensaje" placeholder="Texto que irá en la tarjeta de regalo..." style="min-height:60px;"></textarea>
       </div>
@@ -2066,7 +2080,7 @@
           <label>Precio total (COP) *</label>
           <input type="number" id="pedido-precio" placeholder="120000" min="0" />
         </div>
-        <div class="form-group">
+        <div class="form-group" id="bloque-anticipo">
           <label>Anticipo recibido (COP)</label>
           <input type="number" id="pedido-anticipo" placeholder="60000" min="0" value="0" />
         </div>
@@ -2559,9 +2573,21 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 //  DASHBOARD
 // ══════════════════════════════════════════════════════════
 async function loadDashboard() {
+  // Filter by current month
+  const now    = new Date();
+  const desde  = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  const hasta  = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().split('T')[0];
+  const mesLabel = now.toLocaleDateString('es-CO', { month:'long', year:'numeric' });
+
+  // Update subtitle with current month
+  const sub = document.getElementById('page-subtitle-text');
+  if (sub && sub.textContent.includes('Resumen')) sub.textContent = `Resumen de ${mesLabel} 🌸`;
+
   const [pedidosRes, clientesRes] = await Promise.all([
-    supabase_client.from('pedidos').select('estado, precio_total, anticipo, fecha_pedido').order('fecha_pedido', { ascending: false }),
+    supabase_client.from('pedidos').select('estado, precio_total, anticipo, fecha_pedido')
+      .gte('fecha_pedido', desde).lte('fecha_pedido', hasta),
     supabase_client.from('clientes').select('id', { count: 'exact', head: true })
+      .gte('fecha_primer_contacto', desde).lte('fecha_primer_contacto', hasta)
   ]);
   const pedidos   = pedidosRes.data || [];
   const clientes  = clientesRes.count || 0;
@@ -2581,8 +2607,10 @@ async function loadDashboard() {
   const bnavBadge = document.getElementById('bnav-badge');
   if (bnavBadge) { bnavBadge.textContent = proceso + listos; bnavBadge.style.display = (proceso+listos)>0 ? 'block' : 'none'; }
 
-  // Recent pedidos
-  const recent = await supabase_client.from('pedidos').select('*, clientes(nombre)').order('fecha_pedido', { ascending: false }).limit(6);
+  // Recent pedidos del mes
+  const recent = await supabase_client.from('pedidos').select('*, clientes(nombre)')
+    .gte('fecha_pedido', desde).lte('fecha_pedido', hasta)
+    .order('fecha_pedido', { ascending: false }).limit(6);
   const tb = document.getElementById('tb-recientes');
   if (!recent.data?.length) { tb.innerHTML = '<tr><td colspan="5"><div class="table-empty"><div class="table-empty-icon">🧶</div><p>No hay pedidos aún</p></div></td></tr>'; return; }
   tb.innerHTML = recent.data.map(p => `
@@ -2701,6 +2729,32 @@ async function deletePedido(id) {
 // ══════════════════════════════════════════════════════════
 //  MODAL PEDIDO
 // ══════════════════════════════════════════════════════════
+function toggleTipoPedido(tipo) {
+  const esStock = tipo === 'stock';
+  // Buttons
+  const btnCli   = document.getElementById('btn-tipo-cliente');
+  const btnStock = document.getElementById('btn-tipo-stock');
+  if (btnCli) {
+    btnCli.style.borderColor  = esStock ? 'var(--borde)' : 'var(--rosa-principal)';
+    btnCli.style.background   = esStock ? 'transparent' : 'rgba(216,1,124,0.08)';
+    btnCli.style.color        = esStock ? 'var(--texto-medio)' : 'var(--rosa-principal)';
+    btnCli.style.fontWeight   = esStock ? '600' : '700';
+  }
+  if (btnStock) {
+    btnStock.style.borderColor = esStock ? 'var(--rosa-principal)' : 'var(--borde)';
+    btnStock.style.background  = esStock ? 'rgba(216,1,124,0.08)' : 'transparent';
+    btnStock.style.color       = esStock ? 'var(--rosa-principal)' : 'var(--texto-medio)';
+    btnStock.style.fontWeight  = esStock ? '700' : '600';
+  }
+  // Show/hide blocks
+  ['bloque-cliente','bloque-para-quien','bloque-mensaje','bloque-anticipo'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = esStock ? 'none' : '';
+  });
+  // Store type
+  document.getElementById('pedido-id').dataset.esStock = esStock ? '1' : '0';
+}
+
 async function openModalPedido() {
   if (currentProfile?.role !== 'admin') { showToast('🔒 Solo las administradoras pueden crear pedidos', 'error'); return; }
   editingPedidoId = null;
@@ -2716,6 +2770,7 @@ async function openModalPedido() {
   document.getElementById('pedido-anticipo').value = '0';
   document.getElementById('pedido-compartio').value = 'false';
   document.getElementById('pedido-recomendo').value = 'false';
+  toggleTipoPedido('cliente'); // Reset to cliente mode
   resetImageUpload();
   await populateClienteSelect();
   await populateTejedorasSelect('pedido-tejedora');
@@ -2762,13 +2817,18 @@ async function savePedido() {
   const btn = document.getElementById('btn-save-pedido');
   btn.disabled = true; btn.textContent = '⏳ Guardando...';
 
+  const esStock     = document.getElementById('pedido-id').dataset.esStock === '1';
   const clienteId   = document.getElementById('pedido-cliente').value;
   const descripcion = document.getElementById('pedido-descripcion').value.trim();
   const precio      = parseFloat(document.getElementById('pedido-precio').value) || 0;
   const entrega     = document.getElementById('pedido-fecha-entrega').value;
 
-  if (!clienteId || !descripcion || !precio || !entrega) {
-    showToast('Completa los campos obligatorios *', 'error');
+  if (!descripcion || !precio) {
+    showToast('Completa la descripción y el precio', 'error');
+    btn.disabled = false; btn.textContent = '💾 Guardar pedido'; return;
+  }
+  if (!esStock && !clienteId) {
+    showToast('Selecciona un cliente', 'error');
     btn.disabled = false; btn.textContent = '💾 Guardar pedido'; return;
   }
 
@@ -2791,7 +2851,8 @@ async function savePedido() {
   }
 
   const payload = {
-    cliente_id:      clienteId,
+    cliente_id:      clienteId || null,
+    es_stock:        esStock || false,
     tipo:            document.getElementById('pedido-tipo').value,
     descripcion,
     ocasion:         document.getElementById('pedido-ocasion').value,
