@@ -14,6 +14,7 @@
   <meta name="apple-mobile-web-app-title" content="Lana Rosa" />
   <meta name="theme-color" content="#d8017c" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     :root {
       --rosa-principal: #d8017c;
@@ -1534,7 +1535,7 @@
       </button>
       <div class="nav-section-label" id="admin-section" style="display:none;">Administración</div>
       <button class="nav-item" id="btn-informes" onclick="showSection('informes')" style="display:none;">
-        <span class="nav-icon">📊</span> Informes Excel
+        <span class="nav-icon">📊</span> Informes
       </button>
       <button class="nav-item" id="btn-equipo" onclick="showSection('equipo')" style="display:none;">
         <span class="nav-icon">👥</span> Equipo
@@ -1642,6 +1643,7 @@
                 </select>
               </div>
               <button class="btn-add" id="btn-nuevo-pedido" onclick="openModalPedido()">+ Nuevo pedido</button>
+              <button class="btn-add" id="btn-nuevo-stock" onclick="openModalPedidoStock()" style="background:linear-gradient(135deg,var(--azul-acero),#6b8eb0);">📦 Nuevo para stock</button>
             </div>
           </div>
           <div class="table-wrapper">
@@ -1783,58 +1785,146 @@
       <section class="page-section" id="section-informes">
         <div class="rosina-tip">
           <div class="rosina-tip-icon">🐑</div>
-          <p><strong>Tip de Rosina:</strong> Descarga los informes en Excel para llevar el control del negocio. Los datos siempre están actualizados al momento de descargar. 📊</p>
+          <p><strong>Tip de Rosina:</strong> Aquí puedes ver estadísticas del negocio, el catálogo de piezas en stock y descargar informes en Excel. 📊</p>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;">
 
-          <!-- Clientes -->
-          <div class="config-card" style="border:1.5px solid var(--borde);">
-            <div style="font-size:32px;margin-bottom:10px;">👤</div>
-            <h2 style="margin-bottom:6px;">Base de clientes</h2>
-            <p style="font-size:0.8rem;color:var(--texto-medio);margin-bottom:16px;line-height:1.5;">Nombre, teléfono, correo, cédula, ciudad, dirección, canal, cómo llegó, número de pedidos.</p>
-            <button class="btn-primary" onclick="exportarExcel('clientes')">⬇️ Descargar Excel</button>
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="showInformesTab('dashboard')">📊 Estadísticas</button>
+          <button class="tab-btn" onclick="showInformesTab('stock')">📦 Stock disponible</button>
+          <button class="tab-btn" onclick="showInformesTab('excel')">⬇️ Descargas Excel</button>
+        </div>
+
+        <!-- ═══ TAB: DASHBOARD ═══ -->
+        <div id="informes-tab-dashboard">
+          <div class="stats-grid" style="margin-bottom:20px;">
+            <div class="stat-card">
+              <div class="stat-card-icon green">💰</div>
+              <h3 id="dash-ing-total">$0</h3>
+              <p>Ingresos últimos 12 meses</p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon pink">📦</div>
+              <h3 id="dash-pedidos-total">0</h3>
+              <p>Pedidos últimos 12 meses</p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon light-pink">🧵</div>
+              <h3 id="dash-tiempo-promedio">0h</h3>
+              <p>Tiempo promedio por pieza</p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon steel">📦</div>
+              <h3 id="dash-stock-disp">0</h3>
+              <p>Piezas en stock disponibles</p>
+            </div>
           </div>
 
-          <!-- Ventas mensuales -->
-          <div class="config-card" style="border:1.5px solid var(--borde);">
-            <div style="font-size:32px;margin-bottom:10px;">💰</div>
-            <h2 style="margin-bottom:6px;">Ventas mensuales</h2>
-            <p style="font-size:0.8rem;color:var(--texto-medio);margin-bottom:16px;line-height:1.5;">Pedidos agrupados por mes con total de ingresos, anticipo cobrado y saldo pendiente.</p>
-            <button class="btn-primary" onclick="exportarExcel('ventas_mensuales')">⬇️ Descargar Excel</button>
+          <div class="table-card" style="padding:20px;margin-bottom:20px;">
+            <h2 style="font-size:1rem;font-weight:700;margin-bottom:16px;">💰 Ventas mensuales (pedidos de clientes)</h2>
+            <div style="position:relative;height:280px;">
+              <canvas id="chart-ventas-mensuales"></canvas>
+            </div>
           </div>
 
-          <!-- Todos los pedidos -->
-          <div class="config-card" style="border:1.5px solid var(--borde);">
-            <div style="font-size:32px;margin-bottom:10px;">📦</div>
-            <h2 style="margin-bottom:6px;">Todos los pedidos</h2>
-            <p style="font-size:0.8rem;color:var(--texto-medio);margin-bottom:16px;line-height:1.5;">Historial completo: número, cliente, descripción, tejedora, estado, valor, anticipo, fechas.</p>
-            <button class="btn-primary" onclick="exportarExcel('pedidos')">⬇️ Descargar Excel</button>
+          <div class="table-card" style="padding:20px;">
+            <h2 style="font-size:1rem;font-weight:700;margin-bottom:16px;">🧵 Tiempo promedio de producción por tipo de pieza</h2>
+            <p style="font-size:0.75rem;color:var(--texto-medio);margin-bottom:16px;">Para piezas de stock, el tiempo mostrado ya está dividido entre la cantidad de unidades producidas.</p>
+            <div style="position:relative;height:280px;">
+              <canvas id="chart-tiempos-produccion"></canvas>
+            </div>
           </div>
+        </div>
 
-          <!-- Producción -->
-          <div class="config-card" style="border:1.5px solid var(--borde);">
-            <div style="font-size:32px;margin-bottom:10px;">🧵</div>
-            <h2 style="margin-bottom:6px;">Tiempos de producción</h2>
-            <p style="font-size:0.8rem;color:var(--texto-medio);margin-bottom:16px;line-height:1.5;">Pedido, tejedora, tiempo de tejido, tiempo de detalles y pasos completados.</p>
-            <button class="btn-primary" onclick="exportarExcel('produccion')">⬇️ Descargar Excel</button>
+        <!-- ═══ TAB: STOCK ═══ -->
+        <div id="informes-tab-stock" style="display:none;">
+          <div class="stats-grid" style="margin-bottom:20px;">
+            <div class="stat-card">
+              <div class="stat-card-icon steel">📦</div>
+              <h3 id="stock-stat-disponible">0</h3>
+              <p>Disponibles</p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon green">✅</div>
+              <h3 id="stock-stat-vendidas">0</h3>
+              <p>Vendidas</p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-icon pink">💰</div>
+              <h3 id="stock-stat-valor">$0</h3>
+              <p>Valor del stock disponible</p>
+            </div>
           </div>
-
-          <!-- Envíos -->
-          <div class="config-card" style="border:1.5px solid var(--borde);">
-            <div style="font-size:32px;margin-bottom:10px;">🚚</div>
-            <h2 style="margin-bottom:6px;">Envíos</h2>
-            <p style="font-size:0.8rem;color:var(--texto-medio);margin-bottom:16px;line-height:1.5;">Pedido, cliente, dirección, transportadora, número de guía, estado de entrega.</p>
-            <button class="btn-primary" onclick="exportarExcel('envios')">⬇️ Descargar Excel</button>
+          <div class="tab-bar" style="margin-bottom:16px;">
+            <button class="tab-btn active" onclick="filterStockCatalog('disponible')">📦 Disponibles</button>
+            <button class="tab-btn" onclick="filterStockCatalog('vendido')">✅ Vendidas</button>
+            <button class="tab-btn" onclick="filterStockCatalog('todos')">Todas</button>
           </div>
-
-          <!-- Saldos pendientes -->
-          <div class="config-card" style="border:1.5px solid var(--borde);">
-            <div style="font-size:32px;margin-bottom:10px;">⏳</div>
-            <h2 style="margin-bottom:6px;">Saldos pendientes</h2>
-            <p style="font-size:0.8rem;color:var(--texto-medio);margin-bottom:16px;line-height:1.5;">Solo pedidos con saldo sin cobrar: cliente, valor total, anticipo y saldo pendiente.</p>
-            <button class="btn-primary" onclick="exportarExcel('saldos')">⬇️ Descargar Excel</button>
+          <div id="stock-catalogo-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;">
+            <div class="loading-spinner"></div>
           </div>
+        </div>
 
+        <!-- ═══ TAB: EXCEL ═══ -->
+        <div id="informes-tab-excel" style="display:none;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;">
+
+            <!-- Clientes -->
+            <div class="config-card" style="border:1.5px solid var(--borde);">
+              <div style="font-size:32px;margin-bottom:10px;">👤</div>
+              <h2 style="margin-bottom:6px;">Base de clientes</h2>
+              <p style="font-size:0.8rem;color:var(--texto-medio);margin-bottom:16px;line-height:1.5;">Nombre, teléfono, correo, cédula, ciudad, dirección, canal, cómo llegó, número de pedidos.</p>
+              <button class="btn-primary" onclick="exportarExcel('clientes')">⬇️ Descargar Excel</button>
+            </div>
+
+            <!-- Ventas mensuales -->
+            <div class="config-card" style="border:1.5px solid var(--borde);">
+              <div style="font-size:32px;margin-bottom:10px;">💰</div>
+              <h2 style="margin-bottom:6px;">Ventas mensuales</h2>
+              <p style="font-size:0.8rem;color:var(--texto-medio);margin-bottom:16px;line-height:1.5;">Pedidos de clientes agrupados por mes con total de ingresos, anticipo cobrado y saldo pendiente.</p>
+              <button class="btn-primary" onclick="exportarExcel('ventas_mensuales')">⬇️ Descargar Excel</button>
+            </div>
+
+            <!-- Todos los pedidos -->
+            <div class="config-card" style="border:1.5px solid var(--borde);">
+              <div style="font-size:32px;margin-bottom:10px;">📦</div>
+              <h2 style="margin-bottom:6px;">Todos los pedidos</h2>
+              <p style="font-size:0.8rem;color:var(--texto-medio);margin-bottom:16px;line-height:1.5;">Historial completo: número, cliente, descripción, tejedora, estado, valor, anticipo, fechas.</p>
+              <button class="btn-primary" onclick="exportarExcel('pedidos')">⬇️ Descargar Excel</button>
+            </div>
+
+            <!-- Producción -->
+            <div class="config-card" style="border:1.5px solid var(--borde);">
+              <div style="font-size:32px;margin-bottom:10px;">🧵</div>
+              <h2 style="margin-bottom:6px;">Tiempos de producción</h2>
+              <p style="font-size:0.8rem;color:var(--texto-medio);margin-bottom:16px;line-height:1.5;">Pedido, tejedora, tiempo de tejido, tiempo de detalles y pasos completados.</p>
+              <button class="btn-primary" onclick="exportarExcel('produccion')">⬇️ Descargar Excel</button>
+            </div>
+
+            <!-- Envíos -->
+            <div class="config-card" style="border:1.5px solid var(--borde);">
+              <div style="font-size:32px;margin-bottom:10px;">🚚</div>
+              <h2 style="margin-bottom:6px;">Envíos</h2>
+              <p style="font-size:0.8rem;color:var(--texto-medio);margin-bottom:16px;line-height:1.5;">Pedido, cliente, dirección, transportadora, número de guía, estado de entrega.</p>
+              <button class="btn-primary" onclick="exportarExcel('envios')">⬇️ Descargar Excel</button>
+            </div>
+
+            <!-- Saldos pendientes -->
+            <div class="config-card" style="border:1.5px solid var(--borde);">
+              <div style="font-size:32px;margin-bottom:10px;">⏳</div>
+              <h2 style="margin-bottom:6px;">Saldos pendientes</h2>
+              <p style="font-size:0.8rem;color:var(--texto-medio);margin-bottom:16px;line-height:1.5;">Solo pedidos con saldo sin cobrar: cliente, valor total, anticipo y saldo pendiente.</p>
+              <button class="btn-primary" onclick="exportarExcel('saldos')">⬇️ Descargar Excel</button>
+            </div>
+
+            <!-- Stock -->
+            <div class="config-card" style="border:1.5px solid var(--borde);">
+              <div style="font-size:32px;margin-bottom:10px;">📦</div>
+              <h2 style="margin-bottom:6px;">Catálogo de stock</h2>
+              <p style="font-size:0.8rem;color:var(--texto-medio);margin-bottom:16px;line-height:1.5;">Piezas producidas para stock: tipo, precio, tejedora, si está vendida y a quién.</p>
+              <button class="btn-primary" onclick="exportarExcel('stock')">⬇️ Descargar Excel</button>
+            </div>
+
+          </div>
         </div>
       </section>
 
@@ -1963,26 +2053,12 @@
     <div class="modal-body">
       <input type="hidden" id="pedido-id" />
 
-      <!-- Tipo de pedido -->
-      <div style="display:flex;gap:8px;margin-bottom:18px;">
-        <button type="button" id="btn-tipo-cliente" onclick="toggleTipoPedido('cliente')"
-          style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1.5px solid var(--rosa-principal);background:rgba(216,1,124,0.08);color:var(--rosa-principal);font-family:'Poppins',sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;">
-          👤 Pedido de cliente
-        </button>
-        <button type="button" id="btn-tipo-stock" onclick="toggleTipoPedido('stock')"
-          style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1.5px solid var(--borde);background:transparent;color:var(--texto-medio);font-family:'Poppins',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">
-          📦 Para stock / vitrina
-        </button>
-      </div>
-
-      <div id="bloque-cliente">
-        <div class="section-label-modal">👤 Cliente</div>
-        <div class="form-group">
-          <label>Cliente</label>
-          <select id="pedido-cliente">
-            <option value="">Selecciona un cliente...</option>
-          </select>
-        </div>
+      <div class="section-label-modal">👤 Cliente</div>
+      <div class="form-group">
+        <label>Cliente *</label>
+        <select id="pedido-cliente" required>
+          <option value="">Selecciona un cliente...</option>
+        </select>
       </div>
 
       <hr class="section-divider"/>
@@ -2128,6 +2204,128 @@
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeModal('modal-pedido')">Cancelar</button>
       <button class="btn-save" id="btn-save-pedido" onclick="savePedido()">💾 Guardar pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL PEDIDO STOCK ═══════════════ -->
+<div class="modal-overlay" id="modal-pedido-stock">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-pedido-stock-title">📦 Nuevo pedido para stock</h2>
+      <button class="modal-close" onclick="closeModal('modal-pedido-stock')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="stock-id" />
+
+      <div class="rosina-tip" style="margin-bottom:18px;">
+        <div class="rosina-tip-icon">🐑</div>
+        <p><strong>Tip de Rosina:</strong> Este formulario es para piezas que se producen sin un cliente específico — para tener listas en la vitrina o catálogo. 📦</p>
+      </div>
+
+      <div class="section-label-modal">📦 Descripción de la producción</div>
+      <div class="form-group">
+        <label>Tipo de pieza *</label>
+        <select id="stock-tipo">
+          <option value="Amigurumi personalizado">Amigurumi</option>
+          <option value="Peluche">Peluche</option>
+          <option value="Llavero">Llavero</option>
+          <option value="Accesorio">Accesorio</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Descripción *</label>
+        <textarea id="stock-descripcion" placeholder="Describe la pieza que se va a producir..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tamaño</label>
+          <select id="stock-tamano">
+            <option value="">Sin especificar</option>
+            <option value="Pequeño (10–15 cm)">Pequeño (10–15 cm)</option>
+            <option value="Mediano (15–25 cm)">Mediano (15–25 cm)</option>
+            <option value="Grande (25–35 cm)">Grande (25–35 cm)</option>
+            <option value="Personalizado">Personalizado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Cantidad de unidades a producir *</label>
+          <input type="number" id="stock-cantidad" min="1" value="1" placeholder="Ej: 4" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>🖼️ Imagen de referencia</label>
+        <div class="upload-zone" id="upload-zone-stock"
+          ondragover="event.preventDefault(); this.classList.add('drag-over')"
+          ondragleave="this.classList.remove('drag-over')"
+          ondrop="handleDropStock(event)">
+          <input type="file" id="stock-imagen" accept="image/*" onchange="handleImageSelectStock(event)" />
+          <div id="upload-placeholder-stock">
+            <div class="upload-icon">📷</div>
+            <div class="upload-text"><strong>Haz clic</strong> o arrastra aquí la imagen de referencia</div>
+            <div class="upload-text" style="font-size:0.72rem;margin-top:4px;">PNG, JPG, WEBP — máx 5 MB</div>
+          </div>
+          <div id="upload-preview-container-stock" style="display:none;"></div>
+        </div>
+      </div>
+
+      <hr class="section-divider"/>
+      <div class="section-label-modal">👩‍🎨 Tejedora responsable</div>
+      <div class="form-group">
+        <label>Tejedora asignada</label>
+        <select id="stock-tejedora">
+          <option value="">Sin asignar</option>
+        </select>
+      </div>
+
+      <hr class="section-divider"/>
+      <div class="section-label-modal">💰 Precio</div>
+      <div class="form-group">
+        <label>Precio unitario de venta (COP) *</label>
+        <input type="number" id="stock-precio" placeholder="70000" min="0" />
+        <p style="font-size:0.72rem;color:var(--texto-medio);margin-top:6px;">Este es el precio de venta de cada unidad producida.</p>
+      </div>
+
+      <hr class="section-divider"/>
+      <div class="section-label-modal">📝 Notas internas</div>
+      <div class="form-group">
+        <label>Notas de producción</label>
+        <textarea id="stock-notas" placeholder="Comentarios internos sobre esta producción..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('modal-pedido-stock')">Cancelar</button>
+      <button class="btn-save" id="btn-save-stock" onclick="saveStockPedido()">💾 Guardar producción</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL VENDER STOCK ═══════════════ -->
+<div class="modal-overlay" id="modal-vender-stock">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <h2>💰 Marcar como vendido</h2>
+      <button class="modal-close" onclick="closeModal('modal-vender-stock')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="vender-stock-item-id" />
+      <div id="vender-stock-preview" style="margin-bottom:16px;"></div>
+      <div class="form-group">
+        <label>Cliente que compró *</label>
+        <select id="vender-stock-cliente">
+          <option value="">Selecciona un cliente...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Fecha de venta</label>
+        <input type="date" id="vender-stock-fecha" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('modal-vender-stock')">Cancelar</button>
+      <button class="btn-save" id="btn-confirmar-venta" onclick="confirmarVentaStock()">✅ Confirmar venta</button>
     </div>
   </div>
 </div>
@@ -2452,7 +2650,7 @@ function showApp() {
     document.getElementById('btn-informes').style.display  = 'flex';
   } else {
     // Tejedoras: ocultar Clientes y Finanzas en sidebar y bottom nav
-    const hide = ['nav-clientes','nav-finanzas','bnav-clientes','bnav-finanzas','btn-nuevo-pedido','filter-tejedora-row','card-clientes','card-ingresos'];
+    const hide = ['nav-clientes','nav-finanzas','bnav-clientes','bnav-finanzas','btn-nuevo-pedido','btn-nuevo-stock','filter-tejedora-row','card-clientes','card-ingresos'];
     hide.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
   }
   loadDashboard();
@@ -2493,7 +2691,7 @@ const sections = {
   equipo:      { title: 'Equipo',              subtitle: 'Usuarios registrados', load: loadEquipo },
   produccion:  { title: 'Producción',          subtitle: 'Estación de trabajo por tejedora 🧵', load: loadProduccion },
   envios:      { title: 'Envíos',              subtitle: 'Gestión de envíos y entregas 🚚', load: loadEnvios },
-  informes:    { title: 'Informes Excel',      subtitle: 'Descarga reportes del negocio 📊', load: () => {} },
+  informes:    { title: 'Informes',             subtitle: 'Estadísticas, stock y reportes del negocio 📊', load: loadInformes },
 };
 
 function showSection(name) {
@@ -2584,7 +2782,7 @@ async function loadDashboard() {
   if (sub && sub.textContent.includes('Resumen')) sub.textContent = `Resumen de ${mesLabel} 🌸`;
 
   const [pedidosRes, clientesRes] = await Promise.all([
-    supabase_client.from('pedidos').select('estado, precio_total, anticipo, fecha_pedido')
+    supabase_client.from('pedidos').select('estado, precio_total, anticipo, fecha_pedido, es_stock')
       .gte('fecha_pedido', desde).lte('fecha_pedido', hasta),
     supabase_client.from('clientes').select('id', { count: 'exact', head: true })
       .gte('fecha_primer_contacto', desde).lte('fecha_primer_contacto', hasta)
@@ -2595,7 +2793,8 @@ async function loadDashboard() {
   const proceso   = pedidos.filter(p => ['en proceso','en produccion'].includes(p.estado)).length;
   const listos    = pedidos.filter(p => p.estado === 'listo').length;
   const entregados= pedidos.filter(p => p.estado === 'entregado').length;
-  const ingresos  = pedidos.reduce((s,p) => s + (Number(p.precio_total)||0), 0);
+  // Ingresos: solo pedidos de clientes, no producción para stock (aún no vendida)
+  const ingresos  = pedidos.filter(p => !p.es_stock).reduce((s,p) => s + (Number(p.precio_total)||0), 0);
 
   document.getElementById('stat-total').textContent     = total;
   document.getElementById('stat-proceso').textContent   = proceso;
@@ -2616,7 +2815,7 @@ async function loadDashboard() {
   tb.innerHTML = recent.data.map(p => `
     <tr>
       <td><div style="font-size:0.78rem;font-weight:700;color:var(--rosa-principal);">${p.numero_pedido||'—'}</div></td>
-      <td><div class="client-cell"><div class="avatar">${initials(p.clientes?.nombre)}</div><span class="client-cell-name">${p.clientes?.nombre||'—'}</span></div></td>
+      <td>${p.es_stock ? '<span style="font-size:0.75rem;color:var(--azul-acero);font-weight:600;">📦 Stock</span>' : `<div class="client-cell"><div class="avatar">${initials(p.clientes?.nombre)}</div><span class="client-cell-name">${p.clientes?.nombre||'—'}</span></div>`}</td>
       <td>${p.descripcion?.slice(0,40)||'—'}${p.descripcion?.length>40?'…':''}</td>
       <td>${badgeEstado(p.estado)}</td>
       <td>${formatDate(p.fecha_entrega)}</td>
@@ -2666,13 +2865,21 @@ async function loadPedidos() {
         <div style="font-size:0.65rem;color:var(--texto-medio);">${formatDate(p.fecha_pedido)}</div>
       </td>
       <td>
+        ${p.es_stock ? `
+        <div class="client-cell">
+          <div class="avatar" style="background:linear-gradient(135deg,var(--azul-acero),#6b8eb0);">📦</div>
+          <div class="client-cell-info">
+            <div class="client-cell-name">Para stock</div>
+            <div class="client-cell-channel" style="color:var(--texto-medio);">${p.cantidad_unidades||1} unidad${(p.cantidad_unidades||1)!==1?'es':''}</div>
+          </div>
+        </div>` : `
         <div class="client-cell">
           <div class="avatar">${initials(p.clientes?.nombre)}</div>
           <div class="client-cell-info">
             <div class="client-cell-name">${p.clientes?.nombre||'—'}</div>
             <div class="client-cell-channel">${channelTag(p.clientes?.canal||'otro')}</div>
           </div>
-        </div>
+        </div>`}
       </td>
       <td style="max-width:160px;white-space:normal;">${p.tipo||''} ${p.descripcion?.slice(0,50)||''}${(p.descripcion?.length||0)>50?'…':''}</td>
       <td>${p.imagen_url ? `<img src="${p.imagen_url}" class="ref-thumb" onclick="event.stopPropagation();openImagePreview('${p.imagen_url}')" alt="ref" />` : '<span style="color:var(--texto-medio);font-size:0.75rem;">—</span>'}</td>
@@ -2680,18 +2887,19 @@ async function loadPedidos() {
       <td>
         ${badgeEstado(p.estado)}
       </td>
-      <td>${formatDate(p.fecha_entrega)}</td>
+      <td>${p.es_stock ? '<span style="color:var(--texto-medio);font-size:0.75rem;">—</span>' : formatDate(p.fecha_entrega)}</td>
       <td class="price-display">${formatCOP(p.precio_total)}</td>
       <td>
+        ${p.es_stock ? '<span style="color:var(--texto-medio);font-size:0.75rem;">Sin anticipo</span>' : `
         <div style="font-size:0.72rem;color:var(--texto-medio);">
           ${formatCOP(p.anticipo)} anticipo<br>
           <span style="color:${(p.precio_total-p.anticipo)>0?'#d97706':'#166534'};">${formatCOP(p.precio_total-p.anticipo)} saldo</span>
-        </div>
+        </div>`}
       </td>
       <td>
         <div style="display:flex;gap:4px;">
           ${currentProfile?.role === 'admin' ? `
-          <button class="btn-icon" title="Editar" onclick="event.stopPropagation();editPedido('${p.id}')">✏️</button>
+          <button class="btn-icon" title="Editar" onclick="event.stopPropagation();${p.es_stock?`editPedidoStock('${p.id}')`:`editPedido('${p.id}')`}">✏️</button>
           <button class="btn-icon danger" title="Eliminar" onclick="event.stopPropagation();deletePedido('${p.id}')">🗑️</button>
           ` : ''}
         </div>
@@ -2729,33 +2937,6 @@ async function deletePedido(id) {
 // ══════════════════════════════════════════════════════════
 //  MODAL PEDIDO
 // ══════════════════════════════════════════════════════════
-function toggleTipoPedido(tipo) {
-  const esStock = tipo === 'stock';
-  // Buttons
-  const btnCli   = document.getElementById('btn-tipo-cliente');
-  const btnStock = document.getElementById('btn-tipo-stock');
-  if (btnCli) {
-    btnCli.style.borderColor  = esStock ? 'var(--borde)' : 'var(--rosa-principal)';
-    btnCli.style.background   = esStock ? 'transparent' : 'rgba(216,1,124,0.08)';
-    btnCli.style.color        = esStock ? 'var(--texto-medio)' : 'var(--rosa-principal)';
-    btnCli.style.fontWeight   = esStock ? '600' : '700';
-  }
-  if (btnStock) {
-    btnStock.style.borderColor = esStock ? 'var(--rosa-principal)' : 'var(--borde)';
-    btnStock.style.background  = esStock ? 'rgba(216,1,124,0.08)' : 'transparent';
-    btnStock.style.color       = esStock ? 'var(--rosa-principal)' : 'var(--texto-medio)';
-    btnStock.style.fontWeight  = esStock ? '700' : '600';
-  }
-  // Show/hide blocks
-  ['bloque-cliente','bloque-para-quien','bloque-mensaje','bloque-anticipo',
-   'bloque-ocasion','bloque-metodo-fecha','bloque-engagement'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = esStock ? 'none' : '';
-  });
-  // Store type
-  document.getElementById('pedido-id').dataset.esStock = esStock ? '1' : '0';
-}
-
 async function openModalPedido() {
   if (currentProfile?.role !== 'admin') { showToast('🔒 Solo las administradoras pueden crear pedidos', 'error'); return; }
   editingPedidoId = null;
@@ -2771,7 +2952,6 @@ async function openModalPedido() {
   document.getElementById('pedido-anticipo').value = '0';
   document.getElementById('pedido-compartio').value = 'false';
   document.getElementById('pedido-recomendo').value = 'false';
-  toggleTipoPedido('cliente'); // Reset to cliente mode
   resetImageUpload();
   await populateClienteSelect();
   await populateTejedorasSelect('pedido-tejedora');
@@ -2818,22 +2998,13 @@ async function savePedido() {
   const btn = document.getElementById('btn-save-pedido');
   btn.disabled = true; btn.textContent = '⏳ Guardando...';
 
-  const esStock     = document.getElementById('pedido-id').dataset.esStock === '1';
   const clienteId   = document.getElementById('pedido-cliente').value;
   const descripcion = document.getElementById('pedido-descripcion').value.trim();
   const precio      = parseFloat(document.getElementById('pedido-precio').value) || 0;
+  const entrega     = document.getElementById('pedido-fecha-entrega').value;
 
-  const entrega = document.getElementById('pedido-fecha-entrega').value;
-  if (!descripcion || !precio) {
-    showToast('Completa la descripción y el precio', 'error');
-    btn.disabled = false; btn.textContent = '💾 Guardar pedido'; return;
-  }
-  if (!esStock && !clienteId) {
-    showToast('Selecciona un cliente', 'error');
-    btn.disabled = false; btn.textContent = '💾 Guardar pedido'; return;
-  }
-  if (!esStock && !entrega) {
-    showToast('Ingresa la fecha de entrega', 'error');
+  if (!clienteId || !descripcion || !precio || !entrega) {
+    showToast('Completa los campos obligatorios *', 'error');
     btn.disabled = false; btn.textContent = '💾 Guardar pedido'; return;
   }
 
@@ -2856,8 +3027,8 @@ async function savePedido() {
   }
 
   const payload = {
-    cliente_id:      clienteId || null,
-    es_stock:        esStock || false,
+    cliente_id:      clienteId,
+    es_stock:        false,
     tipo:            document.getElementById('pedido-tipo').value,
     descripcion,
     ocasion:         document.getElementById('pedido-ocasion').value,
@@ -2868,8 +3039,8 @@ async function savePedido() {
     estado:          document.getElementById('pedido-estado').value,
     precio_total:    precio,
     anticipo:        parseFloat(document.getElementById('pedido-anticipo').value) || 0,
-    metodo_pago:     esStock ? null : document.getElementById('pedido-metodo-pago').value,
-    fecha_entrega:   entrega || null,
+    metodo_pago:     document.getElementById('pedido-metodo-pago').value,
+    fecha_entrega:   entrega,
     notas:           document.getElementById('pedido-notas').value,
     compartio_redes: document.getElementById('pedido-compartio').value === 'true',
     recomendo:       document.getElementById('pedido-recomendo').value === 'true',
@@ -2928,6 +3099,144 @@ function openImagePreview(url) {
 }
 
 // ══════════════════════════════════════════════════════════
+//  IMAGE UPLOAD — STOCK
+// ══════════════════════════════════════════════════════════
+let imageFileStock = null;
+
+function handleImageSelectStock(e) {
+  const file = e.target.files[0];
+  if (file) setImagePreviewStock(file);
+}
+function handleDropStock(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone-stock').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) setImagePreviewStock(file);
+}
+function setImagePreviewStock(file) {
+  imageFileStock = file;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    document.getElementById('upload-placeholder-stock').style.display = 'none';
+    const c = document.getElementById('upload-preview-container-stock');
+    c.style.display = 'block';
+    c.innerHTML = `<div class="upload-preview"><img src="${ev.target.result}" /><button class="upload-preview-remove" onclick="resetImageUploadStock()">✕</button></div>`;
+  };
+  reader.readAsDataURL(file);
+}
+function resetImageUploadStock() {
+  imageFileStock = null;
+  document.getElementById('stock-imagen').value = '';
+  document.getElementById('upload-placeholder-stock').style.display = 'block';
+  const c = document.getElementById('upload-preview-container-stock');
+  c.style.display = 'none'; c.innerHTML = '';
+}
+
+// ══════════════════════════════════════════════════════════
+//  PEDIDOS DE STOCK
+// ══════════════════════════════════════════════════════════
+let editingStockId = null;
+
+async function openModalPedidoStock() {
+  if (currentProfile?.role !== 'admin') { showToast('🔒 Solo las administradoras pueden crear pedidos', 'error'); return; }
+  editingStockId = null;
+  document.getElementById('modal-pedido-stock-title').textContent = '📦 Nuevo pedido para stock';
+  document.getElementById('stock-id').value = '';
+  ['stock-descripcion','stock-tamano','stock-precio','stock-notas'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('stock-tipo').selectedIndex = 0;
+  document.getElementById('stock-cantidad').value = 1;
+  resetImageUploadStock();
+  await populateTejedorasSelect('stock-tejedora');
+  openModal('modal-pedido-stock');
+}
+
+async function editPedidoStock(id) {
+  if (currentProfile?.role !== 'admin') { showToast('🔒 Solo las administradoras pueden editar pedidos', 'error'); return; }
+  editingStockId = id;
+  const { data: p } = await supabase_client.from('pedidos').select('*').eq('id', id).single();
+  if (!p) return;
+  document.getElementById('modal-pedido-stock-title').textContent = 'Editar pedido de stock';
+  document.getElementById('stock-id').value          = p.id;
+  document.getElementById('stock-tipo').value        = p.tipo || 'Amigurumi personalizado';
+  document.getElementById('stock-descripcion').value = p.descripcion || '';
+  document.getElementById('stock-tamano').value      = p.tamano || '';
+  document.getElementById('stock-cantidad').value    = p.cantidad_unidades || 1;
+  document.getElementById('stock-precio').value      = p.precio_total || '';
+  document.getElementById('stock-notas').value       = p.notas || '';
+  await populateTejedorasSelect('stock-tejedora', p.tejedora_id);
+  resetImageUploadStock();
+  if (p.imagen_url) {
+    document.getElementById('upload-placeholder-stock').style.display = 'none';
+    document.getElementById('upload-preview-container-stock').style.display = 'block';
+    document.getElementById('upload-preview-container-stock').innerHTML =
+      `<div class="upload-preview"><img src="${p.imagen_url}" /><button class="upload-preview-remove" onclick="resetImageUploadStock()">✕</button></div>`;
+  }
+  openModal('modal-pedido-stock');
+}
+
+async function saveStockPedido() {
+  const btn = document.getElementById('btn-save-stock');
+  btn.disabled = true; btn.textContent = '⏳ Guardando...';
+
+  const descripcion = document.getElementById('stock-descripcion').value.trim();
+  const precio       = parseFloat(document.getElementById('stock-precio').value) || 0;
+  const cantidad     = parseInt(document.getElementById('stock-cantidad').value) || 1;
+
+  if (!descripcion || !precio || cantidad < 1) {
+    showToast('Completa la descripción, el precio y la cantidad', 'error');
+    btn.disabled = false; btn.textContent = '💾 Guardar producción'; return;
+  }
+
+  let imagen_url = null;
+  if (imageFileStock) {
+    const ext  = imageFileStock.name.split('.').pop();
+    const path = `referencias/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error: upErr } = await supabase_client.storage.from('pedidos-imagenes').upload(path, imageFileStock, { upsert: true });
+    if (!upErr) {
+      const { data: urlData } = supabase_client.storage.from('pedidos-imagenes').getPublicUrl(path);
+      imagen_url = urlData.publicUrl;
+    } else {
+      showToast('No se pudo subir la imagen: ' + upErr.message, 'error');
+    }
+  } else if (editingStockId) {
+    const { data: existing } = await supabase_client.from('pedidos').select('imagen_url').eq('id', editingStockId).single();
+    imagen_url = existing?.imagen_url || null;
+  }
+
+  const payload = {
+    cliente_id:        null,
+    es_stock:           true,
+    tipo:               document.getElementById('stock-tipo').value,
+    descripcion,
+    tamano:             document.getElementById('stock-tamano').value,
+    cantidad_unidades:  cantidad,
+    tejedora_id:        document.getElementById('stock-tejedora').value || null,
+    precio_total:       precio,
+    anticipo:           0,
+    notas:              document.getElementById('stock-notas').value,
+    ...(imagen_url !== null ? { imagen_url } : {}),
+  };
+
+  let error;
+  if (editingStockId) {
+    ({ error } = await supabase_client.from('pedidos').update(payload).eq('id', editingStockId));
+  } else {
+    payload.estado       = 'en proceso';
+    payload.fecha_pedido = new Date().toISOString().split('T')[0];
+    ({ error } = await supabase_client.from('pedidos').insert(payload));
+  }
+
+  btn.disabled = false; btn.textContent = '💾 Guardar producción';
+  if (error) { showToast('Error: ' + error.message, 'error'); return; }
+  showToast(editingStockId ? 'Producción actualizada ✨' : 'Producción para stock creada 🎉', 'success');
+  closeModal('modal-pedido-stock');
+  loadPedidos(); loadDashboard();
+}
+
+// ══════════════════════════════════════════════════════════
 //  CLIENTES
 // ══════════════════════════════════════════════════════════
 async function loadClientes() {
@@ -2976,9 +3285,10 @@ async function loadClientes() {
     </tr>`).join('');
 }
 
-async function populateClienteSelect(selectedId='') {
+async function populateClienteSelect(selectedId='', targetId='pedido-cliente') {
   const { data } = await supabase_client.from('clientes').select('id, nombre').order('nombre');
-  const sel = document.getElementById('pedido-cliente');
+  const sel = document.getElementById(targetId);
+  if (!sel) return;
   sel.innerHTML = '<option value="">Selecciona un cliente...</option>' +
     (data||[]).map(c=>`<option value="${c.id}" ${c.id===selectedId?'selected':''}>${c.nombre}</option>`).join('');
 }
@@ -3153,7 +3463,7 @@ async function loadFinanzas() {
   const labelEl = document.getElementById('fin-periodo-label');
   if (labelEl) labelEl.textContent = label ? `— ${label}` : '';
 
-  let q = supabase_client.from('pedidos').select('*, clientes(nombre)').order('fecha_pedido', { ascending: false });
+  let q = supabase_client.from('pedidos').select('*, clientes(nombre)').eq('es_stock', false).order('fecha_pedido', { ascending: false });
   if (desde) q = q.gte('fecha_pedido', desde);
   if (hasta) q = q.lte('fecha_pedido', hasta);
 
@@ -3192,15 +3502,266 @@ async function loadFinanzas() {
 }
 
 // ══════════════════════════════════════════════════════════
-//  EQUIPO
+//  INFORMES — TABS, DASHBOARD, CATÁLOGO DE STOCK
 // ══════════════════════════════════════════════════════════
+let chartVentas   = null;
+let chartTiempos  = null;
+let stockCatalogoData = [];
+let stockFilterActual = 'disponible';
 
-// ══════════════════════════════════════════════════════════
-//  INFORMES EXCEL
-// ══════════════════════════════════════════════════════════
+async function loadInformes() {
+  await loadInformesDashboard();
+}
 
-// Genera y descarga un archivo .xlsx sin librerías externas
-// usando el formato XML de Excel (SpreadsheetML)
+function showInformesTab(tab) {
+  ['dashboard','stock','excel'].forEach(t => {
+    const el = document.getElementById('informes-tab-' + t);
+    if (el) el.style.display = t === tab ? 'block' : 'none';
+  });
+  const topBar = document.querySelector('#section-informes > .tab-bar');
+  if (topBar) {
+    topBar.querySelectorAll('.tab-btn').forEach((b,i) => {
+      b.classList.toggle('active', ['dashboard','stock','excel'][i] === tab);
+    });
+  }
+  if (tab === 'stock') loadStockCatalog();
+}
+
+// ─── DASHBOARD CON GRÁFICAS ───
+async function loadInformesDashboard() {
+  const hoy = new Date();
+  const desde12 = new Date(hoy.getFullYear(), hoy.getMonth()-11, 1).toISOString().split('T')[0];
+
+  // ── Ventas mensuales (solo pedidos de clientes, no stock) ──
+  const { data: pedidosData } = await supabase_client
+    .from('pedidos')
+    .select('fecha_pedido, precio_total, estado, es_stock')
+    .eq('es_stock', false)
+    .not('estado', 'eq', 'cancelado')
+    .gte('fecha_pedido', desde12);
+
+  const meses = {};
+  const mesesNombres = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  // Inicializar los últimos 12 meses en orden
+  const claves = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(hoy.getFullYear(), hoy.getMonth()-i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    claves.push(key);
+    meses[key] = { total: 0, pedidos: 0, label: `${mesesNombres[d.getMonth()]} ${d.getFullYear()}` };
+  }
+  let ingresoTotal12 = 0, pedidosTotal12 = 0;
+  (pedidosData||[]).forEach(p => {
+    if (!p.fecha_pedido) return;
+    const key = p.fecha_pedido.slice(0,7);
+    if (meses[key]) {
+      meses[key].total += Number(p.precio_total||0);
+      meses[key].pedidos++;
+      ingresoTotal12 += Number(p.precio_total||0);
+      pedidosTotal12++;
+    }
+  });
+
+  document.getElementById('dash-ing-total').textContent = formatCOP(ingresoTotal12);
+  document.getElementById('dash-pedidos-total').textContent = pedidosTotal12;
+
+  const labels = claves.map(k => meses[k].label);
+  const valores = claves.map(k => meses[k].total);
+
+  if (typeof Chart !== 'undefined') {
+    const ctxV = document.getElementById('chart-ventas-mensuales');
+    if (chartVentas) chartVentas.destroy();
+    chartVentas = new Chart(ctxV, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Ingresos (COP)',
+          data: valores,
+          backgroundColor: '#ff8fd4',
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { ticks: { callback: v => '$' + v.toLocaleString('es-CO') } }
+        }
+      }
+    });
+  }
+
+  // ── Tiempos de producción por tipo ──
+  const { data: progData } = await supabase_client
+    .from('produccion_progreso')
+    .select('tiempos, pedido:pedidos(tipo, es_stock, cantidad_unidades)');
+
+  const tiposMap = {};
+  let sumaTotal = 0, countTotal = 0;
+  (progData||[]).forEach(pp => {
+    const tipo = pp.pedido?.tipo || 'Otro';
+    const segTotal = (pp.tiempos?.tejido||0) + (pp.tiempos?.detalles||0);
+    if (!segTotal) return;
+    const cantidad = pp.pedido?.es_stock ? (pp.pedido?.cantidad_unidades || 1) : 1;
+    const segPorUnidad = segTotal / cantidad;
+    if (!tiposMap[tipo]) tiposMap[tipo] = { suma: 0, count: 0 };
+    tiposMap[tipo].suma += segPorUnidad;
+    tiposMap[tipo].count++;
+    sumaTotal += segPorUnidad;
+    countTotal++;
+  });
+
+  const tipoLabels = Object.keys(tiposMap);
+  const tipoValores = tipoLabels.map(t => Math.round((tiposMap[t].suma / tiposMap[t].count) / 60)); // minutos
+
+  const promedioGeneral = countTotal ? sumaTotal / countTotal : 0;
+  const horasP = Math.floor(promedioGeneral / 3600);
+  const minP   = Math.round((promedioGeneral % 3600) / 60);
+  document.getElementById('dash-tiempo-promedio').textContent = countTotal ? `${horasP}h ${minP}m` : '—';
+
+  if (typeof Chart !== 'undefined') {
+    const ctxT = document.getElementById('chart-tiempos-produccion');
+    if (chartTiempos) chartTiempos.destroy();
+    chartTiempos = new Chart(ctxT, {
+      type: 'bar',
+      data: {
+        labels: tipoLabels,
+        datasets: [{
+          label: 'Minutos promedio por pieza',
+          data: tipoValores,
+          backgroundColor: '#d8017c',
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { callback: v => v + ' min' } }
+        }
+      }
+    });
+  }
+
+  // ── Stock disponible (stat rápido) ──
+  const { count: stockCount } = await supabase_client
+    .from('stock_items')
+    .select('id', { count: 'exact', head: true })
+    .eq('vendido', false);
+  document.getElementById('dash-stock-disp').textContent = stockCount || 0;
+}
+
+// ─── CATÁLOGO DE STOCK ───
+async function loadStockCatalog() {
+  const grid = document.getElementById('stock-catalogo-grid');
+  grid.innerHTML = '<div class="loading-spinner"></div>';
+
+  const { data, error } = await supabase_client
+    .from('stock_items')
+    .select('*, tejedora:profiles(full_name), cliente_venta:clientes(nombre)')
+    .order('created_at', { ascending: false });
+
+  if (error) { grid.innerHTML = `<p style="color:red">Error: ${error.message}</p>`; return; }
+  stockCatalogoData = data || [];
+
+  const disponibles = stockCatalogoData.filter(i => !i.vendido);
+  const vendidas     = stockCatalogoData.filter(i => i.vendido);
+  const valorDisp    = disponibles.reduce((s,i) => s + Number(i.precio||0), 0);
+
+  document.getElementById('stock-stat-disponible').textContent = disponibles.length;
+  document.getElementById('stock-stat-vendidas').textContent   = vendidas.length;
+  document.getElementById('stock-stat-valor').textContent      = formatCOP(valorDisp);
+
+  renderStockCatalog();
+}
+
+function filterStockCatalog(f) {
+  stockFilterActual = f;
+  document.querySelectorAll('#informes-tab-stock .tab-bar .tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['disponible','vendido','todos'][i] === f);
+  });
+  renderStockCatalog();
+}
+
+function renderStockCatalog() {
+  const grid = document.getElementById('stock-catalogo-grid');
+  let items = stockCatalogoData;
+  if (stockFilterActual === 'disponible') items = items.filter(i => !i.vendido);
+  else if (stockFilterActual === 'vendido') items = items.filter(i => i.vendido);
+
+  if (!items.length) {
+    grid.innerHTML = `<div class="env-empty" style="grid-column:1/-1;"><div class="env-empty-icon">📦</div><p>No hay piezas en esta categoría todavía</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = items.map(item => {
+    const img = item.foto_resultado || item.imagen_url || '';
+    return `
+    <div class="prod-card" style="flex-direction:column;align-items:stretch;padding:0;overflow:hidden;cursor:default;">
+      <div style="width:100%;aspect-ratio:1;background:var(--rosa-suave);display:flex;align-items:center;justify-content:center;overflow:hidden;">
+        ${img ? `<img src="${img}" style="width:100%;height:100%;object-fit:cover;" onclick="openImagePreview('${img}')" />` : '<span style="font-size:40px;">🧸</span>'}
+      </div>
+      <div style="padding:12px 14px;">
+        <div style="font-weight:700;font-size:0.85rem;color:var(--texto-oscuro);margin-bottom:2px;">${item.tipo||'Pieza'}</div>
+        <div style="font-size:0.75rem;color:var(--texto-medio);margin-bottom:6px;line-height:1.4;">${(item.descripcion||'').slice(0,50)}${(item.descripcion?.length||0)>50?'…':''}</div>
+        <div style="font-size:0.7rem;color:var(--texto-medio);margin-bottom:8px;">👩‍🎨 ${item.tejedora?.full_name||'—'}</div>
+        <div class="price-display" style="margin-bottom:10px;">${formatCOP(item.precio)}</div>
+        ${item.vendido ? `
+          <div class="badge badge-entregado" style="width:100%;justify-content:center;padding:6px;">✅ Vendida</div>
+          <div style="font-size:0.68rem;color:var(--texto-medio);margin-top:6px;text-align:center;">
+            ${item.cliente_venta?.nombre||'—'} · ${formatDate(item.fecha_venta)}
+          </div>
+        ` : `
+          <button class="btn-add" style="width:100%;justify-content:center;" onclick="abrirVenderStock('${item.id}')">💰 Marcar vendido</button>
+        `}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── VENDER PIEZA DE STOCK ───
+async function abrirVenderStock(itemId) {
+  const item = stockCatalogoData.find(i => i.id === itemId);
+  if (!item) return;
+  document.getElementById('vender-stock-item-id').value = itemId;
+  document.getElementById('vender-stock-fecha').value = new Date().toISOString().split('T')[0];
+  const img = item.foto_resultado || item.imagen_url || '';
+  document.getElementById('vender-stock-preview').innerHTML = `
+    <div style="display:flex;gap:12px;align-items:center;background:var(--rosa-suave);border-radius:var(--radius-sm);padding:12px;">
+      ${img ? `<img src="${img}" style="width:56px;height:56px;border-radius:8px;object-fit:cover;" />` : ''}
+      <div>
+        <div style="font-weight:700;font-size:0.85rem;">${item.tipo||'Pieza'}</div>
+        <div style="font-size:0.78rem;color:var(--rosa-principal);font-weight:700;">${formatCOP(item.precio)}</div>
+      </div>
+    </div>`;
+  await populateClienteSelect('', 'vender-stock-cliente');
+  openModal('modal-vender-stock');
+}
+
+async function confirmarVentaStock() {
+  const btn = document.getElementById('btn-confirmar-venta');
+  const itemId    = document.getElementById('vender-stock-item-id').value;
+  const clienteId = document.getElementById('vender-stock-cliente').value;
+  const fecha     = document.getElementById('vender-stock-fecha').value;
+
+  if (!clienteId) { showToast('Selecciona el cliente que compró', 'error'); return; }
+
+  btn.disabled = true; btn.textContent = '⏳ Guardando...';
+  const { error } = await supabase_client
+    .from('stock_items')
+    .update({ vendido: true, cliente_venta_id: clienteId, fecha_venta: fecha || new Date().toISOString().split('T')[0] })
+    .eq('id', itemId);
+  btn.disabled = false; btn.textContent = '✅ Confirmar venta';
+
+  if (error) { showToast('Error: ' + error.message, 'error'); return; }
+  showToast('🎉 ¡Venta registrada!', 'success');
+  playBeep(880, 0.2);
+  closeModal('modal-vender-stock');
+  loadStockCatalog();
+}
+
 function exportarExcel(tipo) {
   const btn = event.target;
   btn.disabled = true;
@@ -3241,10 +3802,10 @@ async function _generarExcel(tipo) {
       .from('pedidos')
       .select('*, clientes(nombre), tejedora:profiles!pedidos_tejedora_id_fkey(full_name)')
       .order('fecha_pedido', { ascending: false });
-    headers = ['N° Pedido','Fecha pedido','Cliente','Tejedora','Tipo','Descripción','Ocasión','Para quién','Estado','Valor total','Anticipo','Saldo','Método pago','Fecha entrega','Fecha entrega real','Compartió redes','Recomendó'];
+    headers = ['N° Pedido','Fecha pedido','Tipo pedido','Cliente','Tejedora','Tipo pieza','Descripción','Ocasión','Para quién','Estado','Valor total','Anticipo','Saldo','Método pago','Fecha entrega','Fecha entrega real','Compartió redes','Recomendó'];
     rows = (data||[]).map(p => [
-      p.numero_pedido||'', p.fecha_pedido||'',
-      p.clientes?.nombre||'', p.tejedora?.full_name||'',
+      p.numero_pedido||'', p.fecha_pedido||'', p.es_stock ? 'Stock' : 'Cliente',
+      p.es_stock ? '—' : (p.clientes?.nombre||''), p.tejedora?.full_name||'',
       p.tipo||'', p.descripcion||'', p.ocasion||'', p.para_quien||'',
       p.estado||'',
       Number(p.precio_total||0), Number(p.anticipo||0),
@@ -3255,10 +3816,26 @@ async function _generarExcel(tipo) {
     filename = 'Pedidos_LanaRosa';
   }
 
+  else if (tipo === 'stock') {
+    const { data } = await supabase_client
+      .from('stock_items')
+      .select('*, tejedora:profiles(full_name), cliente_venta:clientes(nombre, telefono)')
+      .order('created_at', { ascending: false });
+    headers = ['Tipo','Descripción','Tamaño','Precio','Tejedora','Vendido','Cliente comprador','Teléfono','Fecha venta','Fecha producción'];
+    rows = (data||[]).map(i => [
+      i.tipo||'', i.descripcion||'', i.tamano||'', Number(i.precio||0),
+      i.tejedora?.full_name||'', i.vendido?'Sí':'No',
+      i.cliente_venta?.nombre||'', i.cliente_venta?.telefono||'',
+      i.fecha_venta||'', (i.created_at||'').split('T')[0]
+    ]);
+    filename = 'Stock_LanaRosa';
+  }
+
   else if (tipo === 'ventas_mensuales') {
     const { data } = await supabase_client
       .from('pedidos')
       .select('fecha_pedido, precio_total, anticipo, estado')
+      .eq('es_stock', false)
       .not('estado', 'eq', 'cancelado')
       .order('fecha_pedido');
     // Agrupar por mes
@@ -3320,6 +3897,7 @@ async function _generarExcel(tipo) {
     const { data } = await supabase_client
       .from('pedidos')
       .select('*, clientes(nombre,telefono,email)')
+      .eq('es_stock', false)
       .not('estado', 'in', '("entregado","cancelado")')
       .order('fecha_entrega');
     const conSaldo = (data||[]).filter(p => (Number(p.precio_total||0)-Number(p.anticipo||0)) > 0);
@@ -3392,16 +3970,24 @@ async function loadEquipo() {
 // ══════════════════════════════════════════════════════════
 //  PRODUCCIÓN
 // ══════════════════════════════════════════════════════════
-const PASOS = [
+const PASOS_BASE = [
   { id: 'patron',      icon: '📋', titulo: 'Selección de patrón',    desc: 'Elige el patrón correcto para este pedido. Verifica que coincida con la imagen de referencia del cliente.' },
   { id: 'materiales',  icon: '🎨', titulo: 'Selección de materiales', desc: 'Prepara todos los materiales: lana del color correcto, aguja adecuada, relleno, ojos, accesorios específicos.' },
   { id: 'tejido',      icon: '🧵', titulo: 'Tiempo de tejido',        desc: 'Teje la pieza siguiendo el patrón. Usa el cronómetro para registrar el tiempo. Habrá una alarma de pausa activa cada 30 minutos.' },
   { id: 'detalles',    icon: '✨', titulo: 'Tiempo de detalles',      desc: 'Agrega todos los detalles específicos del cliente: gafas, ropa, accesorios, color de ojos, bordados, etc.' },
   { id: 'marquilla',   icon: '🏷️', titulo: 'Poner marquilla',         desc: 'Coloca la marquilla de Lana Rosa Crochet. Asegúrate de que esté bien cosida y visible.' },
   { id: 'calidad',     icon: '🔍', titulo: 'Control de calidad',      desc: 'Revisa toda la pieza: puntadas uniformes, relleno parejo, detalles correctos, sin hilos sueltos. Si hay algo mal, corrígelo antes de continuar.' },
-  { id: 'foto',        icon: '📷', titulo: 'Tomar foto del resultado', desc: 'Toma una foto de la pieza terminada antes de empacar. Esta foto queda guardada en el pedido y puede usarse para redes sociales o portafolio.' },
+  { id: 'foto',        icon: '📷', titulo: 'Tomar foto del resultado', desc: 'Toma una foto de la pieza terminada. Esta foto queda guardada y puede usarse para redes sociales, portafolio o catálogo de stock.' },
   { id: 'empaquetado', icon: '📦', titulo: 'Empaquetado',             desc: 'Empaca la pieza con el packaging de Lana Rosa. Incluye la tarjeta con el mensaje personalizado del cliente. Deja todo listo para entrega.' },
 ];
+
+// Pedidos de stock no llevan empaquetado (se empaca cuando se vende, no ahora)
+function getPasosActivos() {
+  if (prodPedidoActivo?.es_stock) {
+    return PASOS_BASE.filter(p => p.id !== 'empaquetado');
+  }
+  return PASOS_BASE;
+}
 
 let prodPedidoActivo = null;
 let prodPasosEstado  = {};   // { patron: 'pendiente'|'activo'|'done', ... }
@@ -3497,7 +4083,7 @@ async function loadProduccion() {
       <div class="prod-card-icon">${p.tipo?.includes('Llave') ? '🔑' : p.tipo?.includes('Acces') ? '💎' : '🧸'}</div>
       <div class="prod-card-info">
         <div class="prod-card-title">${p.tipo || 'Amigurumi'}: ${p.descripcion?.slice(0,45)||''}${(p.descripcion?.length||0)>45?'…':''}</div>
-        <div class="prod-card-sub">👤 ${p.clientes?.nombre || '—'} ${tejedora}</div>
+        <div class="prod-card-sub">${p.es_stock ? `📦 Para stock · ${p.cantidad_unidades||1} unidad${(p.cantidad_unidades||1)!==1?'es':''}` : `👤 ${p.clientes?.nombre || '—'}`} ${tejedora}</div>
       </div>
       <div class="prod-card-meta">
         ${p.imagen_url ? `<img src="${p.imagen_url}" style="width:36px;height:36px;border-radius:8px;object-fit:cover;border:2px solid var(--borde);" />` : ''}
@@ -3569,7 +4155,9 @@ async function abrirEstacion(pedido) {
     pedido.estado = 'en proceso';
   }
   document.getElementById('prod-header-titulo').textContent  = `${pedido.tipo || 'Amigurumi'}: ${(pedido.descripcion||'').slice(0,60)}`;
-  document.getElementById('prod-header-cliente').textContent = `👤 ${pedido.clientes?.nombre || '—'}`;
+  document.getElementById('prod-header-cliente').textContent = pedido.es_stock
+    ? `📦 Para stock · ${pedido.cantidad_unidades||1} unidad${(pedido.cantidad_unidades||1)!==1?'es':''}`
+    : `👤 ${pedido.clientes?.nombre || '—'}`;
   document.getElementById('prod-header-fecha').textContent   = formatDate(pedido.fecha_entrega);
   // Foto de referencia en el header
   const imgWrap = document.getElementById('prod-header-img-wrap');
@@ -3605,6 +4193,7 @@ function cerrarEstacion() {
 // ─── RENDERIZAR PASOS ───
 function renderPasos() {
   const lista = document.getElementById('prod-pasos-lista');
+  const PASOS = getPasosActivos();
 
   // Calcular cuál es el primer paso no completado (activo)
   let primerPendiente = null;
@@ -3620,7 +4209,14 @@ function renderPasos() {
 
   // Tiempo total acumulado
   const totalSeg = (cronoTejidoSeg) + (cronoDetallesSeg);
-  document.getElementById('prod-tiempo-total').textContent = formatSeg(totalSeg);
+  const cantidad = prodPedidoActivo?.es_stock ? (prodPedidoActivo?.cantidad_unidades || 1) : 1;
+  if (cantidad > 1) {
+    const porUnidad = Math.round(totalSeg / cantidad);
+    document.getElementById('prod-tiempo-total').innerHTML =
+      `${formatSeg(totalSeg)} <span style="color:var(--rosa-principal);font-weight:700;">(${formatSeg(porUnidad)} por unidad ÷${cantidad})</span>`;
+  } else {
+    document.getElementById('prod-tiempo-total').textContent = formatSeg(totalSeg);
+  }
 
   lista.innerHTML = PASOS.map((paso, idx) => {
     const estado   = prodPasosEstado[paso.id] || 'pendiente';
@@ -3827,13 +4423,20 @@ async function completarPaso(pasoId) {
   }
 
   // Si termina el último paso → marcar pedido como 'listo'
+  const PASOS = getPasosActivos();
   const todosCompletos = PASOS.every(p => prodPasosEstado[p.id] === 'done');
   if (todosCompletos && prodPedidoActivo) {
     await supabase_client.from('pedidos')
       .update({ estado: 'listo' })
       .eq('id', prodPedidoActivo.id);
     prodPedidoActivo.estado = 'listo';
-    showToast('🎉 ¡Pedido terminado! Estado actualizado a "Listo para entrega"', 'success');
+
+    if (prodPedidoActivo.es_stock) {
+      await generarStockItems(prodPedidoActivo.id);
+      showToast('🎉 ¡Producción terminada! Las piezas ya están en el catálogo de stock', 'success');
+    } else {
+      showToast('🎉 ¡Pedido terminado! Estado actualizado a "Listo para entrega"', 'success');
+    }
   }
 
   await guardarProgreso();
@@ -3844,6 +4447,37 @@ async function completarPaso(pasoId) {
     const cards = document.querySelectorAll('.paso-card.activo');
     if (cards.length) cards[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, 200);
+}
+
+// ─── GENERAR PIEZAS DE STOCK AL TERMINAR PRODUCCIÓN ───
+async function generarStockItems(pedidoId) {
+  // Evitar duplicados si ya se generaron antes
+  const { count } = await supabase_client
+    .from('stock_items')
+    .select('id', { count: 'exact', head: true })
+    .eq('pedido_id', pedidoId);
+  if (count && count > 0) return;
+
+  // Traer datos actualizados del pedido (incluye foto_resultado ya guardada)
+  const { data: p } = await supabase_client.from('pedidos').select('*').eq('id', pedidoId).single();
+  if (!p) return;
+
+  const cantidad = p.cantidad_unidades || 1;
+  const items = [];
+  for (let i = 0; i < cantidad; i++) {
+    items.push({
+      pedido_id:      p.id,
+      tipo:           p.tipo,
+      descripcion:    p.descripcion,
+      tamano:         p.tamano,
+      precio:         p.precio_total,
+      imagen_url:     p.imagen_url,
+      foto_resultado: p.foto_resultado,
+      tejedora_id:    p.tejedora_id,
+      vendido:        false,
+    });
+  }
+  await supabase_client.from('stock_items').insert(items);
 }
 
 // ─── GUARDAR PROGRESO EN SUPABASE ───
@@ -3999,7 +4633,8 @@ async function loadEnvios() {
     .order('fecha_entrega', { ascending: true });
 
   if (error) { lista.innerHTML = `<p style="color:red">Error: ${error.message}</p>`; return; }
-  enviosData = data || [];
+  // Los pedidos de stock no van a envíos — pasan al catálogo de stock en Informes
+  enviosData = (data || []).filter(p => !p.es_stock);
 
   // Stats
   const listos     = enviosData.filter(p => p.estado === 'listo' && p.envio_estado !== 'en_camino' && p.envio_estado !== 'entregado').length;
@@ -4375,7 +5010,7 @@ async function openDetail(p) {
     </div>
     ${currentProfile?.role === 'admin' ? `
     <div style="display:flex;gap:8px;margin-top:8px;">
-      <button class="btn-add" onclick="closeDetailPanel();editPedido('${p.id}')" style="flex:1;">✏️ Editar pedido</button>
+      <button class="btn-add" onclick="closeDetailPanel();${p.es_stock?`editPedidoStock('${p.id}')`:`editPedido('${p.id}')`}" style="flex:1;">✏️ Editar pedido</button>
     </div>` : ''}
     <!-- Nota de tejedora — visible para todos, editable para la tejedora asignada y admin -->
     ${(currentProfile?.role === 'admin' || currentUser?.id === p.tejedora_id) ? `
