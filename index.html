@@ -1527,6 +1527,10 @@
         <span class="nav-icon">🚚</span> Envíos
         <span class="nav-badge" id="badge-envios">0</span>
       </button>
+      <button class="nav-item" onclick="showSection('stock')">
+        <span class="nav-icon">🧸</span> Stock
+        <span class="nav-badge" id="badge-stock">0</span>
+      </button>
       <button class="nav-item" onclick="showSection('calendario')">
         <span class="nav-icon">📅</span> Entregas próximas
       </button>
@@ -1790,7 +1794,6 @@
 
         <div class="tab-bar">
           <button class="tab-btn active" onclick="showInformesTab('dashboard')">📊 Estadísticas</button>
-          <button class="tab-btn" onclick="showInformesTab('stock')">📦 Stock disponible</button>
           <button class="tab-btn" onclick="showInformesTab('excel')">⬇️ Descargas Excel</button>
         </div>
 
@@ -1832,35 +1835,6 @@
             <div style="position:relative;height:280px;">
               <canvas id="chart-tiempos-produccion"></canvas>
             </div>
-          </div>
-        </div>
-
-        <!-- ═══ TAB: STOCK ═══ -->
-        <div id="informes-tab-stock" style="display:none;">
-          <div class="stats-grid" style="margin-bottom:20px;">
-            <div class="stat-card">
-              <div class="stat-card-icon steel">📦</div>
-              <h3 id="stock-stat-disponible">0</h3>
-              <p>Disponibles</p>
-            </div>
-            <div class="stat-card">
-              <div class="stat-card-icon green">✅</div>
-              <h3 id="stock-stat-vendidas">0</h3>
-              <p>Vendidas</p>
-            </div>
-            <div class="stat-card">
-              <div class="stat-card-icon pink">💰</div>
-              <h3 id="stock-stat-valor">$0</h3>
-              <p>Valor del stock disponible</p>
-            </div>
-          </div>
-          <div class="tab-bar" style="margin-bottom:16px;">
-            <button class="tab-btn active" onclick="filterStockCatalog('disponible')">📦 Disponibles</button>
-            <button class="tab-btn" onclick="filterStockCatalog('vendido')">✅ Vendidas</button>
-            <button class="tab-btn" onclick="filterStockCatalog('todos')">Todas</button>
-          </div>
-          <div id="stock-catalogo-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;">
-            <div class="loading-spinner"></div>
           </div>
         </div>
 
@@ -1980,6 +1954,39 @@
             <h2 id="env-table-title">📦 Listos para enviar</h2>
           </div>
           <div id="env-lista"></div>
+        </div>
+      </section>
+
+      <!-- ─── STOCK ─── -->
+      <section class="page-section" id="section-stock">
+        <div class="rosina-tip">
+          <div class="rosina-tip-icon">🐑</div>
+          <p><strong>Tip de Rosina:</strong> Aquí están las piezas hechas para vitrina. Cuando alguien compre una, márcala como vendida y asigna el cliente. 🧸</p>
+        </div>
+        <div class="stats-grid" style="margin-bottom:20px;">
+          <div class="stat-card">
+            <div class="stat-card-icon steel">📦</div>
+            <h3 id="stock-stat-disponible">0</h3>
+            <p>Disponibles</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon green">✅</div>
+            <h3 id="stock-stat-vendidas">0</h3>
+            <p>Vendidas</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon pink">💰</div>
+            <h3 id="stock-stat-valor">$0</h3>
+            <p>Valor del stock disponible</p>
+          </div>
+        </div>
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="filterStockCatalog('disponible')">📦 Disponibles</button>
+          <button class="tab-btn" onclick="filterStockCatalog('vendido')">✅ Vendidas</button>
+          <button class="tab-btn" onclick="filterStockCatalog('todos')">Todas</button>
+        </div>
+        <div id="stock-catalogo-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;">
+          <div class="loading-spinner"></div>
         </div>
       </section>
 
@@ -2656,6 +2663,16 @@ function showApp() {
   loadDashboard();
   actualizarBadgeProduccion();
   actualizarBadgeEnvios();
+  actualizarBadgeStock();
+}
+
+async function actualizarBadgeStock() {
+  const { count } = await supabase_client
+    .from('stock_items')
+    .select('id', { count: 'exact', head: true })
+    .eq('vendido', false);
+  const badge = document.getElementById('badge-stock');
+  if (badge) badge.textContent = count || 0;
 }
 
 async function actualizarBadgeEnvios() {
@@ -2691,7 +2708,8 @@ const sections = {
   equipo:      { title: 'Equipo',              subtitle: 'Usuarios registrados', load: loadEquipo },
   produccion:  { title: 'Producción',          subtitle: 'Estación de trabajo por tejedora 🧵', load: loadProduccion },
   envios:      { title: 'Envíos',              subtitle: 'Gestión de envíos y entregas 🚚', load: loadEnvios },
-  informes:    { title: 'Informes',             subtitle: 'Estadísticas, stock y reportes del negocio 📊', load: loadInformes },
+  stock:       { title: 'Stock',               subtitle: 'Catálogo de piezas disponibles 🧸', load: loadStockCatalog },
+  informes:    { title: 'Informes',             subtitle: 'Estadísticas y reportes del negocio 📊', load: loadInformes },
 };
 
 function showSection(name) {
@@ -3514,17 +3532,16 @@ async function loadInformes() {
 }
 
 function showInformesTab(tab) {
-  ['dashboard','stock','excel'].forEach(t => {
+  ['dashboard','excel'].forEach(t => {
     const el = document.getElementById('informes-tab-' + t);
     if (el) el.style.display = t === tab ? 'block' : 'none';
   });
   const topBar = document.querySelector('#section-informes > .tab-bar');
   if (topBar) {
     topBar.querySelectorAll('.tab-btn').forEach((b,i) => {
-      b.classList.toggle('active', ['dashboard','stock','excel'][i] === tab);
+      b.classList.toggle('active', ['dashboard','excel'][i] === tab);
     });
   }
-  if (tab === 'stock') loadStockCatalog();
 }
 
 // ─── DASHBOARD CON GRÁFICAS ───
@@ -3674,12 +3691,15 @@ async function loadStockCatalog() {
   document.getElementById('stock-stat-vendidas').textContent   = vendidas.length;
   document.getElementById('stock-stat-valor').textContent      = formatCOP(valorDisp);
 
+  const badge = document.getElementById('badge-stock');
+  if (badge) badge.textContent = disponibles.length;
+
   renderStockCatalog();
 }
 
 function filterStockCatalog(f) {
   stockFilterActual = f;
-  document.querySelectorAll('#informes-tab-stock .tab-bar .tab-btn').forEach((b,i) => {
+  document.querySelectorAll('#section-stock .tab-bar .tab-btn').forEach((b,i) => {
     b.classList.toggle('active', ['disponible','vendido','todos'][i] === f);
   });
   renderStockCatalog();
@@ -4268,6 +4288,27 @@ function renderPasoInterior(pasoId) {
           <button class="crono-btn reset"  onclick="resetCronoTejido()">↺ Reiniciar</button>
         </div>
         <div class="crono-alerta-info">🔔 Alarma de pausa activa cada 60 minutos</div>
+
+        <div style="margin-top:14px;border-top:1px solid rgba(255,255,255,.15);padding-top:12px;">
+          <button type="button" onclick="toggleManualTejido()" id="btn-toggle-manual-tejido"
+            style="background:none;border:none;color:rgba(255,255,255,.75);font-size:0.72rem;font-family:'Poppins',sans-serif;cursor:pointer;text-decoration:underline;">
+            ✏️ ¿Se te olvidó parar el tiempo? Ingrésalo manualmente
+          </button>
+          <div id="manual-tejido-form" style="display:none;margin-top:10px;">
+            <div style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;">
+              <input type="number" id="manual-tejido-horas" min="0" placeholder="Horas"
+                style="width:80px;padding:8px;border-radius:8px;border:none;text-align:center;font-family:'Poppins',sans-serif;font-size:0.85rem;" />
+              <span style="color:white;font-size:0.8rem;">h</span>
+              <input type="number" id="manual-tejido-minutos" min="0" max="59" placeholder="Min"
+                style="width:80px;padding:8px;border-radius:8px;border:none;text-align:center;font-family:'Poppins',sans-serif;font-size:0.85rem;" />
+              <span style="color:white;font-size:0.8rem;">min</span>
+            </div>
+            <button type="button" class="crono-btn start" style="margin-top:10px;width:100%;" onclick="guardarTiempoManualTejido()">
+              💾 Usar este tiempo
+            </button>
+            <div style="font-size:0.68rem;color:rgba(255,255,255,.6);margin-top:6px;">Este valor reemplaza el tiempo acumulado por el cronómetro.</div>
+          </div>
+        </div>
       </div>
       <button class="btn-completar-paso" onclick="completarPaso('tejido')">✓ Tejido terminado — continuar</button>`;
   }
@@ -4373,6 +4414,49 @@ function iniciarDisplayTejido() {
   if (disp) disp.textContent = formatSeg(cronoTejidoSeg);
   const btn = document.getElementById('btn-tejido-start');
   if (btn && cronoTejidoRun) { btn.textContent = '⏸ Pausar'; btn.className = 'crono-btn pause'; }
+}
+
+// ─── TIEMPO MANUAL DE TEJIDO (por si olvidan iniciar/parar el cronómetro) ───
+function toggleManualTejido() {
+  const form = document.getElementById('manual-tejido-form');
+  if (!form) return;
+  const abrir = form.style.display === 'none';
+  form.style.display = abrir ? 'block' : 'none';
+  if (abrir) {
+    // Precargar con el tiempo actual acumulado
+    const h = Math.floor(cronoTejidoSeg / 3600);
+    const m = Math.round((cronoTejidoSeg % 3600) / 60);
+    document.getElementById('manual-tejido-horas').value   = h || '';
+    document.getElementById('manual-tejido-minutos').value = m || '';
+  }
+}
+
+function guardarTiempoManualTejido() {
+  const horas   = parseFloat(document.getElementById('manual-tejido-horas').value)   || 0;
+  const minutos = parseFloat(document.getElementById('manual-tejido-minutos').value) || 0;
+
+  if (horas === 0 && minutos === 0) {
+    showToast('Ingresa un tiempo válido', 'error');
+    return;
+  }
+
+  // Si el cronómetro estaba corriendo, lo detenemos antes de sobreescribir
+  if (cronoTejidoRun) pausarCronoTejido();
+
+  cronoTejidoSeg = Math.round(horas * 3600 + minutos * 60);
+  tejidoSegDesdeUltimaPausa = 0;
+
+  const disp = document.getElementById('crono-tejido-display');
+  if (disp) disp.textContent = formatSeg(cronoTejidoSeg);
+
+  const total = document.getElementById('prod-tiempo-total');
+  if (total) total.textContent = formatSeg(cronoTejidoSeg + cronoDetallesSeg);
+
+  document.getElementById('manual-tejido-form').style.display = 'none';
+
+  guardarProgreso();
+  showToast('⏱️ Tiempo de tejido actualizado manualmente', 'success');
+  renderPasos();
 }
 
 // ─── CRONÓMETRO DETALLES ───
