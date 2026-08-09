@@ -2809,7 +2809,8 @@ async function loadDashboard() {
   const clientes  = clientesRes.count || 0;
   const total     = pedidos.length;
   const proceso   = pedidos.filter(p => ['en proceso','en produccion'].includes(p.estado)).length;
-  const listos    = pedidos.filter(p => p.estado === 'listo').length;
+  // "Listos" = pedidos de clientes listos para entrega (el stock listo pasa a ser inventario, no a pedidos)
+  const listos    = pedidos.filter(p => p.estado === 'listo' && !p.es_stock).length;
   const entregados= pedidos.filter(p => p.estado === 'entregado').length;
   // Ingresos: solo pedidos de clientes, no producción para stock (aún no vendida)
   const ingresos  = pedidos.filter(p => !p.es_stock).reduce((s,p) => s + (Number(p.precio_total)||0), 0);
@@ -2861,6 +2862,9 @@ async function loadPedidos() {
   if (error) { tb.innerHTML = `<tr><td colspan="9">Error: ${error.message}</td></tr>`; return; }
 
   let rows = data || [];
+  // Los pedidos de stock que ya están listos pasan a ser inventario —
+  // se gestionan desde la sección Stock, no aquí.
+  rows = rows.filter(p => !(p.es_stock && ['listo','enviado','entregado'].includes(p.estado)));
   if (pedidosSearch) {
     const s = pedidosSearch.toLowerCase();
     rows = rows.filter(p => (p.clientes?.nombre||'').toLowerCase().includes(s) || (p.descripcion||'').toLowerCase().includes(s));
@@ -4323,6 +4327,26 @@ function renderPasoInterior(pasoId) {
           <button class="ts-btn start" id="btn-detalles-start" onclick="toggleCronoDetalles()">▶</button>
         </div>
       </div>
+      <div style="margin-bottom:14px;">
+        <button type="button" onclick="toggleManualDetalles()" id="btn-toggle-manual-detalles"
+          style="background:none;border:none;color:var(--rosa-principal);font-size:0.72rem;font-family:'Poppins',sans-serif;cursor:pointer;text-decoration:underline;">
+          ✏️ ¿Se te olvidó parar el tiempo? Ingrésalo manualmente
+        </button>
+        <div id="manual-detalles-form" style="display:none;margin-top:10px;background:var(--rosa-suave);border-radius:12px;padding:14px;">
+          <div style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;">
+            <input type="number" id="manual-detalles-horas" min="0" placeholder="Horas"
+              style="width:80px;padding:8px;border-radius:8px;border:1.5px solid var(--borde);text-align:center;font-family:'Poppins',sans-serif;font-size:0.85rem;" />
+            <span style="color:var(--texto-oscuro);font-size:0.8rem;">h</span>
+            <input type="number" id="manual-detalles-minutos" min="0" max="59" placeholder="Min"
+              style="width:80px;padding:8px;border-radius:8px;border:1.5px solid var(--borde);text-align:center;font-family:'Poppins',sans-serif;font-size:0.85rem;" />
+            <span style="color:var(--texto-oscuro);font-size:0.8rem;">min</span>
+          </div>
+          <button type="button" class="ts-btn start" style="margin-top:10px;width:100%;" onclick="guardarTiempoManualDetalles()">
+            💾 Usar este tiempo
+          </button>
+          <div style="font-size:0.68rem;color:var(--texto-medio);margin-top:6px;text-align:center;">Este valor reemplaza el tiempo acumulado por el cronómetro.</div>
+        </div>
+      </div>
       <button class="btn-completar-paso" onclick="completarPaso('detalles')">✓ Detalles listos — continuar</button>`;
   }
   if (pasoId === 'foto') {
@@ -4487,6 +4511,53 @@ function toggleCronoDetalles() {
 function iniciarDisplayDetalles() {
   const disp = document.getElementById('crono-detalles-display');
   if (disp) disp.textContent = formatSeg(cronoDetallesSeg);
+}
+
+// ─── TIEMPO MANUAL DE DETALLES (por si olvidan iniciar/parar el cronómetro) ───
+function toggleManualDetalles() {
+  const form = document.getElementById('manual-detalles-form');
+  if (!form) return;
+  const abrir = form.style.display === 'none';
+  form.style.display = abrir ? 'block' : 'none';
+  if (abrir) {
+    const h = Math.floor(cronoDetallesSeg / 3600);
+    const m = Math.round((cronoDetallesSeg % 3600) / 60);
+    document.getElementById('manual-detalles-horas').value   = h || '';
+    document.getElementById('manual-detalles-minutos').value = m || '';
+  }
+}
+
+function guardarTiempoManualDetalles() {
+  const horas   = parseFloat(document.getElementById('manual-detalles-horas').value)   || 0;
+  const minutos = parseFloat(document.getElementById('manual-detalles-minutos').value) || 0;
+
+  if (horas === 0 && minutos === 0) {
+    showToast('Ingresa un tiempo válido', 'error');
+    return;
+  }
+
+  // Si el cronómetro estaba corriendo, lo detenemos antes de sobreescribir
+  if (cronoDetallesRun) {
+    cronoDetallesRun = false;
+    clearInterval(cronoDetallesTimer);
+    cronoDetallesTimer = null;
+    const btn = document.getElementById('btn-detalles-start');
+    if (btn) { btn.textContent = '▶'; btn.className = 'ts-btn start'; }
+  }
+
+  cronoDetallesSeg = Math.round(horas * 3600 + minutos * 60);
+
+  const disp = document.getElementById('crono-detalles-display');
+  if (disp) disp.textContent = formatSeg(cronoDetallesSeg);
+
+  const total = document.getElementById('prod-tiempo-total');
+  if (total) total.textContent = formatSeg(cronoTejidoSeg + cronoDetallesSeg);
+
+  document.getElementById('manual-detalles-form').style.display = 'none';
+
+  guardarProgreso();
+  showToast('⏱️ Tiempo de detalles actualizado manualmente', 'success');
+  renderPasos();
 }
 
 function detenerCronos() {
