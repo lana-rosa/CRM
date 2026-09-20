@@ -4262,7 +4262,13 @@ function renderPasos() {
         <p class="paso-desc">${paso.desc}</p>
         ${renderPasoInterior(paso.id)}
       </div>`;
+    } else if (isDone && (paso.id === 'tejido' || paso.id === 'detalles') && pasoEditandoTiempo === paso.id) {
+      bodyHTML = `<div class="paso-body">
+        ${renderCorreccionTiempo(paso.id)}
+      </div>`;
     }
+
+    const puedeCorregirTiempo = isDone && (paso.id === 'tejido' || paso.id === 'detalles');
 
     return `
     <div class="${cardClass}" id="paso-card-${paso.id}">
@@ -4271,6 +4277,7 @@ function renderPasos() {
         <div class="paso-titulo ${isDone?'done':''}">${paso.icon} ${paso.titulo}</div>
         ${isDone ? '<span style="font-size:0.75rem;color:#16a34a;font-weight:600;">Completado ✓</span>' : ''}
         ${isActivo ? '<span style="font-size:0.7rem;font-weight:700;color:var(--rosa-principal);background:var(--rosa-suave);padding:3px 10px;border-radius:20px;">Activo</span>' : ''}
+        ${puedeCorregirTiempo ? `<button type="button" onclick="event.stopPropagation();toggleCorreccionTiempo('${paso.id}')" style="margin-left:auto;background:none;border:none;color:var(--rosa-principal);font-size:0.72rem;font-family:'Poppins',sans-serif;cursor:pointer;text-decoration:underline;">✏️ Corregir tiempo</button>` : ''}
       </div>
       ${bodyHTML}
     </div>`;
@@ -4279,6 +4286,60 @@ function renderPasos() {
   // Reactivar cronómetros si estaban corriendo (re-render)
   if (cronoTejidoRun)   iniciarDisplayTejido();
   if (cronoDetallesRun) iniciarDisplayDetalles();
+}
+
+// ─── CORREGIR TIEMPO DE UN PASO YA COMPLETADO ───
+let pasoEditandoTiempo = null;
+
+function toggleCorreccionTiempo(pasoId) {
+  pasoEditandoTiempo = (pasoEditandoTiempo === pasoId) ? null : pasoId;
+  renderPasos();
+  if (pasoEditandoTiempo) {
+    setTimeout(() => {
+      const card = document.getElementById('paso-card-' + pasoId);
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  }
+}
+
+function renderCorreccionTiempo(pasoId) {
+  const segActual = pasoId === 'tejido' ? cronoTejidoSeg : cronoDetallesSeg;
+  const h = Math.floor(segActual / 3600);
+  const m = Math.round((segActual % 3600) / 60);
+  const label = pasoId === 'tejido' ? 'tejido' : 'detalles';
+  return `
+    <div style="background:var(--rosa-suave);border-radius:12px;padding:16px;">
+      <div style="font-size:0.78rem;color:var(--texto-medio);margin-bottom:10px;">
+        Tiempo actual de ${label}: <strong style="color:var(--texto-oscuro);">${formatSeg(segActual)}</strong>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;">
+        <input type="number" id="correccion-horas" min="0" value="${h}"
+          style="width:80px;padding:8px;border-radius:8px;border:1.5px solid var(--borde);text-align:center;font-family:'Poppins',sans-serif;font-size:0.85rem;" />
+        <span style="color:var(--texto-oscuro);font-size:0.8rem;">h</span>
+        <input type="number" id="correccion-minutos" min="0" max="59" value="${m}"
+          style="width:80px;padding:8px;border-radius:8px;border:1.5px solid var(--borde);text-align:center;font-family:'Poppins',sans-serif;font-size:0.85rem;" />
+        <span style="color:var(--texto-oscuro);font-size:0.8rem;">min</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button type="button" class="btn-secondary" style="flex:1;" onclick="toggleCorreccionTiempo('${pasoId}')">Cancelar</button>
+        <button type="button" class="btn-completar-paso" style="flex:1;" onclick="guardarCorreccionTiempo('${pasoId}')">💾 Guardar corrección</button>
+      </div>
+    </div>`;
+}
+
+async function guardarCorreccionTiempo(pasoId) {
+  const horas   = parseFloat(document.getElementById('correccion-horas').value)   || 0;
+  const minutos = parseFloat(document.getElementById('correccion-minutos').value) || 0;
+  const nuevoSeg = Math.round(horas * 3600 + minutos * 60);
+
+  if (pasoId === 'tejido')  cronoTejidoSeg  = nuevoSeg;
+  if (pasoId === 'detalles') cronoDetallesSeg = nuevoSeg;
+
+  pasoEditandoTiempo = null;
+  await guardarProgreso();
+  renderPasos();
+  showToast(`⏱️ Tiempo de ${pasoId === 'tejido' ? 'tejido' : 'detalles'} corregido`, 'success');
+  playBeep(660, 0.15);
 }
 
 function renderPasoInterior(pasoId) {
