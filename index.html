@@ -1440,10 +1440,6 @@
       <h1>Lana Rosa CRM</h1>
       <p>Gestión de clientes y pedidos</p>
     </div>
-    <div class="auth-tabs">
-      <button class="auth-tab active" onclick="switchAuthTab('login')">Iniciar sesión</button>
-      <button class="auth-tab" onclick="switchAuthTab('register')">Crear cuenta</button>
-    </div>
     <div class="auth-error" id="auth-error"></div>
     <div id="login-form">
       <div class="form-group">
@@ -1456,29 +1452,10 @@
       </div>
       <button class="btn-primary" id="btn-login" onclick="handleLogin()">Ingresar</button>
     </div>
-    <div id="register-form" style="display:none;">
-      <div class="form-group">
-        <label>Nombre</label>
-        <input type="text" id="reg-name" placeholder="Sara" />
-      </div>
-      <div class="form-group">
-        <label>Correo electrónico</label>
-        <input type="email" id="reg-email" placeholder="sara@lanarosacrochet.co" />
-      </div>
-      <div class="form-group">
-        <label>Contraseña</label>
-        <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" />
-      </div>
-      <div class="form-group">
-        <label>Rol</label>
-        <select id="reg-role">
-          <option value="admin">Administradora</option>
-          <option value="tejedora">Tejedora</option>
-        </select>
-      </div>
-      <button class="btn-primary" id="btn-register" onclick="handleRegister()">Crear cuenta</button>
-    </div>
     <p style="font-size:0.72rem;color:var(--texto-medio);text-align:center;margin-top:16px;">
+      ¿No tienes cuenta? Pídele a tu administradora que te la cree desde Equipo.
+    </p>
+    <p style="font-size:0.72rem;color:var(--texto-medio);text-align:center;margin-top:8px;">
       <a href="#" onclick="showSetup()" style="color:var(--rosa-principal);text-decoration:none;">⚙️ Cambiar configuración de Supabase</a>
     </p>
   </div>
@@ -1905,7 +1882,10 @@
       <!-- ─── EQUIPO (admin only) ─── -->
       <section class="page-section" id="section-equipo">
         <div class="config-card">
-          <h2>👥 Usuarios del equipo</h2>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+            <h2 style="margin-bottom:0;">👥 Usuarios del equipo</h2>
+            <button class="btn-add" onclick="openModalNuevoUsuario()">+ Nueva cuenta</button>
+          </div>
           <div id="equipo-list"><div class="loading-spinner"></div></div>
         </div>
       </section>
@@ -2337,6 +2317,43 @@
   </div>
 </div>
 
+<!-- ═══════════════ MODAL NUEVA CUENTA (solo admin) ═══════════════ -->
+<div class="modal-overlay" id="modal-nuevo-usuario">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <h2>👤 Nueva cuenta del equipo</h2>
+      <button class="modal-close" onclick="closeModal('modal-nuevo-usuario')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="auth-error" id="nuevo-usuario-error"></div>
+      <div class="form-group">
+        <label>Nombre completo *</label>
+        <input type="text" id="nu-nombre" placeholder="Jennifer" />
+      </div>
+      <div class="form-group">
+        <label>Correo electrónico *</label>
+        <input type="email" id="nu-email" placeholder="jennifer@lanarosacrochet.co" />
+      </div>
+      <div class="form-group">
+        <label>Contraseña temporal *</label>
+        <input type="text" id="nu-password" placeholder="Mínimo 6 caracteres" />
+        <p style="font-size:0.72rem;color:var(--texto-medio);margin-top:6px;">Compártesela a la persona por un canal seguro (WhatsApp, en persona). Puede cambiarla después.</p>
+      </div>
+      <div class="form-group">
+        <label>Rol *</label>
+        <select id="nu-role">
+          <option value="tejedora">Tejedora</option>
+          <option value="admin">Administradora</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('modal-nuevo-usuario')">Cancelar</button>
+      <button class="btn-save" id="btn-crear-usuario" onclick="crearUsuarioAdmin()">✅ Crear cuenta</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════ MODAL CLIENTE ═══════════════ -->
 <div class="modal-overlay" id="modal-cliente">
   <div class="modal">
@@ -2574,13 +2591,6 @@ window.addEventListener('DOMContentLoaded', async () => {
 // ══════════════════════════════════════════════════════════
 //  AUTH
 // ══════════════════════════════════════════════════════════
-function switchAuthTab(tab) {
-  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', i === (tab==='login'?0:1)));
-  document.getElementById('login-form').style.display    = tab === 'login'    ? 'block' : 'none';
-  document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
-  document.getElementById('auth-error').classList.remove('show');
-}
-
 async function handleLogin() {
   const email    = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
@@ -2594,26 +2604,6 @@ async function handleLogin() {
   await loadProfile();
   document.getElementById('auth-screen').style.display = 'none';
   showApp();
-}
-
-async function handleRegister() {
-  const name     = document.getElementById('reg-name').value.trim();
-  const email    = document.getElementById('reg-email').value.trim();
-  const password = document.getElementById('reg-password').value;
-  const role     = document.getElementById('reg-role').value;
-  const btn      = document.getElementById('btn-register');
-  if (!name || !email || !password) { showAuthError('Completa todos los campos.'); return; }
-  btn.disabled = true; btn.textContent = 'Creando cuenta...';
-  const { data, error } = await supabase_client.auth.signUp({ email, password,
-    options: { data: { full_name: name, role } }
-  });
-  btn.disabled = false; btn.textContent = 'Crear cuenta';
-  if (error) { showAuthError(error.message); return; }
-  // Insert profile
-  if (data.user) {
-    await supabase_client.from('profiles').upsert({ id: data.user.id, full_name: name, email, role });
-  }
-  showAuthError('¡Cuenta creada! Revisa tu correo para verificar (o inicia sesión si la verificación está desactivada).', 'info');
 }
 
 async function handleLogout() {
@@ -3971,6 +3961,67 @@ function descargarXLSX(headers, rows, filename) {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+function openModalNuevoUsuario() {
+  if (currentProfile?.role !== 'admin') { showToast('🔒 Solo las administradoras pueden crear cuentas', 'error'); return; }
+  ['nu-nombre','nu-email','nu-password'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('nu-role').value = 'tejedora';
+  document.getElementById('nuevo-usuario-error').classList.remove('show');
+  openModal('modal-nuevo-usuario');
+}
+
+async function crearUsuarioAdmin() {
+  const nombre   = document.getElementById('nu-nombre').value.trim();
+  const email    = document.getElementById('nu-email').value.trim();
+  const password = document.getElementById('nu-password').value;
+  const role     = document.getElementById('nu-role').value;
+  const errEl    = document.getElementById('nuevo-usuario-error');
+  const btn      = document.getElementById('btn-crear-usuario');
+
+  errEl.classList.remove('show');
+
+  if (!nombre || !email || !password) {
+    errEl.textContent = 'Completa todos los campos.'; errEl.classList.add('show'); return;
+  }
+  if (password.length < 6) {
+    errEl.textContent = 'La contraseña debe tener mínimo 6 caracteres.'; errEl.classList.add('show'); return;
+  }
+
+  btn.disabled = true; btn.textContent = '⏳ Creando...';
+
+  try {
+    const cfg = getConfig();
+    const projectRef = cfg.url.replace('https://', '').split('.')[0];
+    const fnUrl = `https://${projectRef}.supabase.co/functions/v1/admin-create-user`;
+    const { data: { session } } = await supabase_client.auth.getSession();
+
+    const res = await fetch(fnUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session?.access_token}`,
+        'apikey': cfg.key,
+      },
+      body: JSON.stringify({ email, password, full_name: nombre, role }),
+    });
+    const result = await res.json();
+
+    if (!res.ok || !result.ok) {
+      errEl.textContent = result.error || 'No se pudo crear la cuenta.';
+      errEl.classList.add('show');
+      btn.disabled = false; btn.textContent = '✅ Crear cuenta';
+      return;
+    }
+
+    showToast(`🎉 Cuenta creada para ${nombre}`, 'success');
+    closeModal('modal-nuevo-usuario');
+    loadEquipo();
+  } catch (e) {
+    errEl.textContent = 'Error de conexión: ' + e.message;
+    errEl.classList.add('show');
+  }
+  btn.disabled = false; btn.textContent = '✅ Crear cuenta';
 }
 
 async function loadEquipo() {
