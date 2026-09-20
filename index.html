@@ -1888,6 +1888,17 @@
           </div>
           <div id="equipo-list"><div class="loading-spinner"></div></div>
         </div>
+
+        <div class="config-card" style="margin-top:16px;">
+          <h2>🗜️ Optimizar fotos ya subidas</h2>
+          <p style="font-size:0.82rem;color:var(--texto-medio);margin-bottom:16px;line-height:1.5;">
+            Comprime todas las imágenes de referencia, fotos de resultado y guías (excepto PDF) que ya están guardadas,
+            para que ocupen menos espacio. No cambia los links, así que no rompe nada de lo que ya está guardado.
+            Puede tardar varios minutos según cuántas fotos haya.
+          </p>
+          <button class="btn-primary" id="btn-optimizar-fotos" onclick="optimizarFotosExistentes()">🗜️ Comenzar optimización</button>
+          <div id="optimizar-fotos-resultado" style="margin-top:14px;font-size:0.82rem;"></div>
+        </div>
       </section>
 
       <!-- ─── ENVÍOS ─── -->
@@ -3076,6 +3087,43 @@ async function savePedido() {
 }
 
 // ══════════════════════════════════════════════════════════
+//  COMPRESIÓN DE IMÁGENES ANTES DE SUBIR
+// ══════════════════════════════════════════════════════════
+// Redimensiona a un máximo de 1600px en el lado más largo y
+// re-comprime como JPEG de calidad 82%. Las fotos de celular
+// suelen pesar 3-8 MB; después de esto quedan en unos cientos de KB
+// sin pérdida visible de calidad.
+function comprimirImagen(file, maxDim = 1600, calidad = 0.82) {
+  return new Promise((resolve) => {
+    if (!file || !file.type || !file.type.startsWith('image/')) {
+      resolve(file); // no tocar PDFs u otros archivos
+      return;
+    }
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) { height = Math.round(height * maxDim / width); width = maxDim; }
+        else { width = Math.round(width * maxDim / height); height = maxDim; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob((blob) => {
+        if (!blob) { resolve(file); return; }
+        const nombreBase = (file.name || 'foto').replace(/\.\w+$/, '');
+        resolve(new File([blob], nombreBase + '.jpg', { type: 'image/jpeg' }));
+      }, 'image/jpeg', calidad);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); }; // si falla, usar el original
+    img.src = url;
+  });
+}
+
+// ══════════════════════════════════════════════════════════
 //  IMAGE UPLOAD
 // ══════════════════════════════════════════════════════════
 function handleImageSelect(e) {
@@ -3088,8 +3136,9 @@ function handleDrop(e) {
   const file = e.dataTransfer.files[0];
   if (file && file.type.startsWith('image/')) setImagePreview(file);
 }
-function setImagePreview(file) {
-  imageFile = file;
+async function setImagePreview(file) {
+  const comprimida = await comprimirImagen(file);
+  imageFile = comprimida;
   const reader = new FileReader();
   reader.onload = (ev) => {
     document.getElementById('upload-placeholder').style.display = 'none';
@@ -3097,7 +3146,7 @@ function setImagePreview(file) {
     c.style.display = 'block';
     c.innerHTML = `<div class="upload-preview"><img src="${ev.target.result}" /><button class="upload-preview-remove" onclick="resetImageUpload()">✕</button></div>`;
   };
-  reader.readAsDataURL(file);
+  reader.readAsDataURL(comprimida);
 }
 function resetImageUpload() {
   imageFile = null;
@@ -3125,8 +3174,9 @@ function handleDropStock(e) {
   const file = e.dataTransfer.files[0];
   if (file && file.type.startsWith('image/')) setImagePreviewStock(file);
 }
-function setImagePreviewStock(file) {
-  imageFileStock = file;
+async function setImagePreviewStock(file) {
+  const comprimida = await comprimirImagen(file);
+  imageFileStock = comprimida;
   const reader = new FileReader();
   reader.onload = (ev) => {
     document.getElementById('upload-placeholder-stock').style.display = 'none';
@@ -3134,7 +3184,7 @@ function setImagePreviewStock(file) {
     c.style.display = 'block';
     c.innerHTML = `<div class="upload-preview"><img src="${ev.target.result}" /><button class="upload-preview-remove" onclick="resetImageUploadStock()">✕</button></div>`;
   };
-  reader.readAsDataURL(file);
+  reader.readAsDataURL(comprimida);
 }
 function resetImageUploadStock() {
   imageFileStock = null;
@@ -4041,6 +4091,99 @@ async function loadEquipo() {
       </div>`).join('') + '</div>';
 }
 
+// ─── OPTIMIZAR FOTOS YA SUBIDAS (compresión retroactiva) ───
+async function optimizarFotosExistentes() {
+  if (currentProfile?.role !== 'admin') return;
+
+  const confirmado = confirm(
+    '¿Comenzar a optimizar todas las fotos ya guardadas?\n\n' +
+    'Esto puede tardar varios minutos. No cierres esta pestaña mientras corre.'
+  );
+  if (!confirmado) return;
+
+  const btn = document.getElementById('btn-optimizar-fotos');
+  const resultado = document.getElementById('optimizar-fotos-resultado');
+  btn.disabled = true;
+
+  // Recolectar todas las URLs de imagen a optimizar
+  const { data: pedidosData } = await supabase_client
+    .from('pedidos').select('id, imagen_url, foto_resultado, guia_url');
+  const { data: stockData } = await supabase_client
+    .from('stock_items').select('id, imagen_url, foto_resultado');
+
+  const tareas = [];
+  (pedidosData || []).forEach(p => {
+    if (p.imagen_url)    tareas.push(p.imagen_url);
+    if (p.foto_resultado) tareas.push(p.foto_resultado);
+    if (p.guia_url && !p.guia_url.toLowerCase().endsWith('.pdf')) tareas.push(p.guia_url);
+  });
+  (stockData || []).forEach(s => {
+    if (s.imagen_url)     tareas.push(s.imagen_url);
+    if (s.foto_resultado) tareas.push(s.foto_resultado);
+  });
+
+  // Quitar duplicados (una misma foto puede repetirse entre varias piezas de stock)
+  const urlsUnicas = [...new Set(tareas)];
+
+  if (!urlsUnicas.length) {
+    resultado.innerHTML = '✅ No hay fotos para optimizar.';
+    btn.disabled = false;
+    return;
+  }
+
+  let exitosas = 0, fallidas = 0, saltadas = 0;
+  let pesoAntes = 0, pesoDespues = 0;
+
+  for (let i = 0; i < urlsUnicas.length; i++) {
+    const url = urlsUnicas[i];
+    resultado.innerHTML = `⏳ Optimizando ${i + 1} de ${urlsUnicas.length}...`;
+
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) { fallidas++; continue; }
+      const blob = await resp.blob();
+
+      if (!blob.type.startsWith('image/')) { saltadas++; continue; }
+
+      const pesoOriginal = blob.size;
+      const nombreArchivo = url.split('/').pop().split('?')[0] || 'foto.jpg';
+      const archivoOriginal = new File([blob], nombreArchivo, { type: blob.type });
+      const archivoComprimido = await comprimirImagen(archivoOriginal);
+
+      // Si la compresión no ayuda (ya estaba optimizada), no volver a subir
+      if (archivoComprimido.size >= pesoOriginal) { saltadas++; continue; }
+
+      // Extraer el path dentro del bucket a partir de la URL pública
+      const marcador = '/pedidos-imagenes/';
+      const idx = url.indexOf(marcador);
+      if (idx === -1) { fallidas++; continue; }
+      const path = decodeURIComponent(url.slice(idx + marcador.length).split('?')[0]);
+
+      const { error: upErr } = await supabase_client.storage
+        .from('pedidos-imagenes')
+        .upload(path, archivoComprimido, { upsert: true, contentType: 'image/jpeg' });
+
+      if (upErr) { fallidas++; continue; }
+
+      pesoAntes   += pesoOriginal;
+      pesoDespues += archivoComprimido.size;
+      exitosas++;
+    } catch (e) {
+      fallidas++;
+    }
+  }
+
+  const ahorradoMB = ((pesoAntes - pesoDespues) / (1024 * 1024)).toFixed(1);
+  resultado.innerHTML = `
+    ✅ <strong>${exitosas}</strong> fotos optimizadas
+    ${saltadas ? `· <strong>${saltadas}</strong> ya estaban bien` : ''}
+    ${fallidas ? `· <strong>${fallidas}</strong> no se pudieron procesar` : ''}
+    ${pesoAntes > 0 ? `<br>💾 Espacio ahorrado: <strong>${ahorradoMB} MB</strong>` : ''}
+  `;
+  btn.disabled = false;
+  showToast('🗜️ Optimización de fotos terminada', 'success');
+}
+
 
 // ══════════════════════════════════════════════════════════
 //  PRODUCCIÓN
@@ -4808,8 +4951,9 @@ function handleFotoResultadoDrop(e) {
   const file = e.dataTransfer.files[0];
   if (file && file.type.startsWith('image/')) previewFotoResultado(file);
 }
-function previewFotoResultado(file) {
-  fotoResultadoFile = file;
+async function previewFotoResultado(file) {
+  const comprimida = await comprimirImagen(file);
+  fotoResultadoFile = comprimida;
   const reader = new FileReader();
   reader.onload = (ev) => {
     const preview = document.getElementById('foto-resultado-preview');
@@ -4826,7 +4970,7 @@ function previewFotoResultado(file) {
       btn.style.background = '';
     }
   };
-  reader.readAsDataURL(file);
+  reader.readAsDataURL(comprimida);
 }
 
 async function completarPasoFoto() {
@@ -5120,23 +5264,25 @@ function seleccionarTransp(pedidoId, transp, btn) {
 }
 
 // ─── GUÍA UPLOAD ───
-function handleGuiaSelect(e, pedidoId) {
+async function handleGuiaSelect(e, pedidoId) {
   const file = e.target.files[0];
   if (file) {
+    const comprimida = await comprimirImagen(file);
     const label = document.getElementById('guia-label-' + pedidoId);
-    if (label) label.textContent = '✅ ' + file.name;
+    if (label) label.textContent = '✅ ' + comprimida.name;
     // store for upload
-    window['_guiaFile_' + pedidoId] = file;
+    window['_guiaFile_' + pedidoId] = comprimida;
   }
 }
-function handleGuiaDrop(e, pedidoId) {
+async function handleGuiaDrop(e, pedidoId) {
   e.preventDefault();
   document.getElementById('guia-zone-' + pedidoId)?.classList.remove('drag-over');
   const file = e.dataTransfer.files[0];
   if (file) {
+    const comprimida = await comprimirImagen(file);
     const label = document.getElementById('guia-label-' + pedidoId);
-    if (label) label.textContent = '✅ ' + file.name;
-    window['_guiaFile_' + pedidoId] = file;
+    if (label) label.textContent = '✅ ' + comprimida.name;
+    window['_guiaFile_' + pedidoId] = comprimida;
   }
 }
 
