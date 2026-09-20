@@ -2155,8 +2155,9 @@
           <input type="number" id="pedido-precio" placeholder="120000" min="0" />
         </div>
         <div class="form-group" id="bloque-anticipo">
-          <label>Anticipo recibido (COP)</label>
+          <label id="label-pedido-anticipo">Anticipo recibido al crear (COP)</label>
           <input type="number" id="pedido-anticipo" placeholder="60000" min="0" value="0" />
+          <p id="hint-pedido-anticipo" style="display:none;font-size:0.72rem;color:var(--texto-medio);margin-top:6px;">Este valor ya no se edita aquí — usa "Registrar pago" en el detalle del pedido para agregar abonos con su propia fecha.</p>
         </div>
       </div>
       <div class="form-row" id="bloque-metodo-fecha">
@@ -2324,6 +2325,48 @@
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeModal('modal-vender-stock')">Cancelar</button>
       <button class="btn-save" id="btn-confirmar-venta" onclick="confirmarVentaStock()">✅ Confirmar venta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL REGISTRAR PAGO ═══════════════ -->
+<div class="modal-overlay" id="modal-registrar-pago">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <h2>💰 Registrar pago</h2>
+      <button class="modal-close" onclick="closeModal('modal-registrar-pago')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="rp-pedido-id" />
+      <div id="rp-resumen" style="background:var(--rosa-suave);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:16px;font-size:0.82rem;"></div>
+      <div class="form-group">
+        <label>Monto pagado (COP) *</label>
+        <input type="number" id="rp-monto" min="0" placeholder="60000" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fecha del pago *</label>
+          <input type="date" id="rp-fecha" />
+        </div>
+        <div class="form-group">
+          <label>Método de pago</label>
+          <select id="rp-metodo">
+            <option value="Nequi">Nequi</option>
+            <option value="Bancolombia">Bancolombia / PSE</option>
+            <option value="Efectivo">Efectivo</option>
+            <option value="Daviplata">Daviplata</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Nota (opcional)</label>
+        <input type="text" id="rp-notas" placeholder="Ej: pago del saldo restante" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('modal-registrar-pago')">Cancelar</button>
+      <button class="btn-save" id="btn-guardar-pago" onclick="confirmarRegistrarPago()">✅ Guardar pago</button>
     </div>
   </div>
 </div>
@@ -2973,6 +3016,10 @@ async function openModalPedido() {
     if (el) el.tagName==='SELECT' ? (el.selectedIndex=0) : (el.value='');
   });
   document.getElementById('pedido-anticipo').value = '0';
+  document.getElementById('pedido-anticipo').readOnly = false;
+  document.getElementById('pedido-anticipo').style.background = '';
+  document.getElementById('label-pedido-anticipo').textContent = 'Anticipo recibido al crear (COP)';
+  document.getElementById('hint-pedido-anticipo').style.display = 'none';
   document.getElementById('pedido-compartio').value = 'false';
   document.getElementById('pedido-recomendo').value = 'false';
   resetImageUpload();
@@ -2996,6 +3043,10 @@ async function editPedido(id) {
   document.getElementById('pedido-estado').value       = p.estado      || 'en proceso';
   document.getElementById('pedido-precio').value       = p.precio_total || '';
   document.getElementById('pedido-anticipo').value     = p.anticipo    || 0;
+  document.getElementById('pedido-anticipo').readOnly  = true;
+  document.getElementById('pedido-anticipo').style.background = 'var(--rosa-suave)';
+  document.getElementById('label-pedido-anticipo').textContent = 'Total abonado hasta ahora (COP)';
+  document.getElementById('hint-pedido-anticipo').style.display = 'block';
   document.getElementById('pedido-metodo-pago').value  = p.metodo_pago || 'Nequi';
   document.getElementById('pedido-fecha-entrega').value= p.fecha_entrega || '';
   document.getElementById('pedido-notas').value        = p.notas       || '';
@@ -3061,7 +3112,6 @@ async function savePedido() {
     tejedora_id:     document.getElementById('pedido-tejedora').value || null,
     estado:          document.getElementById('pedido-estado').value,
     precio_total:    precio,
-    anticipo:        parseFloat(document.getElementById('pedido-anticipo').value) || 0,
     metodo_pago:     document.getElementById('pedido-metodo-pago').value,
     fecha_entrega:   entrega,
     notas:           document.getElementById('pedido-notas').value,
@@ -3070,12 +3120,30 @@ async function savePedido() {
     ...(imagen_url !== null ? { imagen_url } : {}),
   };
 
-  let error;
+  const anticipoIngresado = parseFloat(document.getElementById('pedido-anticipo').value) || 0;
+  let error, nuevoId;
+
   if (editingPedidoId) {
+    // El anticipo/saldo ya NO se edita aquí directamente — se registra
+    // como un pago con fecha propia desde el panel de detalle.
     ({ error } = await supabase_client.from('pedidos').update(payload).eq('id', editingPedidoId));
   } else {
     payload.fecha_pedido = new Date().toISOString().split('T')[0];
-    ({ error } = await supabase_client.from('pedidos').insert(payload));
+    const { data: inserted, error: insErr } = await supabase_client.from('pedidos').insert(payload).select('id').single();
+    error = insErr;
+    nuevoId = inserted?.id;
+
+    // Si se ingresó un anticipo inicial, queda registrado como el primer pago con su fecha
+    if (!error && nuevoId && anticipoIngresado > 0) {
+      await supabase_client.from('pagos').insert({
+        pedido_id:   nuevoId,
+        monto:       anticipoIngresado,
+        fecha_pago:  payload.fecha_pedido,
+        metodo_pago: payload.metodo_pago,
+        tipo:        'anticipo',
+        registrado_por: currentUser?.id || null,
+      });
+    }
   }
 
   btn.disabled = false; btn.textContent = '💾 Guardar pedido';
@@ -5380,6 +5448,29 @@ async function openDetail(p) {
     tejedoraNombre = t?.full_name || '—';
   }
 
+  // Historial de pagos (no aplica a producción para stock)
+  let pagosHtml = '';
+  if (!p.es_stock) {
+    const { data: pagos } = await supabase_client
+      .from('pagos').select('*').eq('pedido_id', p.id).order('fecha_pago', { ascending: true });
+
+    const tipoLabel = { anticipo: '🟣 Anticipo', abono: '🔵 Abono', saldo_final: '✅ Saldo final' };
+
+    pagosHtml = `
+    <div class="detail-section">
+      <h3>🧾 Historial de pagos</h3>
+      ${(!pagos || !pagos.length) ? '<p style="font-size:0.8rem;color:var(--texto-medio);">Todavía no hay pagos registrados.</p>' : pagos.map(pg => `
+        <div class="detail-row">
+          <span class="detail-label">${tipoLabel[pg.tipo] || pg.tipo} · ${formatDate(pg.fecha_pago)}${pg.metodo_pago ? ' · ' + pg.metodo_pago : ''}</span>
+          <span class="detail-value" style="display:flex;align-items:center;gap:6px;">
+            ${formatCOP(pg.monto)}
+            ${currentProfile?.role === 'admin' ? `<button onclick="eliminarPago('${pg.id}','${p.id}')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:0.85rem;" title="Eliminar pago">🗑️</button>` : ''}
+          </span>
+        </div>
+      `).join('')}
+    </div>`;
+  }
+
   body.innerHTML = `
     ${p.imagen_url ? `<div class="detail-section"><h3>🖼️ Imagen de referencia</h3><img src="${p.imagen_url}" class="detail-ref-image" /></div>` : ''}
     ${p.foto_resultado ? `<div class="detail-section"><h3>📷 Foto del resultado</h3><img src="${p.foto_resultado}" class="detail-ref-image" style="border-color:var(--rosa-medio);" /></div>` : ''}
@@ -5403,18 +5494,19 @@ async function openDetail(p) {
     <div class="detail-section">
       <h3>💰 Finanzas</h3>
       <div class="detail-row"><span class="detail-label">Precio total</span><span class="detail-value price-display">${formatCOP(p.precio_total)}</span></div>
-      <div class="detail-row"><span class="detail-label">Anticipo</span><span class="detail-value">${formatCOP(p.anticipo)}</span></div>
+      <div class="detail-row"><span class="detail-label">Total abonado</span><span class="detail-value">${formatCOP(p.anticipo)}</span></div>
       <div class="detail-row"><span class="detail-label">Saldo pendiente</span>
         <span class="detail-value">
           <span style="color:${((p.precio_total||0)-(p.anticipo||0))>0?'#d97706':'#166534'};font-weight:700;">${formatCOP((p.precio_total||0)-(p.anticipo||0))}</span>
-          ${((p.precio_total||0)-(p.anticipo||0))>0 ? `
-          <button onclick="marcarPagado('${p.id}', ${p.precio_total||0})" style="margin-left:8px;padding:3px 10px;background:linear-gradient(135deg,#16a34a,#22c55e);color:white;border:none;border-radius:20px;font-size:0.7rem;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;">
-            ✅ Pagado
-          </button>` : '<span style="font-size:0.72rem;color:#16a34a;margin-left:6px;">✓ Saldado</span>'}
+          ${(!p.es_stock && ((p.precio_total||0)-(p.anticipo||0))>0 && currentProfile?.role === 'admin') ? `
+          <button onclick="abrirRegistrarPago('${p.id}', ${p.precio_total||0}, ${p.anticipo||0})" style="margin-left:8px;padding:3px 10px;background:linear-gradient(135deg,#16a34a,#22c55e);color:white;border:none;border-radius:20px;font-size:0.7rem;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;">
+            💰 Registrar pago
+          </button>` : (!p.es_stock ? '<span style="font-size:0.72rem;color:#16a34a;margin-left:6px;">✓ Saldado</span>' : '')}
         </span>
       </div>
       <div class="detail-row"><span class="detail-label">Método de pago</span><span class="detail-value">${p.metodo_pago||'—'}</span></div>
     </div>
+    ${pagosHtml}
     ${p.notas?`<div class="detail-section"><h3>📝 Notas</h3><p style="font-size:0.83rem;color:var(--texto-oscuro);line-height:1.5;background:var(--rosa-suave);padding:12px;border-radius:var(--radius-sm);">${p.notas}</p></div>`:''}
     <div class="detail-section">
       <h3>🌟 Engagement</h3>
@@ -5444,23 +5536,65 @@ async function openDetail(p) {
 }
 function closeDetailPanel() { document.getElementById('detail-overlay').classList.remove('open'); }
 
-async function marcarPagado(pedidoId, precioTotal) {
-  if (!confirm(`¿Confirmas que se recibió el pago completo de ${formatCOP(precioTotal)}?`)) return;
-  const { error } = await supabase_client
-    .from('pedidos')
-    .update({ anticipo: precioTotal })
-    .eq('id', pedidoId);
-  if (error) {
-    showToast('Error al registrar pago: ' + error.message, 'error');
-    return;
-  }
-  showToast('💰 ¡Pago completo registrado!', 'success');
+function abrirRegistrarPago(pedidoId, precioTotal, anticipoActual) {
+  const saldoPendiente = (precioTotal || 0) - (anticipoActual || 0);
+  document.getElementById('rp-pedido-id').value = pedidoId;
+  document.getElementById('rp-resumen').innerHTML =
+    `Precio total: <strong>${formatCOP(precioTotal)}</strong><br>` +
+    `Ya abonado: <strong>${formatCOP(anticipoActual)}</strong><br>` +
+    `Saldo pendiente: <strong style="color:#d97706;">${formatCOP(saldoPendiente)}</strong>`;
+  document.getElementById('rp-monto').value = saldoPendiente > 0 ? saldoPendiente : '';
+  document.getElementById('rp-fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('rp-metodo').selectedIndex = 0;
+  document.getElementById('rp-notas').value = '';
+  openModal('modal-registrar-pago');
+}
+
+async function confirmarRegistrarPago() {
+  const pedidoId = document.getElementById('rp-pedido-id').value;
+  const monto    = parseFloat(document.getElementById('rp-monto').value) || 0;
+  const fecha    = document.getElementById('rp-fecha').value;
+  const metodo   = document.getElementById('rp-metodo').value;
+  const notas    = document.getElementById('rp-notas').value;
+
+  if (!monto || monto <= 0) { showToast('Ingresa un monto válido', 'error'); return; }
+  if (!fecha) { showToast('Ingresa la fecha del pago', 'error'); return; }
+
+  const btn = document.getElementById('btn-guardar-pago');
+  btn.disabled = true; btn.textContent = '⏳ Guardando...';
+
+  // Determinar si este pago salda por completo el pedido
+  const { data: pedidoActual } = await supabase_client.from('pedidos').select('precio_total, anticipo').eq('id', pedidoId).single();
+  const nuevoTotal = (pedidoActual?.anticipo || 0) + monto;
+  const tipo = nuevoTotal >= (pedidoActual?.precio_total || 0) ? 'saldo_final' : 'abono';
+
+  const { error } = await supabase_client.from('pagos').insert({
+    pedido_id: pedidoId, monto, fecha_pago: fecha, metodo_pago: metodo,
+    tipo, notas, registrado_por: currentUser?.id || null,
+  });
+
+  btn.disabled = false; btn.textContent = '✅ Guardar pago';
+
+  if (error) { showToast('Error al registrar pago: ' + error.message, 'error'); return; }
+  showToast('💰 ¡Pago registrado!', 'success');
   playBeep(660, 0.2);
+  closeModal('modal-registrar-pago');
   closeDetailPanel();
   loadPedidos();
   loadDashboard();
-  // Refresh finanzas if visible
   if (document.getElementById('section-finanzas')?.classList.contains('active')) loadFinanzas();
+}
+
+async function eliminarPago(pagoId, pedidoIdParaRefrescar) {
+  if (!confirm('¿Eliminar este pago del historial? El saldo del pedido se recalculará.')) return;
+  const { error } = await supabase_client.from('pagos').delete().eq('id', pagoId);
+  if (error) { showToast('Error al eliminar: ' + error.message, 'error'); return; }
+  showToast('Pago eliminado', 'success');
+  loadPedidos();
+  loadDashboard();
+  // Reabrir el detalle actualizado
+  const { data: p } = await supabase_client.from('pedidos').select('*, clientes(nombre)').eq('id', pedidoIdParaRefrescar).single();
+  if (p) openDetail(p);
 }
 
 async function guardarNotaTejedora(pedidoId) {
