@@ -1610,6 +1610,14 @@
             <h2>📦 Pedidos</h2>
             <div class="table-actions">
               <input class="search-input" type="text" placeholder="🔍 Buscar pedido..." oninput="searchPedidos(this.value)" />
+              <div class="filter-row">
+                <select class="filter-select" id="filter-casa" onchange="loadPedidos()" aria-label="Filtrar por casa">
+                  <option value="">Todas las casas</option>
+                  <option value="crochet">🧸 Crochet</option>
+                  <option value="merceria">🧶 Mercería</option>
+                  <option value="academy">🎓 Academy</option>
+                </select>
+              </div>
               <div class="filter-row" id="filter-tejedora-row">
                 <select class="filter-select" id="filter-tejedora" onchange="loadPedidos()">
                   <option value="">Todas las tejedoras</option>
@@ -1651,6 +1659,14 @@
             <h2>👤 Clientes</h2>
             <div class="table-actions">
               <input class="search-input" type="text" placeholder="🔍 Buscar cliente..." oninput="searchClientes(this.value)" />
+              <div class="filter-row">
+                <select class="filter-select" id="filter-casa-clientes" onchange="loadClientes()" aria-label="Filtrar clientes por casa">
+                  <option value="">Todas las casas</option>
+                  <option value="crochet">🧸 Crochet</option>
+                  <option value="merceria">🧶 Mercería</option>
+                  <option value="academy">🎓 Academy</option>
+                </select>
+              </div>
               <button class="btn-add" onclick="openModalCliente()">+ Nuevo cliente</button>
             </div>
           </div>
@@ -1661,6 +1677,7 @@
                   <th>Nombre</th>
                   <th>Canal</th>
                   <th>Ciudad</th>
+                  <th>Casas</th>
                   <th>Cómo llegó</th>
                   <th>Pedidos</th>
                   <th>Recompra</th>
@@ -1668,7 +1685,7 @@
                 </tr>
               </thead>
               <tbody id="tb-clientes">
-                <tr><td colspan="7"><div class="loading-spinner"></div></td></tr>
+                <tr><td colspan="8"><div class="loading-spinner"></div></td></tr>
               </tbody>
             </table>
           </div>
@@ -2652,6 +2669,12 @@ function badgeEstado(estado) {
   const labels = { 'en proceso':'En proceso', 'en produccion':'En producción', 'listo':'Listo', 'enviado':'Enviado', 'entregado':'Entregado', 'cancelado':'Cancelado' };
   return `<span class="badge ${map[estado]||'badge-proceso'}">${icons[estado]||''} ${labels[estado]||estado}</span>`;
 }
+// Casas de Lana Rosa (9-oct-2026): cada pedido de la web trae su casa y cada cliente suma su historial por casa en `clientes_casas`.
+const CASAS = { crochet: { icono: '🧸', nombre: 'Crochet' }, merceria: { icono: '🧶', nombre: 'Mercería' }, academy: { icono: '🎓', nombre: 'Academy' } };
+function casaTag(casa, n) {
+  const c = CASAS[casa] || CASAS.crochet;
+  return `<span class="channel-tag channel-otro" title="${c.nombre}">${c.icono} ${c.nombre}${n ? ' · ' + n : ''}</span>`;
+}
 function channelTag(canal) {
   const map = { instagram:'channel-ig', facebook:'channel-fb', whatsapp:'channel-wa' };
   const icons = { instagram:'📷', facebook:'👤', whatsapp:'💬', presencial:'🏪', otro:'💡' };
@@ -2746,6 +2769,8 @@ async function loadPedidos() {
   else if (pedidosFilter !== 'todos') q = q.eq('estado', pedidosFilter);
   const tid = document.getElementById('filter-tejedora')?.value;
   if (tid) q = q.eq('tejedora_id', tid);
+  const casaSel = document.getElementById('filter-casa')?.value;
+  if (casaSel) q = q.eq('casa', casaSel);
 
   const { data, error } = await q;
   if (error) { tb.innerHTML = `<tr><td colspan="9">Error: ${error.message}</td></tr>`; return; }
@@ -2792,7 +2817,7 @@ async function loadPedidos() {
           </div>
         </div>`}
       </td>
-      <td style="max-width:160px;white-space:normal;">${p.tipo||''} ${p.descripcion?.slice(0,50)||''}${(p.descripcion?.length||0)>50?'…':''}</td>
+      <td style="max-width:160px;white-space:normal;">${p.es_stock ? '' : `<div style="margin-bottom:3px;">${casaTag(p.casa)}</div>`}${p.tipo||''} ${p.descripcion?.slice(0,50)||''}${(p.descripcion?.length||0)>50?'…':''}</td>
       <td>${p.imagen_url ? `<img src="${p.imagen_url}" class="ref-thumb" onclick="event.stopPropagation();openImagePreview('${p.imagen_url}')" alt="ref" />` : '<span style="color:var(--texto-medio);font-size:0.75rem;">—</span>'}</td>
       <td>${tejedorasMap[p.tejedora_id]||'<span style="color:var(--texto-medio);font-size:0.75rem;">Sin asignar</span>'}</td>
       <td>
@@ -3216,18 +3241,24 @@ async function saveStockPedido() {
 // ══════════════════════════════════════════════════════════
 async function loadClientes() {
   const tb = document.getElementById('tb-clientes');
-  tb.innerHTML = '<tr><td colspan="7"><div class="loading-spinner"></div></td></tr>';
+  tb.innerHTML = '<tr><td colspan="8"><div class="loading-spinner"></div></td></tr>';
   let q = supabase_client.from('clientes').select('*').order('nombre');
   const { data, error } = await q;
-  if (error) { tb.innerHTML = `<tr><td colspan="7">Error: ${error.message}</td></tr>`; return; }
+  if (error) { tb.innerHTML = `<tr><td colspan="8">Error: ${error.message}</td></tr>`; return; }
 
   let rows = data || [];
+  // Historial por casa: una persona es un solo cliente y puede haber comprado en varias casas.
+  const { data: porCasa } = await supabase_client.from('clientes_casas').select('cliente_id, casa, pedidos');
+  const casasMap = {};
+  (porCasa || []).forEach(x => { (casasMap[x.cliente_id] = casasMap[x.cliente_id] || []).push(x); });
+  const casaSel = document.getElementById('filter-casa-clientes')?.value;
+  if (casaSel) rows = rows.filter(c => (casasMap[c.id] || []).some(x => x.casa === casaSel));
   if (clientesSearch) {
     const s = clientesSearch.toLowerCase();
     rows = rows.filter(c => (c.nombre||'').toLowerCase().includes(s) || (c.telefono||'').includes(s));
   }
 
-  if (!rows.length) { tb.innerHTML = '<tr><td colspan="7"><div class="table-empty"><div class="table-empty-icon">👤</div><p>No hay clientes aún</p></div></td></tr>'; return; }
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="8"><div class="table-empty"><div class="table-empty-icon">👤</div><p>No hay clientes con estos filtros</p></div></td></tr>'; return; }
 
   // Count pedidos per client
   const ids = rows.map(c=>c.id);
@@ -3248,6 +3279,7 @@ async function loadClientes() {
       </td>
       <td>${channelTag(c.canal||'otro')}</td>
       <td>${c.ciudad||'—'}</td>
+      <td style="white-space:normal;">${(casasMap[c.id]||[]).length ? (casasMap[c.id]).map(x => casaTag(x.casa, x.pedidos)).join(' ') : '—'}</td>
       <td>${c.como_llego||'—'}</td>
       <td><span style="font-weight:600;color:var(--rosa-principal);">${countMap[c.id]||0}</span></td>
       <td>${(countMap[c.id]||0)>1?'<span style="color:#166534;font-weight:600;">✅ Sí</span>':'—'}</td>
@@ -3761,15 +3793,16 @@ async function _generarExcel(tipo) {
   if (tipo === 'clientes') {
     const { data } = await supabase_client
       .from('clientes')
-      .select('*, pedidos(id)')
+      .select('*, pedidos(id), clientes_casas(casa, pedidos)')
       .order('nombre');
-    headers = ['Nombre','Teléfono','Correo','Cédula','Canal','Usuario redes','Ciudad','Barrio','Dirección','Cómo llegó','N° pedidos','Fecha primer contacto','Notas'];
+    headers = ['Nombre','Teléfono','Correo','Cédula','Canal','Usuario redes','Ciudad','Barrio','Dirección','Cómo llegó','N° pedidos','Fecha primer contacto','Notas','Casas (pedidos)'];
     rows = (data||[]).map(c => [
       c.nombre||'', c.telefono||'', c.email||'', c.cedula||'',
       c.canal||'', c.usuario_redes||'', c.ciudad||'', c.barrio||'',
       c.direccion||'', c.como_llego||'',
       (c.pedidos||[]).length,
-      c.fecha_primer_contacto||'', c.notas||''
+      c.fecha_primer_contacto||'', c.notas||'',
+      (c.clientes_casas||[]).map(x => (CASAS[x.casa]?.nombre || x.casa) + ' (' + x.pedidos + ')').join(', ')
     ]);
     filename = 'Clientes_LanaRosa';
   }
@@ -3779,7 +3812,7 @@ async function _generarExcel(tipo) {
       .from('pedidos')
       .select('*, clientes(nombre), tejedora:profiles!pedidos_tejedora_id_fkey(full_name)')
       .order('fecha_pedido', { ascending: false });
-    headers = ['N° Pedido','Fecha pedido','Tipo pedido','Cliente','Tejedora','Tipo pieza','Descripción','Ocasión','Para quién','Estado','Valor total','Anticipo','Saldo','Método pago','Fecha entrega','Fecha entrega real','Compartió redes','Recomendó'];
+    headers = ['N° Pedido','Fecha pedido','Tipo pedido','Cliente','Tejedora','Tipo pieza','Descripción','Ocasión','Para quién','Estado','Valor total','Anticipo','Saldo','Método pago','Fecha entrega','Fecha entrega real','Compartió redes','Recomendó','Casa'];
     rows = (data||[]).map(p => [
       p.numero_pedido||'', p.fecha_pedido||'', p.es_stock ? 'Stock' : 'Cliente',
       p.es_stock ? '—' : (p.clientes?.nombre||''), p.tejedora?.full_name||'',
@@ -3788,7 +3821,8 @@ async function _generarExcel(tipo) {
       Number(p.precio_total||0), Number(p.anticipo||0),
       Number(p.precio_total||0)-Number(p.anticipo||0),
       p.metodo_pago||'', p.fecha_entrega||'', p.fecha_entrega_real||'',
-      p.compartio_redes?'Sí':'No', p.recomendo?'Sí':'No'
+      p.compartio_redes?'Sí':'No', p.recomendo?'Sí':'No',
+      p.es_stock ? '—' : (CASAS[p.casa]?.nombre || 'Crochet')
     ]);
     filename = 'Pedidos_LanaRosa';
   }
