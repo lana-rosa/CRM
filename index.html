@@ -494,6 +494,35 @@
     .table-empty p { font-size: 0.85rem; }
 
     /* ─── MODAL ─── */
+
+    /* ── CRM profesional ── */
+    .seg-tag { display:inline-block; padding:2px 9px; border-radius:20px; font-size:0.72rem; font-weight:700; white-space:nowrap; }
+    .seg-campeon { background:rgba(234,179,8,0.18); color:#854d0e; } .seg-leal { background:rgba(216,1,124,0.12); color:#be185d; }
+    .seg-nuevo { background:rgba(34,197,94,0.14); color:#166534; } .seg-ocasional { background:rgba(99,102,241,0.12); color:#4338ca; }
+    .seg-en_riesgo { background:rgba(249,115,22,0.16); color:#c2410c; } .seg-dormido { background:rgba(100,116,139,0.16); color:#475569; }
+    .seg-prospecto { background:rgba(14,165,233,0.14); color:#0369a1; }
+    .embudo-tablero { display:flex; gap:12px; overflow-x:auto; padding-bottom:10px; align-items:flex-start; }
+    .embudo-col { min-width:230px; max-width:260px; flex:1 0 230px; background:var(--blanco); border:1.5px solid var(--borde); border-radius:14px; padding:10px; }
+    .embudo-col h3 { font-size:0.82rem; margin:0 0 2px; } .embudo-col .sub { font-size:0.72rem; color:var(--texto-medio); margin-bottom:8px; }
+    .opor-card { background:var(--blanco-hueso); border-radius:10px; padding:9px 10px; margin-bottom:8px; font-size:0.8rem; }
+    .opor-card .t { font-weight:700; } .opor-card .m { color:var(--texto-medio); font-size:0.72rem; margin-top:2px; }
+    .opor-card .acc { display:flex; gap:4px; margin-top:6px; flex-wrap:wrap; }
+    .mini-btn { border:1.5px solid var(--borde); background:var(--blanco); border-radius:8px; padding:3px 8px; font-size:0.72rem; cursor:pointer; font-family:inherit; }
+    .mini-btn:hover { background:var(--rosa-suave); }
+    .crm-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-bottom:14px; }
+    .crm-kpi { background:var(--blanco); border:1.5px solid var(--borde); border-radius:12px; padding:10px 12px; }
+    .crm-kpi .v { font-size:1.2rem; font-weight:800; } .crm-kpi .l { font-size:0.74rem; color:var(--texto-medio); }
+    .alerta-bloque { background:var(--blanco); border:1.5px solid var(--borde); border-radius:14px; padding:12px 14px; margin-bottom:12px; }
+    .alerta-bloque h3 { font-size:0.9rem; margin:0 0 8px; }
+    .alerta-fila { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:7px 0; border-top:1px dashed var(--borde); font-size:0.82rem; flex-wrap:wrap; }
+    .alerta-fila:first-of-type { border-top:none; }
+    .ficha-cols { display:grid; grid-template-columns:1fr 1fr; gap:14px; } @media (max-width:720px){ .ficha-cols { grid-template-columns:1fr; } }
+    .ficha-caja { border:1.5px solid var(--borde); border-radius:12px; padding:10px 12px; margin-bottom:12px; }
+    .ficha-caja h4 { margin:0 0 6px; font-size:0.85rem; }
+    .linea-tiempo { border-left:3px solid var(--borde); margin-left:6px; padding-left:10px; }
+    .linea-tiempo .it { margin-bottom:8px; font-size:0.8rem; } .linea-tiempo .it small { color:var(--texto-medio); }
+    .barra-h { height:8px; background:var(--blanco-hueso); border-radius:6px; overflow:hidden; } .barra-h > div { height:100%; background:var(--rosa-principal); }
+
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -1495,6 +1524,13 @@
       <button class="nav-item" id="nav-clientes" onclick="showSection('clientes')">
         <span class="nav-icon">👤</span> Clientes
       </button>
+      <button class="nav-item" id="nav-seguimiento" onclick="showSection('seguimiento')" style="display:none;">
+        <span class="nav-icon">✅</span> Seguimiento
+        <span class="nav-badge" id="badge-seguimiento">0</span>
+      </button>
+      <button class="nav-item" id="nav-embudo" onclick="showSection('embudo')" style="display:none;">
+        <span class="nav-icon">🎯</span> Embudo de ventas
+      </button>
       <div class="nav-section-label">Seguimiento</div>
       <button class="nav-item" onclick="showSection('stock')">
         <span class="nav-icon">🧸</span> Stock
@@ -1509,6 +1545,9 @@
       <div class="nav-section-label" id="admin-section" style="display:none;">Administración</div>
       <button class="nav-item" id="btn-informes" onclick="showSection('informes')" style="display:none;">
         <span class="nav-icon">📊</span> Informes
+      </button>
+      <button class="nav-item" id="btn-crm-ind" onclick="showSection('crmind')" style="display:none;">
+        <span class="nav-icon">🎯</span> Indicadores CRM
       </button>
       <button class="nav-item" id="btn-equipo" onclick="showSection('equipo')" style="display:none;">
         <span class="nav-icon">👥</span> Equipo
@@ -1667,6 +1706,16 @@
                   <option value="academy">🎓 Academy</option>
                 </select>
               </div>
+              <select class="filter-select" id="filter-segmento-clientes" onchange="loadClientes()" aria-label="Filtrar por segmento">
+                <option value="">Todos los segmentos</option>
+                <option value="campeon">🏆 Campeones</option>
+                <option value="leal">💖 Leales</option>
+                <option value="nuevo">🌱 Nuevos</option>
+                <option value="ocasional">🙂 Ocasionales</option>
+                <option value="en_riesgo">⚠️ En riesgo</option>
+                <option value="dormido">😴 Dormidos</option>
+                <option value="prospecto">🔎 Prospectos</option>
+              </select>
               <button class="btn-add" onclick="openModalCliente()">+ Nuevo cliente</button>
             </div>
           </div>
@@ -1675,6 +1724,7 @@
               <thead>
                 <tr>
                   <th>Nombre</th>
+                  <th>Segmento</th>
                   <th>Canal</th>
                   <th>Ciudad</th>
                   <th>Casas</th>
@@ -1685,11 +1735,37 @@
                 </tr>
               </thead>
               <tbody id="tb-clientes">
-                <tr><td colspan="8"><div class="loading-spinner"></div></td></tr>
+                <tr><td colspan="9"><div class="loading-spinner"></div></td></tr>
               </tbody>
             </table>
           </div>
         </div>
+      </section>
+
+      <!-- ─── SEGUIMIENTO ─── -->
+      <section class="page-section" id="section-seguimiento">
+        <div id="seg-contenido"><div class="loading-spinner"></div></div>
+      </section>
+
+      <!-- ─── EMBUDO ─── -->
+      <section class="page-section" id="section-embudo">
+        <div class="table-card" style="margin-bottom:14px;">
+          <div class="table-card-header">
+            <h2>🎯 Oportunidades</h2>
+            <div class="table-actions"><button class="btn-add" onclick="abrirOportunidad()">+ Nueva oportunidad</button></div>
+          </div>
+          <div style="padding:0 18px 12px;font-size:0.8rem;color:var(--texto-medio);">Una oportunidad es alguien que pregunta por un producto, antes de ser pedido. Muévela de etapa a medida que avanza; cuando pague el anticipo, créale el pedido en la sección Pedidos.</div>
+        </div>
+        <div id="embudo-tablero" class="embudo-tablero"><div class="loading-spinner"></div></div>
+      </section>
+
+      <!-- ─── INDICADORES CRM ─── -->
+      <section class="page-section" id="section-crmind">
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px;">
+          <div class="form-group" style="margin:0;"><label>Desde</label><input type="date" id="crmind-desde" onchange="loadCrmIndicadores()"></div>
+          <div class="form-group" style="margin:0;"><label>Hasta</label><input type="date" id="crmind-hasta" onchange="loadCrmIndicadores()"></div>
+        </div>
+        <div id="crmind-contenido"><div class="loading-spinner"></div></div>
       </section>
 
       <!-- ─── ENTREGAS PRÓXIMAS ─── -->
@@ -2397,6 +2473,28 @@
         <label>Barrio / Municipio de entrega</label>
         <input type="text" id="cliente-barrio" placeholder="La Enea, Villamaría..." />
       </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Cumpleaños</label>
+          <input type="date" id="cliente-nacimiento" />
+        </div>
+        <div class="form-group">
+          <label>Lo recomendó (cliente)</label>
+          <select id="cliente-referido"><option value="">— Nadie / no aplica —</option></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Etiquetas (separadas por coma)</label>
+        <input type="text" id="cliente-etiquetas" placeholder="coleccionista, mamá, empresa..." />
+      </div>
+      <div class="form-group">
+        <label>Preferencias (personajes, colores, tamaños)</label>
+        <input type="text" id="cliente-preferencias" placeholder="Le gustan los gatos y el color lila" />
+      </div>
+      <div class="form-group" style="display:flex;gap:8px;align-items:center;">
+        <input type="checkbox" id="cliente-acepta-contacto" checked style="width:auto;" />
+        <label for="cliente-acepta-contacto" style="margin:0;">Autoriza que le escribamos (promociones, fechas especiales, posventa)</label>
+      </div>
       <div class="form-group">
         <label>Notas del cliente</label>
         <textarea id="cliente-notas" placeholder="Preferencias, detalles importantes, historial de relación..."></textarea>
@@ -2405,6 +2503,50 @@
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeModal('modal-cliente')">Cancelar</button>
       <button class="btn-save" id="btn-save-cliente" onclick="saveCliente()">💾 Guardar cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ FICHA 360 ═══════════════ -->
+<div class="modal-overlay" id="modal-ficha">
+  <div class="modal" style="max-width:860px;">
+    <div class="modal-header">
+      <h2 id="ficha-titulo">Ficha del cliente</h2>
+      <button class="modal-close" onclick="closeModal('modal-ficha')">✕</button>
+    </div>
+    <div class="modal-body" id="ficha-cuerpo"><div class="loading-spinner"></div></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-oportunidad">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="opor-titulo">Nueva oportunidad</h2>
+      <button class="modal-close" onclick="closeModal('modal-oportunidad')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="opor-id" />
+      <div class="form-group"><label>Cliente existente</label><select id="opor-cliente"><option value="">— Contacto nuevo (aún no es cliente) —</option></select></div>
+      <div class="form-row">
+        <div class="form-group"><label>Nombre del contacto</label><input type="text" id="opor-nombre" placeholder="Si no es cliente todavía" /></div>
+        <div class="form-group"><label>Teléfono / WhatsApp</label><input type="text" id="opor-telefono" /></div>
+      </div>
+      <div class="form-group"><label>¿Qué quiere? *</label><input type="text" id="opor-descripcion" placeholder="Pareja personalizada 13cm para matrimonio" /></div>
+      <div class="form-row">
+        <div class="form-group"><label>Valor estimado</label><input type="number" id="opor-valor" min="0" step="1000" /></div>
+        <div class="form-group"><label>Fecha en que lo necesita</label><input type="date" id="opor-fecha" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Etapa</label><select id="opor-etapa"></select></div>
+        <div class="form-group"><label>Cómo llegó</label>
+          <select id="opor-origen"><option>Instagram</option><option>WhatsApp</option><option>Facebook</option><option>Referido</option><option>Feria</option><option>Página web</option><option>Otro</option></select></div>
+      </div>
+      <div class="form-group"><label>Motivo (si se perdió)</label><input type="text" id="opor-motivo" placeholder="Precio, tiempo de entrega, ya compró en otro lado..." /></div>
+      <div class="form-group"><label>Notas</label><textarea id="opor-notas"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('modal-oportunidad')">Cancelar</button>
+      <button class="btn-save" onclick="guardarOportunidad()">💾 Guardar</button>
     </div>
   </div>
 </div>
@@ -2584,6 +2726,8 @@ function showApp() {
     document.getElementById('admin-section').style.display = 'block';
     document.getElementById('btn-equipo').style.display    = 'flex';
     document.getElementById('btn-informes').style.display  = 'flex';
+    ['nav-seguimiento','nav-embudo','btn-crm-ind'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'flex'; });
+    setTimeout(actualizarBadgeSeguimiento, 800);
   } else {
     // Tejedoras: ocultar Clientes y Finanzas en sidebar y bottom nav
     const hide = ['nav-clientes','nav-finanzas','bnav-clientes','bnav-finanzas','btn-nuevo-pedido','btn-nuevo-stock','filter-tejedora-row','card-clientes','card-ingresos'];
@@ -2615,12 +2759,15 @@ const sections = {
   produccion:  { title: 'Producción',          subtitle: 'Ahora se registra en el ERP 🧵', load: loadMovidoAlErp },
   envios:      { title: 'Envíos',              subtitle: 'Ahora se registran en el ERP 🚚', load: loadMovidoAlErp },
   stock:       { title: 'Stock',               subtitle: 'Catálogo de piezas disponibles 🧸', load: loadStockCatalog },
+  seguimiento: { title: 'Seguimiento',         subtitle: 'Alertas y tareas del día: a quién escribirle hoy 💬', load: loadSeguimiento },
+  embudo:      { title: 'Embudo de ventas',    subtitle: 'De la primera consulta a la posventa 🎯', load: loadEmbudo },
+  crmind:      { title: 'Indicadores CRM',     subtitle: 'Cómo están tus clientes 📈', load: loadCrmIndicadores },
   informes:    { title: 'Informes',             subtitle: 'Estadísticas y reportes del negocio 📊', load: loadInformes },
 };
 
 function showSection(name) {
   // Tejedoras no tienen acceso a clientes ni finanzas
-  if (currentProfile?.role !== 'admin' && (name === 'clientes' || name === 'finanzas')) {
+  if (currentProfile?.role !== 'admin' && ['clientes','finanzas','seguimiento','embudo','crmind'].includes(name)) {
     showToast('🔒 Solo las administradoras pueden acceder a esta sección', 'error');
     return;
   }
@@ -2641,6 +2788,383 @@ function showSection(name) {
     sec.load();
   }
   closeSidebar();
+}
+
+// ══════════════════════════════════════════════════════════
+//  CRM PROFESIONAL: segmentos, ficha 360°, embudo, seguimiento, indicadores
+// ══════════════════════════════════════════════════════════
+const SEGMENTOS = {
+  campeon:['🏆','Campeón'], leal:['💖','Leal'], nuevo:['🌱','Nuevo'], ocasional:['🙂','Ocasional'],
+  en_riesgo:['⚠️','En riesgo'], dormido:['😴','Dormido'], prospecto:['🔎','Prospecto']
+};
+const SEGMENTOS_AYUDA = 'Segmento automático según cuánto hace que compró (recencia), cuántas veces (frecuencia) y cuánto ha gastado (valor).';
+function segmentoTag(seg) {
+  const x = SEGMENTOS[seg];
+  return x ? `<span class="seg-tag seg-${seg}" title="${SEGMENTOS_AYUDA}">${x[0]} ${x[1]}</span>` : '—';
+}
+function escCrm(t) { return String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function hoyIso() { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
+function sumarDiasIso(n) { const d = new Date(); d.setDate(d.getDate()+n); return new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
+function fmtFechaCorta(f) { if (!f) return '—'; const d = new Date(String(f).slice(0,10) + 'T00:00:00'); return d.toLocaleDateString('es-CO', { day:'numeric', month:'short' }); }
+function telWa(tel) { const d = String(tel || '').replace(/\D/g, ''); return d.length === 10 ? '57' + d : d; }
+function primerNombre(n) { return String(n || '').trim().split(/\s+/)[0] || ''; }
+
+// ── Plantillas de mensajes ──
+let plantillasCache = null;
+async function cargarPlantillasMsg() {
+  if (plantillasCache) return plantillasCache;
+  const { data } = await supabase_client.from('plantillas_mensaje').select('*').eq('activa', true).order('orden');
+  plantillasCache = data || [];
+  return plantillasCache;
+}
+function textoPlantilla(clave, vars) {
+  const pl = (plantillasCache || []).find(p => p.clave === clave);
+  if (!pl) return '';
+  return pl.texto.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
+}
+// Abre WhatsApp con el mensaje y deja constancia del contacto en el historial del cliente
+function contactarWhatsApp(clienteId, tel, clave, vars, tipoInteraccion, pedidoId) {
+  if (!tel) { showToast('Este cliente no tiene teléfono registrado', 'error'); return; }
+  const texto = textoPlantilla(clave, vars);
+  const pl = (plantillasCache || []).find(p => p.clave === clave);
+  window.open('https://wa.me/' + telWa(tel) + '?text=' + encodeURIComponent(texto), '_blank', 'noopener');
+  if (clienteId) {
+    supabase_client.from('interacciones').insert({ cliente_id: clienteId, pedido_id: pedidoId || null, tipo: tipoInteraccion || 'whatsapp', resumen: 'Mensaje enviado: ' + (pl ? pl.titulo : clave) })
+      .then(({ error }) => { if (!error) showToast('Contacto registrado en el historial', 'success'); });
+  }
+}
+
+// ── Ficha 360° ──
+let fichaClienteId = null;
+async function abrirFicha(id) {
+  fichaClienteId = id;
+  document.getElementById('ficha-cuerpo').innerHTML = '<div class="loading-spinner"></div>';
+  openModal('modal-ficha');
+  await cargarPlantillasMsg();
+  await renderFicha();
+}
+async function renderFicha() {
+  const id = fichaClienteId;
+  const [cR, vR, pR, iR, fR, tR, rR] = await Promise.all([
+    supabase_client.from('clientes').select('*').eq('id', id).single(),
+    supabase_client.from('v_clientes_crm').select('*').eq('id', id).single(),
+    supabase_client.from('pedidos').select('id, numero_pedido, descripcion, estado, precio_total, fecha_pedido, fecha_entrega_real, casa').eq('cliente_id', id).order('fecha_pedido', { ascending: false }),
+    supabase_client.from('interacciones').select('*').eq('cliente_id', id).order('created_at', { ascending: false }).limit(30),
+    supabase_client.from('fechas_especiales').select('*').eq('cliente_id', id).order('fecha'),
+    supabase_client.from('tareas').select('*').eq('cliente_id', id).eq('hecha', false).order('vence'),
+    supabase_client.from('clientes').select('id, nombre').eq('referido_por', id),
+  ]);
+  const c = cR.data, v = vR.data || {}, pedidos = pR.data || [], inter = iR.data || [], fechas = fR.data || [], tareas = tR.data || [], refs = rR.data || [];
+  if (!c) { document.getElementById('ficha-cuerpo').innerHTML = 'No se encontró el cliente.'; return; }
+  let refPor = '';
+  if (c.referido_por) { const { data } = await supabase_client.from('clientes').select('nombre').eq('id', c.referido_por).single(); refPor = data?.nombre || ''; }
+  document.getElementById('ficha-titulo').textContent = c.nombre;
+  const ICON = { whatsapp:'💬', llamada:'📞', presencial:'🏪', correo:'✉️', redes:'📷', posventa:'🌟', nota:'📝' };
+  const opcPl = (plantillasCache || []).map(p => `<option value="${p.clave}">${escCrm(p.titulo)}</option>`).join('');
+  document.getElementById('ficha-cuerpo').innerHTML = `
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;">
+      ${segmentoTag(v.segmento)}
+      ${c.acepta_contacto === false ? '<span class="seg-tag seg-dormido">🚫 No desea mensajes</span>' : ''}
+      ${(c.etiquetas || []).map(e => `<span class="seg-tag seg-ocasional">${escCrm(e)}</span>`).join('')}
+      <button class="mini-btn" onclick="closeModal('modal-ficha');editCliente('${c.id}')">✏️ Editar datos</button>
+    </div>
+    <div class="crm-grid">
+      <div class="crm-kpi"><div class="v">${v.pedidos || 0}</div><div class="l">Pedidos</div></div>
+      <div class="crm-kpi"><div class="v">${formatCOP(v.total || 0)}</div><div class="l">Total comprado</div></div>
+      <div class="crm-kpi"><div class="v">${v.dias_sin_comprar ?? '—'}</div><div class="l">Días desde su última compra</div></div>
+      <div class="crm-kpi"><div class="v">${v.pedidos ? formatCOP(Math.round(v.total / v.pedidos)) : '—'}</div><div class="l">Ticket promedio</div></div>
+    </div>
+    <div class="ficha-cols">
+      <div>
+        <div class="ficha-caja"><h4>📇 Datos</h4>
+          <div style="font-size:0.82rem;line-height:1.7;">
+            📱 ${escCrm(c.telefono) || '<em>sin teléfono</em>'}<br>
+            ✉️ ${escCrm(c.email) || '<em>sin correo</em>'}<br>
+            📍 ${escCrm([c.ciudad, c.barrio].filter(Boolean).join(' · ')) || '—'}<br>
+            🎂 ${c.fecha_nacimiento ? fmtFechaCorta(c.fecha_nacimiento) : '<em>sin cumpleaños</em>'}<br>
+            ${channelTag(c.canal || 'otro')} · llegó por ${escCrm(c.como_llego) || '—'}<br>
+            ${refPor ? '🤝 Lo recomendó: ' + escCrm(refPor) + '<br>' : ''}
+            ${refs.length ? '🌟 Ha recomendado a: ' + refs.map(r => escCrm(r.nombre)).join(', ') + '<br>' : ''}
+            ${c.preferencias ? '💡 ' + escCrm(c.preferencias) + '<br>' : ''}
+            ${c.notas ? '📝 ' + escCrm(c.notas) : ''}
+          </div>
+        </div>
+        <div class="ficha-caja"><h4>💬 Escribirle por WhatsApp</h4>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <select id="ficha-plantilla" style="flex:1;min-width:150px;padding:6px;border:1.5px solid var(--borde);border-radius:8px;">${opcPl}</select>
+            <button class="mini-btn" onclick="fichaEnviarPlantilla()">Abrir WhatsApp</button>
+          </div>
+          <div style="font-size:0.72rem;color:var(--texto-medio);margin-top:4px;">Se abre el mensaje listo para enviar y queda anotado en el historial.</div>
+        </div>
+        <div class="ficha-caja"><h4>🎂 Fechas especiales</h4>
+          ${fechas.length ? fechas.map(f => `<div style="font-size:0.8rem;display:flex;justify-content:space-between;"><span>${f.tipo === 'cumpleaños' ? '🎂' : f.tipo === 'aniversario' ? '💍' : '📅'} ${fmtFechaCorta(f.fecha)} — ${escCrm(f.descripcion || f.para_quien || f.tipo)}</span><button class="btn-icon danger" onclick="borrarFecha('${f.id}')">🗑️</button></div>`).join('') : '<div style="font-size:0.8rem;color:var(--texto-medio);">Sin fechas registradas.</div>'}
+          <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;">
+            <select id="fe-tipo" style="padding:5px;border:1.5px solid var(--borde);border-radius:8px;"><option value="cumpleaños">Cumpleaños</option><option value="aniversario">Aniversario</option><option value="otra">Otra</option></select>
+            <input type="date" id="fe-fecha" style="padding:5px;border:1.5px solid var(--borde);border-radius:8px;">
+            <input type="text" id="fe-desc" placeholder="¿De quién / qué?" style="flex:1;min-width:100px;padding:5px;border:1.5px solid var(--borde);border-radius:8px;">
+            <button class="mini-btn" onclick="agregarFecha()">+</button>
+          </div>
+        </div>
+        <div class="ficha-caja"><h4>✅ Tareas pendientes</h4>
+          ${tareas.length ? tareas.map(t => `<div style="font-size:0.8rem;display:flex;justify-content:space-between;align-items:center;"><span>${t.vence < hoyIso() ? '🔴' : '⏳'} ${fmtFechaCorta(t.vence)} — ${escCrm(t.titulo)}</span><button class="mini-btn" onclick="completarTarea('${t.id}', true)">Hecha</button></div>`).join('') : '<div style="font-size:0.8rem;color:var(--texto-medio);">Sin tareas pendientes.</div>'}
+          <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;">
+            <input type="text" id="ft-titulo" placeholder="Nueva tarea" style="flex:1;min-width:120px;padding:5px;border:1.5px solid var(--borde);border-radius:8px;">
+            <input type="date" id="ft-vence" value="${sumarDiasIso(2)}" style="padding:5px;border:1.5px solid var(--borde);border-radius:8px;">
+            <button class="mini-btn" onclick="agregarTareaFicha()">+</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="ficha-caja"><h4>🗒️ Historial de contactos</h4>
+          <div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;">
+            <select id="fi-tipo" style="padding:5px;border:1.5px solid var(--borde);border-radius:8px;"><option value="whatsapp">💬 WhatsApp</option><option value="llamada">📞 Llamada</option><option value="presencial">🏪 Presencial</option><option value="correo">✉️ Correo</option><option value="redes">📷 Redes</option><option value="posventa">🌟 Posventa</option><option value="nota">📝 Nota</option></select>
+            <input type="text" id="fi-resumen" placeholder="¿Qué hablaron?" style="flex:1;min-width:120px;padding:5px;border:1.5px solid var(--borde);border-radius:8px;">
+            <button class="mini-btn" onclick="agregarInteraccion()">+ Registrar</button>
+          </div>
+          <div class="linea-tiempo">
+            ${inter.length ? inter.map(i => `<div class="it">${ICON[i.tipo] || '📝'} ${escCrm(i.resumen)}<br><small>${new Date(i.created_at).toLocaleDateString('es-CO', { day:'numeric', month:'short', year:'numeric' })}</small></div>`).join('') : '<div class="it" style="color:var(--texto-medio);">Aún no hay contactos registrados.</div>'}
+          </div>
+        </div>
+        <div class="ficha-caja"><h4>📦 Pedidos (${pedidos.length})</h4>
+          ${pedidos.length ? pedidos.map(p => `<div style="font-size:0.8rem;padding:4px 0;border-top:1px dashed var(--borde);display:flex;justify-content:space-between;gap:6px;"><span>${escCrm(p.numero_pedido || '')} ${escCrm(p.descripcion || '')}<br><small style="color:var(--texto-medio);">${fmtFechaCorta(p.fecha_pedido)} ${badgeEstado(p.estado)}</small></span><strong>${formatCOP(p.precio_total || 0)}</strong></div>`).join('') : '<div style="font-size:0.8rem;color:var(--texto-medio);">Sin pedidos todavía.</div>'}
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('fe-fecha').value = '';
+}
+function fichaEnviarPlantilla() {
+  const clave = document.getElementById('ficha-plantilla').value;
+  supabase_client.from('clientes').select('nombre, telefono, acepta_contacto').eq('id', fichaClienteId).single().then(({ data: c }) => {
+    if (!c) return;
+    if (c.acepta_contacto === false) { showToast('Este cliente pidió no recibir mensajes', 'error'); return; }
+    contactarWhatsApp(fichaClienteId, c.telefono, clave, { nombre: primerNombre(c.nombre), producto: 'pedido', fecha: 'próxima' }, clave === 'posventa' ? 'posventa' : 'whatsapp');
+    setTimeout(renderFicha, 900);
+  });
+}
+async function agregarInteraccion() {
+  const resumen = document.getElementById('fi-resumen').value.trim();
+  if (!resumen) { showToast('Escribe qué hablaron', 'error'); return; }
+  const { error } = await supabase_client.from('interacciones').insert({ cliente_id: fichaClienteId, tipo: document.getElementById('fi-tipo').value, resumen });
+  if (error) { showToast('Error: ' + error.message, 'error'); return; }
+  showToast('Contacto registrado', 'success'); renderFicha(); actualizarBadgeSeguimiento();
+}
+async function agregarFecha() {
+  const fecha = document.getElementById('fe-fecha').value;
+  if (!fecha) { showToast('Elige la fecha', 'error'); return; }
+  const { error } = await supabase_client.from('fechas_especiales').insert({ cliente_id: fichaClienteId, tipo: document.getElementById('fe-tipo').value, fecha, descripcion: document.getElementById('fe-desc').value.trim() || null });
+  if (error) { showToast('Error: ' + error.message, 'error'); return; }
+  showToast('Fecha guardada', 'success'); renderFicha();
+}
+async function borrarFecha(id) { await supabase_client.from('fechas_especiales').delete().eq('id', id); renderFicha(); }
+async function agregarTareaFicha() {
+  const titulo = document.getElementById('ft-titulo').value.trim();
+  if (!titulo) { showToast('Escribe la tarea', 'error'); return; }
+  const { error } = await supabase_client.from('tareas').insert({ cliente_id: fichaClienteId, titulo, vence: document.getElementById('ft-vence').value || hoyIso() });
+  if (error) { showToast('Error: ' + error.message, 'error'); return; }
+  showToast('Tarea creada', 'success'); renderFicha(); actualizarBadgeSeguimiento();
+}
+async function completarTarea(id, desdeFicha) {
+  await supabase_client.from('tareas').update({ hecha: true, hecha_at: new Date().toISOString() }).eq('id', id);
+  if (desdeFicha) renderFicha(); else loadSeguimiento();
+  actualizarBadgeSeguimiento();
+}
+async function poblarReferidos(seleccionado, excluirId) {
+  const { data } = await supabase_client.from('clientes').select('id, nombre').order('nombre');
+  const sel = document.getElementById('cliente-referido');
+  sel.innerHTML = '<option value="">— Nadie / no aplica —</option>' + (data || []).filter(c => c.id !== excluirId).map(c => `<option value="${c.id}" ${c.id === seleccionado ? 'selected' : ''}>${escCrm(c.nombre)}</option>`).join('');
+}
+
+// ── Seguimiento (alertas + tareas) ──
+let alertasCache = null;
+async function actualizarBadgeSeguimiento() {
+  try {
+    const { data } = await supabase_client.rpc('fn_crm_alertas');
+    if (!data) return;
+    const n = ['cotizaciones','inactivos','fechas','posventa','tareas'].reduce((a, k) => a + (data[k] || []).length, 0);
+    const b = document.getElementById('badge-seguimiento'); if (b) b.textContent = n;
+  } catch (e) { /* sin permiso: se ignora */ }
+}
+async function loadSeguimiento() {
+  const cont = document.getElementById('seg-contenido');
+  cont.innerHTML = '<div class="loading-spinner"></div>';
+  await cargarPlantillasMsg();
+  const { data, error } = await supabase_client.rpc('fn_crm_alertas');
+  if (error) { cont.innerHTML = `<div class="table-empty">No se pudo cargar: ${escCrm(error.message)}</div>`; return; }
+  alertasCache = data;
+  const b = document.getElementById('badge-seguimiento');
+  if (b) b.textContent = ['cotizaciones','inactivos','fechas','posventa','tareas'].reduce((a, k) => a + (data[k] || []).length, 0);
+  const bloque = (titulo, ayuda, filas) => `<div class="alerta-bloque"><h3>${titulo}</h3><div style="font-size:0.74rem;color:var(--texto-medio);margin-bottom:6px;">${ayuda}</div>${filas.length ? filas.join('') : '<div style="font-size:0.82rem;color:var(--texto-medio);">✨ Todo al día.</div>'}</div>`;
+  const wa = (k, i) => `<button class="mini-btn" onclick="alertaWhatsApp('${k}', ${i})">💬 WhatsApp</button>`;
+  const ver = (id) => id ? `<button class="mini-btn" onclick="abrirFicha('${id}')">📇 Ficha</button>` : '';
+  cont.innerHTML = `
+    <div class="alerta-bloque"><h3>➕ Nueva tarea</h3>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <input type="text" id="seg-t-titulo" placeholder="Ej: Llamar a Laura por el pedido" style="flex:1;min-width:200px;padding:8px;border:1.5px solid var(--borde);border-radius:8px;">
+        <select id="seg-t-cliente" style="padding:8px;border:1.5px solid var(--borde);border-radius:8px;max-width:220px;"><option value="">Sin cliente</option></select>
+        <input type="date" id="seg-t-vence" value="${hoyIso()}" style="padding:8px;border:1.5px solid var(--borde);border-radius:8px;">
+        <button class="btn-add" onclick="crearTareaSeguimiento()">Crear</button>
+      </div></div>
+    ${bloque('📋 Tareas', 'Pendientes de hoy, atrasadas y de los próximos 3 días.', (data.tareas || []).map(t => `<div class="alerta-fila"><span>${t.atrasada ? '🔴' : '⏳'} <strong>${fmtFechaCorta(t.vence)}</strong> ${escCrm(t.titulo)} ${t.cliente ? '· ' + escCrm(t.cliente) : ''}</span><span style="display:flex;gap:4px;">${ver(t.cliente_id)}<button class="mini-btn" onclick="completarTarea('${t.id}', false)">✔ Hecha</button></span></div>`))}
+    ${bloque('💌 Cotizaciones sin respuesta', 'Llevan más de 3 días en la etapa Cotización. Un mensaje amable suele reactivarlas.', (data.cotizaciones || []).map((o, i) => `<div class="alerta-fila"><span><strong>${escCrm(o.cliente)}</strong> · ${escCrm(o.descripcion)} · ${formatCOP(o.valor)} · hace ${o.dias} días</span>${wa('cotizaciones', i)}</div>`))}
+    ${bloque('🌟 Posventa pendiente', 'Pedidos entregados hace 5 a 14 días sin preguntar cómo les fue. Pide una foto o una recomendación.', (data.posventa || []).map((o, i) => `<div class="alerta-fila"><span><strong>${escCrm(o.cliente)}</strong> · ${escCrm(o.producto)} · entregado hace ${o.dias} días</span><span style="display:flex;gap:4px;">${ver(o.cliente_id)}${wa('posventa', i)}</span></div>`))}
+    ${bloque('🎂 Fechas especiales próximas (21 días)', 'Cumpleaños y aniversarios: buen momento para ofrecer un detalle tejido.', (data.fechas || []).map((o, i) => `<div class="alerta-fila"><span><strong>${escCrm(o.cliente)}</strong> · ${escCrm(o.descripcion || o.tipo)} · en ${o.dias} día(s) (${fmtFechaCorta(o.fecha)})</span><span style="display:flex;gap:4px;">${ver(o.cliente_id)}${wa('fechas', i)}</span></div>`))}
+    ${bloque('😴 Clientes para reactivar', 'Compraron antes pero llevan más de 120 días sin volver (o están en riesgo) y no se les ha escrito en 30 días.', (data.inactivos || []).map((o, i) => `<div class="alerta-fila"><span>${segmentoTag(o.segmento)} <strong>${escCrm(o.cliente)}</strong> · ${o.pedidos} pedido(s) · ${formatCOP(o.total)} · ${o.dias} días sin comprar</span><span style="display:flex;gap:4px;">${ver(o.id)}${wa('inactivos', i)}</span></div>`))}`;
+  const { data: cls } = await supabase_client.from('clientes').select('id, nombre').order('nombre');
+  document.getElementById('seg-t-cliente').innerHTML = '<option value="">Sin cliente</option>' + (cls || []).map(c => `<option value="${c.id}">${escCrm(c.nombre)}</option>`).join('');
+}
+function alertaWhatsApp(grupo, i) {
+  const o = (alertasCache?.[grupo] || [])[i]; if (!o) return;
+  const cid = o.cliente_id || o.id;
+  const nombre = primerNombre(o.cliente);
+  const map = { cotizaciones: ['cotizacion', { nombre, producto: o.descripcion }, 'whatsapp'], posventa: ['posventa', { nombre, producto: o.producto }, 'posventa'], fechas: ['fecha_especial', { nombre, fecha: fmtFechaCorta(o.fecha) }, 'whatsapp'], inactivos: ['recompra', { nombre }, 'whatsapp'] };
+  const [clave, vars, tipo] = map[grupo];
+  contactarWhatsApp(cid, o.telefono, clave, vars, tipo, o.pedido_id);
+  setTimeout(loadSeguimiento, 1200);
+}
+async function crearTareaSeguimiento() {
+  const titulo = document.getElementById('seg-t-titulo').value.trim();
+  if (!titulo) { showToast('Escribe la tarea', 'error'); return; }
+  const { error } = await supabase_client.from('tareas').insert({ titulo, cliente_id: document.getElementById('seg-t-cliente').value || null, vence: document.getElementById('seg-t-vence').value || hoyIso() });
+  if (error) { showToast('Error: ' + error.message, 'error'); return; }
+  showToast('Tarea creada', 'success'); loadSeguimiento();
+}
+
+// ── Embudo de ventas ──
+const ETAPAS_EMBUDO = [
+  ['consulta','💬 Consulta','Preguntó por un producto'], ['cotizacion','💌 Cotización','Se le envió precio'], ['anticipo','💳 Anticipo','Pagó el anticipo'],
+  ['produccion','🧵 Producción','Se está tejiendo'], ['listo','📦 Listo','Terminado, por entregar'], ['entregado','✅ Entregado','Ya lo recibió'], ['posventa','🌟 Posventa','Pedimos opinión'], ['perdida','❌ Perdida','No se concretó']
+];
+let oportunidadesCache = [];
+async function loadEmbudo() {
+  const t = document.getElementById('embudo-tablero');
+  t.innerHTML = '<div class="loading-spinner"></div>';
+  await cargarPlantillasMsg();
+  const { data, error } = await supabase_client.from('oportunidades').select('*, clientes(nombre, telefono)').order('updated_at', { ascending: false });
+  if (error) { t.innerHTML = `<div class="table-empty">No se pudo cargar: ${escCrm(error.message)}</div>`; return; }
+  oportunidadesCache = data || [];
+  t.innerHTML = ETAPAS_EMBUDO.map(([k, nombre, sub]) => {
+    const items = oportunidadesCache.filter(o => o.etapa === k);
+    const total = items.reduce((a, o) => a + Number(o.valor_estimado || 0), 0);
+    return `<div class="embudo-col"><h3>${nombre} · ${items.length}</h3><div class="sub">${sub}${total ? ' · ' + formatCOP(total) : ''}</div>
+      ${items.map(o => {
+        const idx = ETAPAS_EMBUDO.findIndex(e => e[0] === o.etapa);
+        const nom = o.clientes?.nombre || o.contacto_nombre || 'Sin nombre';
+        const dias = Math.floor((Date.now() - new Date(o.etapa_desde).getTime()) / 86400000);
+        return `<div class="opor-card"><div class="t">${escCrm(nom)}</div><div>${escCrm(o.descripcion)}</div>
+          <div class="m">${o.valor_estimado ? formatCOP(o.valor_estimado) + ' · ' : ''}${dias} día(s) en esta etapa${o.fecha_entrega_deseada ? ' · lo necesita ' + fmtFechaCorta(o.fecha_entrega_deseada) : ''}</div>
+          <div class="acc">
+            ${idx > 0 && o.etapa !== 'perdida' ? `<button class="mini-btn" title="Etapa anterior" onclick="moverOportunidad('${o.id}', '${ETAPAS_EMBUDO[idx-1][0]}')">◀</button>` : ''}
+            ${idx < 6 && o.etapa !== 'perdida' ? `<button class="mini-btn" title="Siguiente etapa" onclick="moverOportunidad('${o.id}', '${ETAPAS_EMBUDO[idx+1][0]}')">▶</button>` : ''}
+            ${o.etapa !== 'perdida' ? `<button class="mini-btn" title="Marcar como perdida" onclick="perderOportunidad('${o.id}')">❌</button>` : `<button class="mini-btn" onclick="moverOportunidad('${o.id}', 'consulta')">↩ Reabrir</button>`}
+            <button class="mini-btn" onclick="abrirOportunidad('${o.id}')">✏️</button>
+            ${(o.cliente_id || o.contacto_telefono) ? `<button class="mini-btn" onclick="oporWhatsApp('${o.id}')">💬</button>` : ''}
+            ${o.cliente_id ? `<button class="mini-btn" onclick="abrirFicha('${o.cliente_id}')">📇</button>` : ''}
+          </div></div>`;
+      }).join('') || '<div style="font-size:0.75rem;color:var(--texto-medio);">Vacío</div>'}
+    </div>`;
+  }).join('');
+}
+async function moverOportunidad(id, etapa) {
+  const o = oportunidadesCache.find(x => x.id === id);
+  const { error } = await supabase_client.from('oportunidades').update({ etapa }).eq('id', id);
+  if (error) { showToast('Error: ' + error.message, 'error'); return; }
+  const nom = o?.clientes?.nombre || o?.contacto_nombre || '';
+  // Automatizaciones: tarea de seguimiento al cotizar y de posventa al entregar
+  if (etapa === 'cotizacion') await supabase_client.from('tareas').insert({ cliente_id: o?.cliente_id || null, oportunidad_id: id, titulo: `Preguntar a ${nom} por la cotización: ${o?.descripcion || ''}`, vence: sumarDiasIso(3) });
+  if (etapa === 'entregado') await supabase_client.from('tareas').insert({ cliente_id: o?.cliente_id || null, oportunidad_id: id, titulo: `Posventa: preguntar a ${nom} cómo le fue con ${o?.descripcion || 'su pedido'}`, vence: sumarDiasIso(7) });
+  showToast('Movida a ' + (ETAPAS_EMBUDO.find(e => e[0] === etapa)?.[1] || etapa), 'success');
+  loadEmbudo(); actualizarBadgeSeguimiento();
+}
+async function perderOportunidad(id) {
+  const motivo = prompt('¿Por qué no se concretó? (precio, tiempo, ya compró en otro lado...)');
+  if (motivo === null) return;
+  const { error } = await supabase_client.from('oportunidades').update({ etapa: 'perdida', motivo_perdida: motivo.trim() || null }).eq('id', id);
+  if (error) { showToast('Error: ' + error.message, 'error'); return; }
+  loadEmbudo();
+}
+function oporWhatsApp(id) {
+  const o = oportunidadesCache.find(x => x.id === id); if (!o) return;
+  const tel = o.clientes?.telefono || o.contacto_telefono;
+  const nombre = primerNombre(o.clientes?.nombre || o.contacto_nombre);
+  const clave = o.etapa === 'consulta' ? 'bienvenida' : 'cotizacion';
+  contactarWhatsApp(o.cliente_id, tel, clave, { nombre, producto: o.descripcion }, 'whatsapp');
+}
+async function abrirOportunidad(id) {
+  const o = id ? oportunidadesCache.find(x => x.id === id) : null;
+  document.getElementById('opor-titulo').textContent = o ? 'Editar oportunidad' : 'Nueva oportunidad';
+  document.getElementById('opor-id').value = o?.id || '';
+  const { data: cls } = await supabase_client.from('clientes').select('id, nombre').order('nombre');
+  document.getElementById('opor-cliente').innerHTML = '<option value="">— Contacto nuevo (aún no es cliente) —</option>' + (cls || []).map(c => `<option value="${c.id}" ${o?.cliente_id === c.id ? 'selected' : ''}>${escCrm(c.nombre)}</option>`).join('');
+  document.getElementById('opor-etapa').innerHTML = ETAPAS_EMBUDO.map(e => `<option value="${e[0]}" ${(o?.etapa || 'consulta') === e[0] ? 'selected' : ''}>${e[1]}</option>`).join('');
+  document.getElementById('opor-nombre').value = o?.contacto_nombre || '';
+  document.getElementById('opor-telefono').value = o?.contacto_telefono || '';
+  document.getElementById('opor-descripcion').value = o?.descripcion || '';
+  document.getElementById('opor-valor').value = o?.valor_estimado || '';
+  document.getElementById('opor-fecha').value = o?.fecha_entrega_deseada || '';
+  document.getElementById('opor-origen').value = o?.origen || 'Instagram';
+  document.getElementById('opor-motivo').value = o?.motivo_perdida || '';
+  document.getElementById('opor-notas').value = o?.notas || '';
+  openModal('modal-oportunidad');
+}
+async function guardarOportunidad() {
+  const id = document.getElementById('opor-id').value;
+  const descripcion = document.getElementById('opor-descripcion').value.trim();
+  const clienteId = document.getElementById('opor-cliente').value || null;
+  const nombre = document.getElementById('opor-nombre').value.trim();
+  if (!descripcion) { showToast('Cuéntanos qué quiere', 'error'); return; }
+  if (!clienteId && !nombre) { showToast('Elige un cliente o escribe el nombre del contacto', 'error'); return; }
+  const payload = {
+    cliente_id: clienteId, contacto_nombre: nombre || null, contacto_telefono: document.getElementById('opor-telefono').value.trim() || null,
+    descripcion, valor_estimado: Number(document.getElementById('opor-valor').value) || 0, etapa: document.getElementById('opor-etapa').value,
+    origen: document.getElementById('opor-origen').value, fecha_entrega_deseada: document.getElementById('opor-fecha').value || null,
+    motivo_perdida: document.getElementById('opor-motivo').value.trim() || null, notas: document.getElementById('opor-notas').value.trim() || null,
+  };
+  const { error } = id ? await supabase_client.from('oportunidades').update(payload).eq('id', id) : await supabase_client.from('oportunidades').insert(payload);
+  if (error) { showToast('Error: ' + error.message, 'error'); return; }
+  showToast('Oportunidad guardada', 'success'); closeModal('modal-oportunidad'); loadEmbudo();
+}
+
+// ── Indicadores del CRM ──
+async function loadCrmIndicadores() {
+  const cont = document.getElementById('crmind-contenido');
+  const d = document.getElementById('crmind-desde'), h = document.getElementById('crmind-hasta');
+  if (!d.value) d.value = sumarDiasIso(-90);
+  if (!h.value) h.value = hoyIso();
+  cont.innerHTML = '<div class="loading-spinner"></div>';
+  const { data, error } = await supabase_client.rpc('fn_crm_indicadores', { p_desde: d.value, p_hasta: h.value });
+  if (error) { cont.innerHTML = `<div class="table-empty">No se pudo cargar: ${escCrm(error.message)}</div>`; return; }
+  const pct = (x) => x === null || x === undefined ? '—' : x + '%';
+  const kpi = (v, l, ayuda) => `<div class="crm-kpi" title="${escCrm(ayuda || '')}"><div class="v">${v}</div><div class="l">${l}</div></div>`;
+  const maxSeg = Math.max(1, ...data.segmentos.map(s => s.clientes));
+  const filaBarra = (nombre, n, max, extra) => `<div style="margin-bottom:8px;font-size:0.8rem;"><div style="display:flex;justify-content:space-between;"><span>${nombre}</span><span>${n}${extra || ''}</span></div><div class="barra-h"><div style="width:${Math.round(n / max * 100)}%"></div></div></div>`;
+  const maxCanal = Math.max(1, ...data.por_canal.map(s => s.clientes));
+  const maxLlego = Math.max(1, ...data.por_como_llego.map(s => s.clientes));
+  const di = data.datos_incompletos;
+  cont.innerHTML = `
+    <div class="crm-grid">
+      ${kpi(data.clientes_total, 'Clientes registrados')}
+      ${kpi(data.clientes_nuevos, 'Clientes nuevos en el período')}
+      ${kpi(pct(data.recompra_pct), 'Recompra', 'De los clientes que han comprado, cuántos compraron 2 veces o más')}
+      ${kpi(formatCOP(data.valor_por_cliente || 0), 'Valor promedio por cliente', 'Total comprado ÷ clientes que han comprado')}
+      ${kpi(data.pedidos_periodo, 'Pedidos en el período')}
+      ${kpi(formatCOP(data.ventas_periodo), 'Ventas del período')}
+      ${kpi(formatCOP(data.ticket_promedio || 0), 'Ticket promedio')}
+      ${kpi(data.dias_entrega_prom ?? '—', 'Días promedio de entrega', 'Desde que se pide hasta que se entrega')}
+      ${kpi(pct(data.conversion_cotizacion_pct), 'Conversión de cotizaciones', 'Oportunidades que llegaron a anticipo o más, sobre las que pasaron de la consulta')}
+      ${kpi(data.contactos_periodo, 'Contactos registrados', 'Mensajes, llamadas y notas guardadas en el historial')}
+      ${kpi(data.referidos, 'Clientes referidos')}
+      ${kpi(data.recomendaron + ' / ' + data.compartieron, 'Recomendaron / compartieron en redes')}
+    </div>
+    <div class="ficha-cols">
+      <div class="ficha-caja"><h4>👥 Clientes por segmento</h4>${data.segmentos.map(s => filaBarra(segmentoTag(s.segmento), s.clientes, maxSeg, ' · ' + formatCOP(s.total))).join('')}<div style="font-size:0.72rem;color:var(--texto-medio);">${SEGMENTOS_AYUDA}</div></div>
+      <div class="ficha-caja"><h4>📲 Clientes por canal</h4>${data.por_canal.map(s => filaBarra(escCrm(s.canal), s.clientes, maxCanal, ' · ' + formatCOP(s.total))).join('')}
+        <h4 style="margin-top:12px;">🧭 Cómo llegaron</h4>${data.por_como_llego.map(s => filaBarra(escCrm(s.origen), s.clientes, maxLlego)).join('')}</div>
+      <div class="ficha-caja"><h4>🎯 Embudo actual</h4>${data.embudo.length ? data.embudo.map(e => `<div style="font-size:0.82rem;">${(ETAPAS_EMBUDO.find(x => x[0] === e.etapa) || [0, e.etapa])[1]}: <strong>${e.n}</strong> · ${formatCOP(e.valor)}</div>`).join('') : '<div style="font-size:0.82rem;color:var(--texto-medio);">Aún no hay oportunidades. Empieza en Embudo de ventas registrando cada consulta.</div>'}
+        ${data.oportunidades_perdidas.length ? '<h4 style="margin-top:12px;">❌ Por qué se pierden</h4>' + data.oportunidades_perdidas.map(m => `<div style="font-size:0.82rem;">${escCrm(m.motivo)}: <strong>${m.n}</strong></div>`).join('') : ''}</div>
+      <div class="ficha-caja"><h4>🧹 Calidad de los datos</h4>
+        <div style="font-size:0.82rem;line-height:1.8;">📱 Sin teléfono: <strong>${di.sin_telefono}</strong><br>✉️ Sin correo: <strong>${di.sin_correo}</strong><br>🎂 Sin cumpleaños: <strong>${di.sin_cumple}</strong></div>
+        <div style="font-size:0.72rem;color:var(--texto-medio);margin-top:4px;">Mientras más completos, más alertas útiles (cumpleaños, posventa, reactivación).</div></div>
+    </div>`;
 }
 
 // MOBILE SIDEBAR
@@ -3244,13 +3768,17 @@ async function loadClientes() {
   tb.innerHTML = '<tr><td colspan="8"><div class="loading-spinner"></div></td></tr>';
   let q = supabase_client.from('clientes').select('*').order('nombre');
   const { data, error } = await q;
-  if (error) { tb.innerHTML = `<tr><td colspan="8">Error: ${error.message}</td></tr>`; return; }
+  if (error) { tb.innerHTML = `<tr><td colspan="9">Error: ${error.message}</td></tr>`; return; }
 
   let rows = data || [];
   // Historial por casa: una persona es un solo cliente y puede haber comprado en varias casas.
   const { data: porCasa } = await supabase_client.from('clientes_casas').select('cliente_id, casa, pedidos');
   const casasMap = {};
   (porCasa || []).forEach(x => { (casasMap[x.cliente_id] = casasMap[x.cliente_id] || []).push(x); });
+  const { data: vcrm } = await supabase_client.from('v_clientes_crm').select('id, segmento, dias_sin_comprar');
+  const segMap = {}; (vcrm || []).forEach(v => segMap[v.id] = v);
+  const segSel = document.getElementById('filter-segmento-clientes')?.value;
+  if (segSel) rows = rows.filter(c => segMap[c.id]?.segmento === segSel);
   const casaSel = document.getElementById('filter-casa-clientes')?.value;
   if (casaSel) rows = rows.filter(c => (casasMap[c.id] || []).some(x => x.casa === casaSel));
   if (clientesSearch) {
@@ -3258,7 +3786,7 @@ async function loadClientes() {
     rows = rows.filter(c => (c.nombre||'').toLowerCase().includes(s) || (c.telefono||'').includes(s));
   }
 
-  if (!rows.length) { tb.innerHTML = '<tr><td colspan="8"><div class="table-empty"><div class="table-empty-icon">👤</div><p>No hay clientes con estos filtros</p></div></td></tr>'; return; }
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="9"><div class="table-empty"><div class="table-empty-icon">👤</div><p>No hay clientes con estos filtros</p></div></td></tr>'; return; }
 
   // Count pedidos per client
   const ids = rows.map(c=>c.id);
@@ -3272,11 +3800,12 @@ async function loadClientes() {
         <div class="client-cell">
           <div class="avatar">${initials(c.nombre)}</div>
           <div class="client-cell-info">
-            <div class="client-cell-name">${c.nombre}</div>
+            <div class="client-cell-name" style="cursor:pointer;" onclick="abrirFicha('${c.id}')" title="Ver ficha completa">${c.nombre}</div>
             <div class="client-cell-channel" style="color:var(--texto-medio);font-size:0.72rem;">${c.telefono||'Sin teléfono'}</div>
           </div>
         </div>
       </td>
+      <td>${segmentoTag(segMap[c.id]?.segmento)}</td>
       <td>${channelTag(c.canal||'otro')}</td>
       <td>${c.ciudad||'—'}</td>
       <td style="white-space:normal;">${(casasMap[c.id]||[]).length ? (casasMap[c.id]).map(x => casaTag(x.casa, x.pedidos)).join(' ') : '—'}</td>
@@ -3285,6 +3814,7 @@ async function loadClientes() {
       <td>${(countMap[c.id]||0)>1?'<span style="color:#166534;font-weight:600;">✅ Sí</span>':'—'}</td>
       <td>
         <div style="display:flex;gap:4px;">
+          <button class="btn-icon" onclick="abrirFicha('${c.id}')" title="Ficha 360°">📇</button>
           <button class="btn-icon" onclick="editCliente('${c.id}')">✏️</button>
           <button class="btn-icon danger" onclick="deleteCliente('${c.id}')">🗑️</button>
         </div>
@@ -3309,6 +3839,9 @@ async function openModalCliente() {
   });
   document.getElementById('cliente-canal').selectedIndex = 0;
   document.getElementById('cliente-como-llego').selectedIndex = 0;
+  ['cliente-nacimiento','cliente-etiquetas','cliente-preferencias'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('cliente-acepta-contacto').checked = true;
+  await poblarReferidos(null, null);
   openModal('modal-cliente');
 }
 
@@ -3329,6 +3862,11 @@ async function editCliente(id) {
   document.getElementById('cliente-direccion').value     = c.direccion || '';
   document.getElementById('cliente-barrio').value        = c.barrio || '';
   document.getElementById('cliente-notas').value         = c.notas || '';
+  document.getElementById('cliente-nacimiento').value    = c.fecha_nacimiento || '';
+  document.getElementById('cliente-etiquetas').value     = (c.etiquetas || []).join(', ');
+  document.getElementById('cliente-preferencias').value  = c.preferencias || '';
+  document.getElementById('cliente-acepta-contacto').checked = c.acepta_contacto !== false;
+  await poblarReferidos(c.referido_por, c.id);
   openModal('modal-cliente');
 }
 
@@ -3349,6 +3887,11 @@ async function saveCliente() {
     direccion:     document.getElementById('cliente-direccion').value,
     barrio:        document.getElementById('cliente-barrio').value,
     notas:         document.getElementById('cliente-notas').value,
+    fecha_nacimiento: document.getElementById('cliente-nacimiento').value || null,
+    etiquetas:     document.getElementById('cliente-etiquetas').value.split(',').map(x => x.trim()).filter(Boolean),
+    preferencias:  document.getElementById('cliente-preferencias').value.trim() || null,
+    acepta_contacto: document.getElementById('cliente-acepta-contacto').checked,
+    referido_por:  document.getElementById('cliente-referido').value || null,
   };
   let error;
   if (editingClienteId) {
