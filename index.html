@@ -2980,7 +2980,7 @@ async function actualizarBadgeSeguimiento() {
   try {
     const { data } = await supabase_client.rpc('fn_crm_alertas');
     if (!data) return;
-    const n = ['cotizaciones','inactivos','fechas','posventa','tareas'].reduce((a, k) => a + (data[k] || []).length, 0);
+    const n = ['saldos_negativos','cotizaciones','inactivos','fechas','posventa','tareas'].reduce((a, k) => a + (data[k] || []).length, 0);
     const b = document.getElementById('badge-seguimiento'); if (b) b.textContent = n;
   } catch (e) { /* sin permiso: se ignora */ }
 }
@@ -2992,7 +2992,7 @@ async function loadSeguimiento() {
   if (error) { cont.innerHTML = `<div class="table-empty">No se pudo cargar: ${escCrm(error.message)}</div>`; return; }
   alertasCache = data;
   const b = document.getElementById('badge-seguimiento');
-  if (b) b.textContent = ['cotizaciones','inactivos','fechas','posventa','tareas'].reduce((a, k) => a + (data[k] || []).length, 0);
+  if (b) b.textContent = ['saldos_negativos','cotizaciones','inactivos','fechas','posventa','tareas'].reduce((a, k) => a + (data[k] || []).length, 0);
   const bloque = (titulo, ayuda, filas) => `<div class="alerta-bloque"><h3>${titulo}</h3><div style="font-size:0.74rem;color:var(--texto-medio);margin-bottom:6px;">${ayuda}</div>${filas.length ? filas.join('') : '<div style="font-size:0.82rem;color:var(--texto-medio);">✨ Todo al día.</div>'}</div>`;
   const wa = (k, i) => `<button class="mini-btn" onclick="alertaWhatsApp('${k}', ${i})">💬 WhatsApp</button>`;
   const ver = (id) => id ? `<button class="mini-btn" onclick="abrirFicha('${id}')">📇 Ficha</button>` : '';
@@ -3004,6 +3004,7 @@ async function loadSeguimiento() {
         <input type="date" id="seg-t-vence" value="${hoyIso()}" style="padding:8px;border:1.5px solid var(--borde);border-radius:8px;">
         <button class="btn-add" onclick="crearTareaSeguimiento()">Crear</button>
       </div></div>
+    ${bloque('⚠️ Pagos de más (saldo negativo)', 'Pedidos donde lo pagado supera el valor del pedido. Suele ser un valor mal digitado (por ejemplo, sin el envío) o un pago repetido. Revísalo y corrígelo.', (data.saldos_negativos || []).map(o => `<div class="alerta-fila"><span>🔴 <strong>${escCrm(o.numero || '')}</strong> · ${escCrm(o.cliente || 'Sin cliente')} · ${escCrm(o.descripcion || '')} · valor ${formatCOP(o.precio_total)} · pagado ${formatCOP(o.pagado)} · <strong>saldo −${formatCOP(o.diferencia)}</strong></span><span style="display:flex;gap:4px;">${ver(o.cliente_id)}<button class="mini-btn" onclick="showSection('pedidos');editPedido('${o.pedido_id}')">✏️ Corregir</button></span></div>`))}
     ${bloque('📋 Tareas', 'Pendientes de hoy, atrasadas y de los próximos 3 días.', (data.tareas || []).map(t => `<div class="alerta-fila"><span>${t.atrasada ? '🔴' : '⏳'} <strong>${fmtFechaCorta(t.vence)}</strong> ${escCrm(t.titulo)} ${t.cliente ? '· ' + escCrm(t.cliente) : ''}</span><span style="display:flex;gap:4px;">${ver(t.cliente_id)}<button class="mini-btn" onclick="completarTarea('${t.id}', false)">✔ Hecha</button></span></div>`))}
     ${bloque('💌 Cotizaciones sin respuesta', 'Llevan más de 3 días en la etapa Cotización. Un mensaje amable suele reactivarlas.', (data.cotizaciones || []).map((o, i) => `<div class="alerta-fila"><span><strong>${escCrm(o.cliente)}</strong> · ${escCrm(o.descripcion)} · ${formatCOP(o.valor)} · hace ${o.dias} días</span>${wa('cotizaciones', i)}</div>`))}
     ${bloque('🌟 Posventa pendiente', 'Pedidos entregados hace 5 a 14 días sin preguntar cómo les fue. Pide una foto o una recomendación.', (data.posventa || []).map((o, i) => `<div class="alerta-fila"><span><strong>${escCrm(o.cliente)}</strong> · ${escCrm(o.producto)} · entregado hace ${o.dias} días</span><span style="display:flex;gap:4px;">${ver(o.cliente_id)}${wa('posventa', i)}</span></div>`))}
