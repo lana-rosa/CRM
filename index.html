@@ -3071,6 +3071,7 @@ let oportunidadParaPedido = null;
 const CANAL_DESDE_ORIGEN = { Instagram: 'instagram', WhatsApp: 'whatsapp', Facebook: 'facebook', Feria: 'presencial' };
 const LLEGO_DESDE_ORIGEN = { Instagram: 'Instagram', Facebook: 'Facebook', Referido: 'Referido', Feria: 'Feria' };
 async function crearPedidoDesdeOportunidad(id) {
+  avisarPedidoEnERP(); return;
   const o = oportunidadesCache.find(x => x.id === id);
   if (!o) return;
   if (o.pedido_id) { showToast('Esta oportunidad ya tiene un pedido', 'error'); return; }
@@ -3440,7 +3441,13 @@ async function deletePedido(id) {
 // ══════════════════════════════════════════════════════════
 //  MODAL PEDIDO
 // ══════════════════════════════════════════════════════════
+// Desde el 14-oct-2026 los pedidos (y su factura electrónica) se crean en el ERP: Registrar venta → WhatsApp/Redes.
+function avisarPedidoEnERP() {
+  if (confirm('Los pedidos nuevos ya no se crean en el CRM: se crean en el ERP (Registrar venta → 📱 WhatsApp/Redes), porque cada venta lleva factura electrónica.\n\n¿Abrir el ERP ahora?')) window.open('https://lana-rosa.github.io/ERP/', '_blank');
+}
+
 async function openModalPedido() {
+  if (!window.__crearPedidoEnCRM) { avisarPedidoEnERP(); return; }
   if (currentProfile?.role !== 'admin') { showToast('🔒 Solo las administradoras pueden crear pedidos', 'error'); return; }
   editingPedidoId = null;
   oportunidadParaPedido = null;
