@@ -2163,7 +2163,6 @@
         <div class="form-group">
           <label>Método de pago</label>
           <select id="pedido-metodo-pago">
-            <option value="Nequi">Nequi</option>
             <option value="Bancolombia">Bancolombia / PSE</option>
             <option value="Efectivo">Efectivo</option>
             <option value="Daviplata">Daviplata</option>
@@ -2350,7 +2349,6 @@
         <div class="form-group">
           <label>Método de pago</label>
           <select id="rp-metodo">
-            <option value="Nequi">Nequi</option>
             <option value="Bancolombia">Bancolombia / PSE</option>
             <option value="Efectivo">Efectivo</option>
             <option value="Daviplata">Daviplata</option>
@@ -3486,7 +3484,7 @@ async function editPedido(id) {
   document.getElementById('pedido-anticipo').style.background = 'var(--rosa-suave)';
   document.getElementById('label-pedido-anticipo').textContent = 'Total abonado hasta ahora (COP)';
   document.getElementById('hint-pedido-anticipo').style.display = 'block';
-  document.getElementById('pedido-metodo-pago').value  = p.metodo_pago || 'Nequi';
+  document.getElementById('pedido-metodo-pago').value  = p.metodo_pago || 'Efectivo';
   document.getElementById('pedido-fecha-entrega').value= p.fecha_entrega || '';
   document.getElementById('pedido-notas').value        = p.notas       || '';
   document.getElementById('pedido-compartio').value    = String(p.compartio_redes || false);
