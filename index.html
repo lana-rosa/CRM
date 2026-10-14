@@ -86,6 +86,8 @@
       text-align: center;
       margin-bottom: 32px;
     }
+    .auth-logo-animado { position: relative; width: 180px; height: 180px; margin: 0 auto 14px; border-radius: 26px; overflow: hidden; box-shadow: 0 8px 24px var(--sombra-lg); }
+    .auth-logo-animado img, .auth-logo-animado iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
     .auth-logo-icon {
       width: 72px; height: 72px;
       background: linear-gradient(135deg, var(--rosa-principal), var(--rosa-medio));
@@ -1465,7 +1467,7 @@
 <div id="auth-screen" style="display:none;">
   <div class="auth-card">
     <div class="auth-logo">
-      <div class="auth-logo-icon" style="background:white;padding:4px;"><img src="/CRM/logo-192.png" style="width:100%;height:100%;object-fit:contain;" /></div>
+      <div class="auth-logo-animado"><img src="/CRM/logo-192.png" alt="Lana Rosa" width="180" height="180" /><iframe src="/CRM/logo-animado.html" title="Lana Rosa Crochet" loading="lazy" scrolling="no" tabindex="-1" aria-hidden="true"></iframe></div>
       <h1>Lana Rosa CRM</h1>
       <p>Gestión de clientes y pedidos</p>
     </div>
