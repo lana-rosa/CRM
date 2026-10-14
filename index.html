@@ -3039,7 +3039,7 @@ async function loadEmbudo() {
   const t = document.getElementById('embudo-tablero');
   t.innerHTML = '<div class="loading-spinner"></div>';
   await cargarPlantillasMsg();
-  const { data, error } = await supabase_client.from('oportunidades').select('*, clientes(nombre, telefono)').order('updated_at', { ascending: false });
+  const { data, error } = await supabase_client.from('oportunidades').select('*, clientes(nombre, telefono), pedidos(numero_pedido, estado)').order('updated_at', { ascending: false });
   if (error) { t.innerHTML = `<div class="table-empty">No se pudo cargar: ${escCrm(error.message)}</div>`; return; }
   oportunidadesCache = data || [];
   t.innerHTML = ETAPAS_EMBUDO.map(([k, nombre, sub]) => {
@@ -3051,7 +3051,7 @@ async function loadEmbudo() {
         const nom = o.clientes?.nombre || o.contacto_nombre || 'Sin nombre';
         const dias = Math.floor((Date.now() - new Date(o.etapa_desde).getTime()) / 86400000);
         return `<div class="opor-card"><div class="t">${escCrm(nom)}</div><div>${escCrm(o.descripcion)}</div>
-          <div class="m">${o.valor_estimado ? formatCOP(o.valor_estimado) + ' · ' : ''}${dias} día(s) en esta etapa${o.fecha_entrega_deseada ? ' · lo necesita ' + fmtFechaCorta(o.fecha_entrega_deseada) : ''}</div>
+          <div class="m">${o.pedidos?.numero_pedido ? '📦 Pedido ' + escCrm(o.pedidos.numero_pedido) + ' · ' : ''}${o.valor_estimado ? formatCOP(o.valor_estimado) + ' · ' : ''}${dias} día(s) en esta etapa${o.fecha_entrega_deseada ? ' · lo necesita ' + fmtFechaCorta(o.fecha_entrega_deseada) : ''}</div>
           <div class="acc">
             ${idx > 0 && o.etapa !== 'perdida' ? `<button class="mini-btn" title="Etapa anterior" onclick="moverOportunidad('${o.id}', '${ETAPAS_EMBUDO[idx-1][0]}')">◀</button>` : ''}
             ${idx < 6 && o.etapa !== 'perdida' ? `<button class="mini-btn" title="Siguiente etapa" onclick="moverOportunidad('${o.id}', '${ETAPAS_EMBUDO[idx+1][0]}')">▶</button>` : ''}
@@ -3059,11 +3059,53 @@ async function loadEmbudo() {
             <button class="mini-btn" onclick="abrirOportunidad('${o.id}')">✏️</button>
             ${(o.cliente_id || o.contacto_telefono) ? `<button class="mini-btn" onclick="oporWhatsApp('${o.id}')">💬</button>` : ''}
             ${o.cliente_id ? `<button class="mini-btn" onclick="abrirFicha('${o.cliente_id}')">📇</button>` : ''}
+            ${!o.pedido_id && !['perdida','entregado','posventa'].includes(o.etapa) ? `<button class="mini-btn" style="border-color:var(--rosa-principal);" title="Crear el pedido con estos datos" onclick="crearPedidoDesdeOportunidad('${o.id}')">📦 Crear pedido</button>` : ''}
           </div></div>`;
       }).join('') || '<div style="font-size:0.75rem;color:var(--texto-medio);">Vacío</div>'}
     </div>`;
   }).join('');
 }
+// ── De oportunidad a pedido ──
+let oportunidadParaPedido = null;
+const CANAL_DESDE_ORIGEN = { Instagram: 'instagram', WhatsApp: 'whatsapp', Facebook: 'facebook', Feria: 'presencial' };
+const LLEGO_DESDE_ORIGEN = { Instagram: 'Instagram', Facebook: 'Facebook', Referido: 'Referido', Feria: 'Feria' };
+async function crearPedidoDesdeOportunidad(id) {
+  const o = oportunidadesCache.find(x => x.id === id);
+  if (!o) return;
+  if (o.pedido_id) { showToast('Esta oportunidad ya tiene un pedido', 'error'); return; }
+  let clienteId = o.cliente_id;
+  if (!clienteId) {
+    if (!o.contacto_nombre) { showToast('Falta el nombre del contacto', 'error'); return; }
+    if (!confirm(`"${o.contacto_nombre}" todavía no es cliente. ¿Lo registramos como cliente y seguimos con el pedido?`)) return;
+    const { data: nuevo, error: ec } = await supabase_client.from('clientes').insert({
+      nombre: o.contacto_nombre, telefono: o.contacto_telefono || null,
+      canal: CANAL_DESDE_ORIGEN[o.origen] || 'otro', como_llego: LLEGO_DESDE_ORIGEN[o.origen] || 'Otro',
+      fecha_primer_contacto: hoyIso(),
+    }).select('id').single();
+    if (ec) { showToast('No se pudo crear el cliente: ' + ec.message, 'error'); return; }
+    clienteId = nuevo.id;
+    await supabase_client.from('oportunidades').update({ cliente_id: clienteId }).eq('id', id);
+  }
+  showSection('pedidos');
+  await openModalPedido();
+  document.getElementById('pedido-cliente').value = clienteId;
+  document.getElementById('pedido-descripcion').value = o.descripcion || '';
+  document.getElementById('pedido-precio').value = o.valor_estimado || '';
+  document.getElementById('pedido-fecha-entrega').value = o.fecha_entrega_deseada || '';
+  document.getElementById('pedido-notas').value = [o.notas, 'Viene de una oportunidad del embudo.'].filter(Boolean).join(' · ');
+  oportunidadParaPedido = id;
+  showToast('Completa el pedido y guárdalo: quedará vinculado a la oportunidad', 'info');
+}
+async function vincularOportunidadConPedido(pedidoId, anticipo) {
+  const id = oportunidadParaPedido; oportunidadParaPedido = null;
+  if (!id) return;
+  const cambios = { pedido_id: pedidoId };
+  const o = oportunidadesCache.find(x => x.id === id);
+  if (anticipo > 0 && o && ['consulta', 'cotizacion'].includes(o.etapa)) cambios.etapa = 'anticipo';
+  await supabase_client.from('oportunidades').update(cambios).eq('id', id);
+  await supabase_client.from('tareas').update({ hecha: true, hecha_at: new Date().toISOString() }).eq('oportunidad_id', id).eq('hecha', false);
+}
+
 async function moverOportunidad(id, etapa) {
   const o = oportunidadesCache.find(x => x.id === id);
   const { error } = await supabase_client.from('oportunidades').update({ etapa }).eq('id', id);
@@ -3400,6 +3442,7 @@ async function deletePedido(id) {
 async function openModalPedido() {
   if (currentProfile?.role !== 'admin') { showToast('🔒 Solo las administradoras pueden crear pedidos', 'error'); return; }
   editingPedidoId = null;
+  oportunidadParaPedido = null;
   document.getElementById('modal-pedido-title').textContent = 'Nuevo pedido';
   document.getElementById('pedido-id').value = '';
   // Reset fields
@@ -3542,6 +3585,7 @@ async function savePedido() {
 
   btn.disabled = false; btn.textContent = '💾 Guardar pedido';
   if (error) { showToast('Error: ' + error.message, 'error'); return; }
+  if (!editingPedidoId && nuevoId && oportunidadParaPedido) await vincularOportunidadConPedido(nuevoId, anticipoIngresado);
   showToast(editingPedidoId ? 'Pedido actualizado ✨' : 'Pedido creado 🎉', 'success');
   closeModal('modal-pedido');
   loadPedidos(); loadDashboard();
