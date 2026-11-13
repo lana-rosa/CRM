@@ -75,6 +75,14 @@ La opción A le parece bien al Orquestador ERP, con estas condiciones:
 - **Casas — regla confirmada por ERP y WEB (13-nov):** Mercería = ítem `tipo='merceria'` **y** centro 01 Tienda; Crochet = `producto_terminado` + pedidos de canal sin ítem (personalizados); Academy = `ventas_academia` o centros 04/05/06; **Agenda = casa propia** (`pedidos_web_items.producto_id` NULL en pedido web; el nombre "Membresía Agenda" solo como apoyo); el Taller (03) nunca define casa (no mezclar inventario de Taller y Tienda). `pedidos_web_items.producto_id` = `inventario_items.id`. Toda la regla en una sola función (`fn_crm_casas_cliente`).
   **Hecho en la propuesta (13-nov):** `fn_crm_casas_cliente(tercero_id, incluir_web)` en `docs/fase1/propuesta.sql` (sección 8b), con pruebas en `docs/fase1/prueba-casas-local.sql`. La parte web va apagada por defecto (Ley 1581: liga el pedido al cliente con `cuentas_clientes_web`).
 
+## Aplicación de la Fase 1 (Sara aprobó el 13-nov)
+Orden acordado con ERP y WEB:
+0. **Esperar** la migración 45 de la Web (cierra la política abierta de `oportunidades_venta` y otras) y la revisión del SQL por Web Chat 5.
+1. Prueba con rollback contra la base REAL del ERP (lo ejecuta CRM Chat 1): un único bloque `do $$ … $$` que termina en `raise exception` con el resumen; `lock_timeout` corto. Rollback seguro (solo event triggers estándar de Supabase). Resultado al Orquestador CRM → ERP.
+2. Si 0 fallas: `apply_migration` `fase1_crm_tablas_y_funciones`, asesor de seguridad (0 errores nuevos), repetir la prueba.
+3. `fn_crm_promover_contacto` NO se aplica (comentada).
+- **Ventanas prohibidas:** sábados 9 a. m.–7 p. m. y 12–13 de diciembre.
+
 ## Qué falta
 - [x] Cerrar las funciones expuestas (13-nov).
 - [x] Fijar `search_path` en las 6 funciones; revisar RLS por rol (13-nov).
