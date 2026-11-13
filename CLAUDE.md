@@ -38,6 +38,7 @@ Decisiones vigentes:
 - Dueños en la Web: datos y Supabase de la web = Web Chat 5; Personaliza = Web Chat 4; textos de marca = Web Chat 8; textos legales = Web Chat 6.
 
 ## Forma de trabajo (igual que en el ERP)
+- Sara dio permiso (13-nov) para hacer cambios en la **base del CRM** en Supabase sin preguntarle cada vez. En la **base del ERP** sigue valiendo el acuerdo: el SQL pasa antes por el Orquestador ERP.
 - Hay un **Orquestador CRM** ("Chat 0. Orquestador CRM") y chats por tema ("CRM - Chat N. …"). Las tareas que manda el Orquestador se ejecutan; lo delicado se consulta con Sara antes de publicar.
 - Trabaja solo en tu tema. Si ves algo de otro tema, anótalo en `docs/PENDIENTES.md` bajo "Para otro chat" y sigue.
 - Cada cambio: rama → PR → squash merge a `main`.

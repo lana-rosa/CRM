@@ -34,7 +34,7 @@ La opción A le parece bien al Orquestador ERP, con estas condiciones:
 
 ## Puentes CRM → ERP (no tocar sin OK del Orquestador ERP)
 - `fn_trg_estado_pedido_a_erp` (triggers `trg_estado_pedido_a_erp` y `trg_envio_pedido_a_erp` sobre `pedidos`): pg_net a la Edge Function del ERP `actualizar-pedido-desde-crm` con `x-puente-clave`. **Se deja como está** por ahora (13-nov).
-- `sync_stock_item_to_os` (trigger sobre `stock_items`): usa la **service role del ERP** guardada en el Vault del CRM (`os_service_role_key`) para escribir `inventario_items`. 13-nov: **trigger desactivado** (la función se conserva). Borrar el secreto del Vault: lo decide Sara. Rotar la clave: NO por ahora (lo planea el Orquestador ERP; podría romper el Worker de ventas antes de la apertura del 13-dic).
+- `sync_stock_item_to_os` (trigger sobre `stock_items`): usa la **service role del ERP** guardada en el Vault del CRM (`os_service_role_key`) para escribir `inventario_items`. 13-nov: **trigger desactivado** (la función se conserva). **Secreto `os_service_role_key` borrado del Vault del CRM el 13-nov** (lo confirmó Sara). Queda solo `erp_puente_secreto` (puente de estados). Rotar la clave: NO por ahora (lo planea el Orquestador ERP; podría romper el Worker de ventas antes de la apertura del 13-dic).
 - 13-nov, migración `fase0_cerrar_funciones_trigger_y_apagar_sync_stock`: revocado `execute` a `public`, `anon` y `authenticated` en `fn_trg_estado_pedido_a_erp`, `handle_new_user` y `sync_stock_item_to_os`. Probado con rollback: el puente de estados sigue poniendo la solicitud en la cola de pg_net.
 
 ## Embudo único (acordado con el Orquestador WEB, 13-nov)

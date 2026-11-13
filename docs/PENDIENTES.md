@@ -4,7 +4,7 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 
 ## Decisiones de Sara
 - [x] Unificar el CRM en la base del ERP: **opción A** (13-nov).
-- [ ] ¿Borrar del Vault del CRM el secreto `os_service_role_key` (clave maestra del ERP que ya no se usa)?
+- [x] Borrado del Vault del CRM el secreto `os_service_role_key` (13-nov, lo confirmó Sara).
 - [ ] Activar en Supabase (proyecto Lana Rosa CRM) → Authentication → protección de contraseñas filtradas.
 
 ## Fase 0: seguridad y limpieza (no depende de la decisión)
