@@ -4,7 +4,8 @@
 Base de datos del CRM, su relación con la base del ERP, permisos (RLS) y seguridad de Supabase. Es el tema que **desbloquea a los demás**.
 
 ## Situación al 13-nov-2026
-- El CRM tiene su propia base (`wcqdkccvtywiutzknskr`) casi vacía: 2 clientes, 1 pedido, 0 oportunidades.
+- El CRM tiene su propia base (`wcqdkccvtywiutzknskr`). Conteo real (13-nov): 23 clientes, 33 pedidos (último 11-nov), 39 pagos, 8 stock_items (todos ya copiados al ERP), 0 oportunidades. *(Una versión anterior decía 2 clientes y 1 pedido: eran estimaciones, no conteos.)*
+- Ya enlazados en el ERP: 20/23 clientes (`terceros.crm_cliente_id`), 26/33 pedidos (`pedidos_canal_venta.referencia_crm_id`), 8/8 stock (`inventario_items.crm_stock_item_id`).
 - Los clientes y ventas reales están en el ERP (`ngjoognzvehwjtpqwrqe`): `terceros` (49), `pedidos_canal_venta` (36), `pedidos_web` (17), `ventas_pos` (8), `ventas_academia`, `cuentas_clientes_web`, `carritos_abandonados` (12), `oportunidades_venta` (2), `movimientos_puntos_fidelizacion`, `resenas_web`.
 - El ERP ya tiene campos pensados para enlazar con el CRM: `terceros.crm_cliente_id`, `pedidos_canal_venta.referencia_crm_id`.
 - Hay una sincronización CRM → ERP con `pg_net` (`fn_trg_estado_pedido_a_erp`, `sync_stock_item_to_os`).
@@ -58,6 +59,6 @@ La opción A le parece bien al Orquestador ERP, con estas condiciones:
 - [ ] Fijar `search_path` en las 6 funciones; revisar RLS por rol.
 - [x] Decisión A/B de Sara: **opción A** (13-nov).
 - [ ] Fase 1, diseño: proponer el SQL (tablas del CRM en la base del ERP referenciando `terceros.id`, vistas/RPC de solo lectura para historial de compras, RPC acordada para escribir en `terceros`, "contactos" sin autorización de datos). **El SQL se le entrega al Orquestador CRM**, que lo manda al Orquestador ERP (y avisa al WEB) para revisarlo con Sara antes de aplicarlo.
-- [ ] Migrar los 2 clientes y el pedido del CRM (o confirmar que ya existen en el ERP).
+- [ ] Migrar los 23 clientes, 33 pedidos y 39 pagos del CRM usando los vínculos que ya existen en el ERP; revisar uno por uno los 3 clientes y 7 pedidos sin vínculo.
 - [ ] Cambiar el CRM para que se conecte a la base del ERP (después del OK).
 - [ ] Diseño de la unificación (vistas de historial de compras por `tercero_id`, embudo único).
