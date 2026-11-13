@@ -8,7 +8,7 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 - [ ] Activar en Supabase (proyecto Lana Rosa CRM) → Authentication → protección de contraseñas filtradas.
 
 ## Fase 1: llevar el CRM a la base del ERP (Chat 1)
-- [x] Diseño: SQL y explicación en `docs/fase1/` (13-nov). Probado en Postgres local con tablas de mentira: 25 comprobaciones, 0 fallas.
+- [x] Diseño: SQL y explicación en `docs/fase1/` (13-nov). Probado en Postgres local con tablas de mentira: 30 comprobaciones, 0 fallas.
 - [ ] Revisión del Orquestador ERP y WEB (Web Chat 5); OK de Sara.
 - [ ] Decisión de Sara: los 3 clientes sin vínculo y el corte propuesto (11-ene-2027). Ver `docs/fase1/LEEME.md`.
 - [ ] Preguntas a la abogada (Ley 1581): `docs/fase1/LEEME.md`, sección 6.
@@ -45,6 +45,7 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 - Cualquier cambio en la base del ERP (`terceros`, `oportunidades_venta`, vistas nuevas para el CRM).
 - Embudo único: `oportunidades` (CRM) vs `oportunidades_venta` (ERP). Propuesta de etapas, vista `v_crm_embudo` y tabla `crm_oportunidades_detalle` en `docs/temas/embudo-seguimiento.md`; falta confirmar con ERP si `pedidos_canal_venta.referencia_crm_id` puede apuntar a `oportunidades_venta`.
 ### Con el Orquestador WEB
+- `fn_crm_casas_cliente` (Fase 1): ¿a qué tabla apunta `pedidos_web_items.producto_id` (no tiene llave foránea)? ¿A qué casa van los pedidos digitales (membresías/cursos)? Mientras tanto: Crochet salvo mercería; digitales sin casa. La parte web va apagada hasta la aprobación de la abogada (Ley 1581).
 - Carritos abandonados y formulario de personalizados → oportunidades del CRM.
 - Reseñas, cuentas web y puntos en la ficha del cliente.
 - Textos de los mensajes de fidelización (voz de marca, Web Chat 8).

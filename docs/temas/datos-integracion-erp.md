@@ -72,7 +72,7 @@ La opción A le parece bien al Orquestador ERP, con estas condiciones:
 - Ley 1581 (10 terceros sin constancia): el ERP se lo pasa a Sara para la abogada.
 - **Pagos del CRM: NO se importan** (de acuerdo).
 - La Fase 1 se presentó a Sara recomendando aprobar **con prueba con rollback contra la base REAL** antes de aplicar.
-- Casa (Crochet/Mercería/Academy): propuesta enviada al ERP (13-nov). `centro_costo_id` no alcanza (todo canal/POS está en 01 Tienda/Mercería); se deduce por lo vendido: Academy = `ventas_academia` o centro 04; Mercería = `inventario_items.tipo='merceria'`; Crochet = pedidos de canal sin ítem (personalizados), `producto_terminado`, `pedidos_web`. Pendiente: qué apunta `pedidos_web_items.producto_id`.
+- Casa (Crochet/Mercería/Academy): propuesta enviada al ERP (13-nov). `centro_costo_id` no alcanza (todo canal/POS está en 01 Tienda/Mercería); se deduce por lo vendido: Academy = `ventas_academia` o centro 04; Mercería = `inventario_items.tipo='merceria'`; Crochet = pedidos de canal sin ítem (personalizados), `producto_terminado`, `pedidos_web`. Pendiente: qué apunta `pedidos_web_items.producto_id`. **Hecho en la propuesta (13-nov):** `fn_crm_casas_cliente(tercero_id, incluir_web)` en `docs/fase1/propuesta.sql` (sección 8b), con pruebas en `docs/fase1/prueba-casas-local.sql`. La parte web va apagada por defecto (Ley 1581) y los pedidos digitales quedan sin casa hasta que la Web responda.
 
 ## Qué falta
 - [x] Cerrar las funciones expuestas (13-nov).
