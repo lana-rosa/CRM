@@ -66,6 +66,14 @@ La opción A le parece bien al Orquestador ERP, con estas condiciones:
 - **Transición (ERP, 13-nov):** el CRM sigue en uso real; el puente pedido CRM → ERP debe seguir funcionando hasta que Sara pase al flujo nuevo; no se borra nada de la base del CRM sin que Sara lo confirme; la propuesta incluye plan de transición (fecha de corte, 3 clientes y 7 pedidos sin vínculo) y plan de vuelta atrás.
 - **Entrega:** el SQL completo de la Fase 1 se le pasa al Orquestador CRM, que lo manda al Orquestador ERP y al WEB (lo revisa Web Chat 5) **antes de aplicarlo**.
 
+## Respuesta del Orquestador ERP a la propuesta (13-nov)
+- `oportunidades_venta` (política abierta a `authenticated`): confirmado; lo arregla Web Chat 5 con el Orquestador WEB. **Fuera de la Fase 1.**
+- Permisos amplios de `anon` en tablas del ERP: los planea el Orquestador ERP.
+- Ley 1581 (10 terceros sin constancia): el ERP se lo pasa a Sara para la abogada.
+- **Pagos del CRM: NO se importan** (de acuerdo).
+- La Fase 1 se presentó a Sara recomendando aprobar **con prueba con rollback contra la base REAL** antes de aplicar.
+- Casa (Crochet/Mercería/Academy): propuesta enviada al ERP (13-nov). `centro_costo_id` no alcanza (todo canal/POS está en 01 Tienda/Mercería); se deduce por lo vendido: Academy = `ventas_academia` o centro 04; Mercería = `inventario_items.tipo='merceria'`; Crochet = pedidos de canal sin ítem (personalizados), `producto_terminado`, `pedidos_web`. Pendiente: qué apunta `pedidos_web_items.producto_id`.
+
 ## Qué falta
 - [x] Cerrar las funciones expuestas (13-nov).
 - [x] Fijar `search_path` en las 6 funciones; revisar RLS por rol (13-nov).
