@@ -10,7 +10,7 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 ## Fase 0: seguridad y limpieza (no depende de la decisión)
 - [x] Orquestador: cerrar funciones expuestas y apagar la copia de stock al ERP (13-nov).
 - [ ] Chat 1: fijar `search_path` en 6 funciones, revisar RLS por rol (admin/tejedora).
-- [ ] Chat 5: quitar Stock, Producción y Envíos sobrantes; arreglar Informes y Excel; fijar versión de supabase-js.
+- [x] Chat 5: quitar Stock, Producción y Envíos sobrantes; arreglar Informes y Excel; fijar versión de supabase-js (13-nov, `supabase-js@2.118.0`).
 - [x] Chat 3: quitar código muerto en `crearPedidoDesdeOportunidad` (13-nov).
 
 ## Mudanza del ERP a Cloudflare Pages (aviso del Orquestador ERP)
