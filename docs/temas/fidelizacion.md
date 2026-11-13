@@ -12,6 +12,6 @@ Recompra, cumpleaños y fechas especiales, posventa, reactivación de clientes d
 Bienvenida · posventa (pedir foto/reseña) · recompra según tiempo típico entre compras · cumpleaños · reactivación (más de 120 días) · carrito abandonado.
 
 ## Qué falta
-- [ ] Esperar la unificación de datos.
+- [ ] Esperar la unificación del Chat 1 (opción A decidida el 13-nov). No activar con datos de la web hasta que la abogada apruebe la finalidad.
 - [ ] Fecha estimada de próxima compra por cliente.
 - [ ] Conectar puntos y reseñas a la ficha y a los flujos.

@@ -3,7 +3,7 @@
 Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 
 ## Decisiones de Sara
-- [ ] ¿Unificamos el CRM en la base del ERP (opción A) o mantenemos dos bases (opción B)? Ver `docs/temas/datos-integracion-erp.md`.
+- [x] Unificar el CRM en la base del ERP: **opción A** (13-nov).
 - [ ] ¿Borrar del Vault del CRM el secreto `os_service_role_key` (clave maestra del ERP que ya no se usa)?
 - [ ] Activar en Supabase (proyecto Lana Rosa CRM) → Authentication → protección de contraseñas filtradas.
 
@@ -16,7 +16,7 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 ## Mudanza del ERP a Cloudflare Pages (aviso del Orquestador ERP)
 - [ ] Chat 5: cuando el Orquestador CRM confirme la dirección nueva, cambiar el enlace `https://lana-rosa.github.io/ERP/` en `avisarPedidoEnERP` (index.html ~3446). Es el único enlace fijo al ERP.
 
-## Fases siguientes (después de la decisión)
+## Fases siguientes (opción A decidida)
 - [ ] Fase 1 (Chat 1): un solo cliente, enlazado con `terceros`.
 - [ ] Fase 2 (Chat 2): ficha completa con todo el historial.
 - [ ] Fase 3 (Chat 3): un solo embudo y automatizaciones desde la web y el ERP.
