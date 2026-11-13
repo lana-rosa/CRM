@@ -64,6 +64,12 @@ begin
   begin perform * from public.fn_crm_historial_compras((select id from public.terceros limit 1)); r := r || 'ADMIN fn_crm_historial_compras: SI (esperado SI)' || E'\n';
   exception when others then r := r || 'ADMIN fn_crm_historial_compras: NO ' || sqlerrm || E'\n'; fallas := fallas + 1; end;
 
+  begin perform * from public.fn_crm_casas_cliente(null); r := r || 'ADMIN fn_crm_casas_cliente: SI (esperado SI)' || E'\n';
+  exception when others then r := r || 'ADMIN fn_crm_casas_cliente: NO ' || sqlerrm || E'\n'; fallas := fallas + 1; end;
+
+  select count(*) into n from public.fn_crm_casas_cliente(null) x where x.casa not in ('Crochet', 'Mercería', 'Academy', 'Agenda');
+  r := r || 'ADMIN casas fuera de Crochet/Mercería/Academy/Agenda: ' || n || ' (esperado 0)' || E'\n'; if n <> 0 then fallas := fallas + 1; end if;
+
   -- Los clientes sin autorización de datos NO deben salir en el resumen
   select count(*) into n from public.fn_crm_clientes_resumen(null) x
     join public.terceros t on t.id = x.tercero_id where not t.acepta_tratamiento_datos;
@@ -97,6 +103,9 @@ begin
 
       begin perform * from public.fn_crm_historial_compras((select id from public.terceros limit 1)); r := r || v_nom || ' fn_crm_historial_compras: SI (esperado NO)' || E'\n'; fallas := fallas + 1;
       exception when others then r := r || v_nom || ' fn_crm_historial_compras: NO (esperado NO)' || E'\n'; end;
+
+      begin perform * from public.fn_crm_casas_cliente(null); r := r || v_nom || ' fn_crm_casas_cliente: SI (esperado NO)' || E'\n'; fallas := fallas + 1;
+      exception when others then r := r || v_nom || ' fn_crm_casas_cliente: NO (esperado NO)' || E'\n'; end;
       reset role;
     end;
   end loop;
@@ -110,6 +119,8 @@ begin
   exception when insufficient_privilege then r := r || 'ANON fn_crm_clientes_resumen: NO (esperado NO)' || E'\n'; end;
   begin perform * from public.fn_crm_embudo(); r := r || 'ANON fn_crm_embudo: SI (esperado NO)' || E'\n'; fallas := fallas + 1;
   exception when insufficient_privilege then r := r || 'ANON fn_crm_embudo: NO (esperado NO)' || E'\n'; end;
+  begin perform * from public.fn_crm_casas_cliente(null); r := r || 'ANON fn_crm_casas_cliente: SI (esperado NO)' || E'\n'; fallas := fallas + 1;
+  exception when insufficient_privilege then r := r || 'ANON fn_crm_casas_cliente: NO (esperado NO)' || E'\n'; end;
   reset role;
 
   -- ---------------------------------------------------------------- Permisos de catálogo (nadie de afuera ejecuta nada interno)

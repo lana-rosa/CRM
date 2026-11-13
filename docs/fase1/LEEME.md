@@ -19,6 +19,7 @@ Archivos:
 | `fn_crm_clientes_resumen(buscar)` | Lista de clientes con nº de compras, total y última compra | Lee `terceros` + pedidos + POS + academia. Solo clientes con autorización de datos |
 | `fn_crm_historial_compras(tercero_id)` | Compras de un cliente | Une `pedidos_canal_venta`, `ventas_pos` (completadas) y `ventas_academia` |
 | `fn_crm_embudo()` | Oportunidades del ERP + detalle del CRM | Solo lectura |
+| `fn_crm_casas_cliente(tercero_id, incluir_web)` | Qué casas (Crochet, Mercería, Academy) tiene un cliente según lo que compró: nº de compras, total, primera y última. Con `tercero_id` vacío devuelve todos los clientes | Reemplaza a `clientes_casas` de la base vieja. `centro_costo_id` no sirve (todo está en 01 Tienda/Mercería), así que se deduce por el contenido de lo vendido. Ver sección 1b |
 | `fn_crm_set_updated_at()` | Pone `updated_at` | Sin permisos para nadie; solo la usan los triggers |
 
 Reglas que cumple (de las "Pautas para la Fase 1"):
@@ -29,13 +30,35 @@ Reglas que cumple (de las "Pautas para la Fase 1"):
 - Sin `DROP FUNCTION` ni `DROP COLUMN`. No se toca el puente `fn_trg_estado_pedido_a_erp`.
 - Las compras de la web se ven como `pedidos_canal_venta` (canal `tienda_virtual`) cuando el ERP las registra. **No se cruza `pedidos_web` por correo** (Ley 1581: los datos de la web no se usan en el CRM hasta que la abogada apruebe esa finalidad).
 
+### 1b. Cómo se deducen las casas (`fn_crm_casas_cliente`)
+
+Un cliente puede tener varias casas. **Regla confirmada por el Orquestador ERP y el Orquestador WEB (13-nov):**
+
+| Casa | Cuándo |
+|---|---|
+| **Academy** | Cualquier fila de `ventas_academia` del cliente, o una venta con centro de costo 04, 05 o 06 |
+| **Mercería** | Ítem con `inventario_items.tipo = 'merceria'` **y** del centro 01 Tienda (en `ventas_pos_detalle`, `pedidos_canal_lineas`, `pedidos_canal_venta.inventario_item_id` o `pedidos_web_items.producto_id`). Un ítem de mercería de otro centro (insumos del Taller) no define casa |
+| **Crochet** | Pedidos de canal sin ítem de inventario (personalizados) y líneas con tipo `producto_terminado` |
+| **Agenda** | Casa propia: ítem de un pedido web con `producto_id` vacío (el nombre "Membresía Agenda" solo es apoyo) |
+| (ninguna) | El centro 03 Taller nunca define casa; el 01 tampoco, porque todo se factura desde la Tienda |
+
+Detalles que el ERP debe confirmar:
+1. **"Centro 01" de la Mercería:** lo leí como el centro de costo **del ítem** (`inventario_items.centro_costo_id`), que es lo que separa el inventario del Taller del de la Tienda. Si la regla era el centro de la **venta**, no serviría: todas las ventas están en 01.
+2. **Pedidos con líneas:** se clasifican por sus líneas (una línea sin ítem es un personalizado, o sea Crochet). Solo los pedidos sin líneas se clasifican por su cabecera. Así, un pedido hecho solo de lanas no cuenta como Crochet por tener la cabecera sin ítem. Con los datos de hoy el resultado es idéntico al de la regla simple.
+3. **Web:** `pedidos_web_items.producto_id` es `inventario_items.id`. Entran pedidos **pagados**, que no sean de prueba y que **no estén ya registrados en el ERP** (si lo están, ya salen como `pedidos_canal_venta` y no se cuentan dos veces). Los pedidos digitales **sí** cuentan (la membresía es Agenda). Un `producto_id` que no exista en inventario no define casa y se omite.
+4. **Ley 1581:** el pedido web se liga al cliente por `cuentas_clientes_web`, que es dato de la web. Por eso la parte web viene **apagada** (`incluir_web = false`) hasta que la abogada apruebe esa finalidad. Hoy no cambia el resultado: los 2 pedidos web pagados ya están registrados en el ERP y salen como pedidos de canal.
+
+Dato de hoy: ninguna compra registrada es de Mercería (todo lo vendido es `producto_terminado`, personalizado o academia) y Agenda solo aparecerá cuando se encienda la parte web.
+
 ## 2. Cómo se probó
 
 No se corrió nada en el ERP (ni siquiera con rollback: sus disparadores de eventos pueden colgarse con DDL). Se probó en un Postgres 16 local con tablas de mentira que imitan al ERP (`terceros`, `pedidos_canal_venta`, `ventas_pos`, `ventas_academia`, `oportunidades_venta`, `fn_rol_actual`, `fn_es_tejedora`) y los permisos por defecto de Supabase:
 
 1. `propuesta.sql` se aplica limpio en **una sola transacción**.
-2. `prueba-rollback.sql`: **25 comprobaciones, 0 fallas**. Administradora: lee, crea y usa las 3 funciones (una interacción con dos dueños es rechazada). Cajero y tejedora: ven 0 filas, no crean nada y las 3 funciones les dan error. Visitante sin sesión: sin acceso. Catálogo: 0 funciones `fn_crm_*` ejecutables por `anon`/`PUBLIC`, 0 tablas `crm_*` sin RLS.
+2. `prueba-rollback.sql`: **30 comprobaciones, 0 fallas**. Administradora: lee, crea y usa las 3 funciones (una interacción con dos dueños es rechazada). Cajero y tejedora: ven 0 filas, no crean nada y las 3 funciones les dan error. Visitante sin sesión: sin acceso. Catálogo: 0 funciones `fn_crm_*` ejecutables por `anon`/`PUBLIC`, 0 tablas `crm_*` sin RLS.
 3. Números: un cliente con pedido entregado (50.000), pedido esperando pago (excluido), venta POS completada (20.000), venta POS anulada (excluida) y curso (100.000) da 3 compras y 170.000. El cliente sin autorización no sale en el resumen.
+
+4. **Casas** (`prueba-casas-local.sql`, sobre `stub-erp-local.sql`): un cliente por cada regla (academia, personalizado, ítem terminado, mercería en POS, venta en centro 04, pedido con líneas mixtas, cabecera sin ítem con línea de mercería, centro 05) y los que **no** deben dar casa (esperando pago, venta anulada, taller, línea sin ítem, mercería de un ítem del Taller), más la web apagada y encendida (Agenda, Crochet y Mercería; no cuenta lo ya registrado en el ERP, lo de prueba, lo pendiente ni lo anulado; un id desconocido se omite), el filtro por cliente y la seguridad por rol. **0 fallas.** Para comprobar que la prueba sirve, introduje a propósito errores en copias (contar pedidos que esperan pago, contar web ya registrada, ignorar el centro 01 de la mercería y mandar Agenda a Crochet) y la prueba los detectó.
 
 **Cómo repetirla en el ERP, ya con OK** (idealmente en una rama de Supabase): aplicar `propuesta.sql` como migración y correr `prueba-rollback.sql`; el resultado sale como mensaje de error con `FALLAS: 0`. Usa un administrador, un cajero y una tejedora reales y simula la sesión con `set_config('request.jwt.claims', …)`. Luego, asesor de seguridad: 0 errores nuevos.
 
@@ -96,7 +119,7 @@ Principio: **el CRM actual sigue funcionando igual hasta el día del corte**, in
 
 - Cambiar las pantallas de `index.html` para usar estas funciones (tema de cada chat, después del OK).
 - Equivalentes en el ERP de `fn_crm_alertas` y `fn_crm_indicadores`.
-- Sustituir `clientes_casas` (qué casa compra qué): hay que acordar con el ERP cómo se deduce la casa desde `centro_costo_id`.
+- ~~Sustituir `clientes_casas`~~ → hecho en la propuesta con `fn_crm_casas_cliente` (sección 1b). Falta: que el ERP confirme los 4 detalles de la sección 1b y la aprobación de la abogada para encender la parte web.
 - Editar datos de un cliente (`terceros`): irá por la RPC acordada con el ERP (el borrador comentado `fn_crm_promover_contacto` es el primer caso).
 - Ver pedidos del ERP desde la pantalla Pedidos del CRM (`fn_crm_pedidos`).
 
