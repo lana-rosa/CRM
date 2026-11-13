@@ -27,8 +27,8 @@ Líneas aproximadas al 13-nov-2026. Si mueves algo, actualiza este mapa.
 | 2793–2836 | CRM: segmentos RFM, utilidades, plantillas de WhatsApp (`contactarWhatsApp`) |
 | 2837–2976 | Ficha completa del cliente (`abrirFicha`, `renderFicha`, interacciones, fechas, tareas) |
 | 2977–3032 | Seguimiento: alertas (`fn_crm_alertas`) y tareas |
-| 3033–3170 | Embudo: etapas, tablero, oportunidad → pedido (hoy solo avisa que va al ERP) |
-| 3171–3213 | Indicadores CRM (`fn_crm_indicadores`) |
+| 3033–3134 | Embudo: etapas, tablero, `crearPedidoDesdeOportunidad` (solo avisa que el pedido va al ERP) |
+| 3135–3177 | Indicadores CRM (`fn_crm_indicadores`) |
 | 3218–3267 | Utilidades: `formatCOP`, `formatDate`, `showToast`, modales |
 | 3268–3324 | Inicio (dashboard) |
 | 3325–3602 | Pedidos y modal de pedido |
@@ -43,3 +43,5 @@ Líneas aproximadas al 13-nov-2026. Si mueves algo, actualiza este mapa.
 | 4369–4557 | Exportar a Excel |
 | 4558–4736 | Equipo y optimizar fotos |
 | 4754–4930 | Detalle del pedido, pagos, nota de tejedora |
+
+> Nota (Chat 3, 13-nov): al quitar código muerto del embudo, todo lo que está después de la línea 3069 subió unas 36–38 líneas (aún sin corregir en las filas de abajo; Chat 5 las ajusta al unir su rama).

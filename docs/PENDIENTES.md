@@ -11,7 +11,7 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 - [x] Orquestador: cerrar funciones expuestas y apagar la copia de stock al ERP (13-nov).
 - [ ] Chat 1: fijar `search_path` en 6 funciones, revisar RLS por rol (admin/tejedora).
 - [ ] Chat 5: quitar Stock, Producción y Envíos sobrantes; arreglar Informes y Excel; fijar versión de supabase-js.
-- [ ] Chat 3: quitar código muerto en `crearPedidoDesdeOportunidad`.
+- [x] Chat 3: quitar código muerto en `crearPedidoDesdeOportunidad` (13-nov).
 
 ## Mudanza del ERP a Cloudflare Pages (aviso del Orquestador ERP)
 - [ ] Chat 5: cuando el Orquestador CRM confirme la dirección nueva, cambiar el enlace `https://lana-rosa.github.io/ERP/` en `avisarPedidoEnERP` (index.html ~3446). Es el único enlace fijo al ERP.
@@ -30,7 +30,7 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 ## Para coordinar (lo hace solo el Orquestador CRM)
 ### Con el Orquestador ERP
 - Cualquier cambio en la base del ERP (`terceros`, `oportunidades_venta`, vistas nuevas para el CRM).
-- Embudo único: `oportunidades` (CRM) vs `oportunidades_venta` (ERP).
+- Embudo único: `oportunidades` (CRM) vs `oportunidades_venta` (ERP). Propuesta de etapas, vista `v_crm_embudo` y tabla `crm_oportunidades_detalle` en `docs/temas/embudo-seguimiento.md`; falta confirmar con ERP si `pedidos_canal_venta.referencia_crm_id` puede apuntar a `oportunidades_venta`.
 ### Con el Orquestador WEB
 - Carritos abandonados y formulario de personalizados → oportunidades del CRM.
 - Reseñas, cuentas web y puntos en la ficha del cliente.
