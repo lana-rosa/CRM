@@ -2942,7 +2942,7 @@ async function loadDashboard() {
   if (sub && sub.textContent.includes('Resumen')) sub.textContent = `Resumen de ${mesLabel} 🌸`;
 
   const [pedidosRes, clientesRes] = await Promise.all([
-    supabase_client.from('pedidos').select('estado, precio_total, anticipo, fecha_pedido, es_stock')
+    supabase_client.from('pedidos').select('estado, precio_total, anticipo, fecha_pedido, es_stock').eq('archivado', false)
       .gte('fecha_pedido', desde).lte('fecha_pedido', hasta),
     supabase_client.from('clientes').select('id', { count: 'exact', head: true })
       .gte('fecha_primer_contacto', desde).lte('fecha_primer_contacto', hasta)
@@ -2968,7 +2968,7 @@ async function loadDashboard() {
   if (bnavBadge) { bnavBadge.textContent = proceso + listos; bnavBadge.style.display = (proceso+listos)>0 ? 'block' : 'none'; }
 
   // Recent pedidos del mes
-  const recent = await supabase_client.from('pedidos').select('*, clientes(nombre)')
+  const recent = await supabase_client.from('pedidos').select('*, clientes(nombre)').eq('archivado', false)
     .gte('fecha_pedido', desde).lte('fecha_pedido', hasta)
     .order('fecha_pedido', { ascending: false }).limit(6);
   const tb = document.getElementById('tb-recientes');
@@ -2994,7 +2994,7 @@ async function loadPedidos() {
   // Load tejedoras for filter
   await populateTejedorasFilter();
 
-  let q = supabase_client.from('pedidos').select('*, clientes(nombre, canal)').order('fecha_pedido', { ascending: false });
+  let q = supabase_client.from('pedidos').select('*, clientes(nombre, canal)').eq('archivado', false).order('fecha_pedido', { ascending: false });
   if (pedidosFilter === 'en proceso') q = q.in('estado', ['en proceso','en produccion']);
   else if (pedidosFilter !== 'todos') q = q.eq('estado', pedidosFilter);
   const tid = document.getElementById('filter-tejedora')?.value;
