@@ -9,7 +9,8 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 
 ## Fase 1: llevar el CRM a la base del ERP (Chat 1)
 - [x] Diseño: SQL y explicación en `docs/fase1/` (13-nov). Probado en Postgres local con tablas de mentira: 30 comprobaciones, 0 fallas.
-- [ ] Revisión del Orquestador ERP y WEB (Web Chat 5); OK de Sara.
+- [x] Revisión del Orquestador ERP (confirmó los 4 detalles de `docs/fase1/LEEME.md` 1b y la parte web apagada) y OK de Sara a la Fase 1 (13-nov). Falta el OK del Orquestador WEB / Web Chat 5 si lo requiere.
+- [ ] Primer paso al aplicar: prueba con rollback contra la base REAL del ERP (o rama de Supabase si el ERP lo prefiere; una rama puede costar: lo decide Sara). **No aplicar sin el go del Orquestador ERP.**
 - [ ] Decisión de Sara: los 3 clientes sin vínculo y el corte propuesto (11-ene-2027). Ver `docs/fase1/LEEME.md`.
 - [ ] Preguntas a la abogada (Ley 1581): `docs/fase1/LEEME.md`, sección 6.
 - [ ] Aplicar en el ERP (rama de Supabase primero) y correr `docs/fase1/prueba-rollback.sql`.

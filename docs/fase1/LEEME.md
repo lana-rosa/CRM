@@ -1,6 +1,6 @@
 # Fase 1 — El CRM pasa a la base del ERP (propuesta, 13-nov-2026)
 
-**Estado: propuesta. No se aplicó nada en ninguna base.** La decide Sara (opción A, 13-nov) y la revisan el Orquestador ERP y el Orquestador WEB (Web Chat 5) antes de aplicar.
+**Estado: aprobada por Sara el 13-nov-2026; todavía NO se aplicó nada en el ERP.** Antes de aplicar: prueba con rollback contra la base real (o rama de Supabase) y el go del Orquestador ERP.
 
 Archivos:
 - `propuesta.sql`: el SQL completo. Solo **crea** objetos nuevos; no cambia ni borra nada del ERP.
@@ -42,7 +42,7 @@ Un cliente puede tener varias casas. **Regla confirmada por el Orquestador ERP y
 | **Agenda** | Casa propia: ítem de un pedido web con `producto_id` vacío (el nombre "Membresía Agenda" solo es apoyo) |
 | (ninguna) | El centro 03 Taller nunca define casa; el 01 tampoco, porque todo se factura desde la Tienda |
 
-Detalles que el ERP debe confirmar:
+Detalles (**confirmados por el Orquestador ERP el 13-nov**, junto con dejar la parte web apagada):
 1. **"Centro 01" de la Mercería:** lo leí como el centro de costo **del ítem** (`inventario_items.centro_costo_id`), que es lo que separa el inventario del Taller del de la Tienda. Si la regla era el centro de la **venta**, no serviría: todas las ventas están en 01.
 2. **Pedidos con líneas:** se clasifican por sus líneas (una línea sin ítem es un personalizado, o sea Crochet). Solo los pedidos sin líneas se clasifican por su cabecera. Así, un pedido hecho solo de lanas no cuenta como Crochet por tener la cabecera sin ítem. Con los datos de hoy el resultado es idéntico al de la regla simple.
 3. **Web:** `pedidos_web_items.producto_id` es `inventario_items.id`. Entran pedidos **pagados**, que no sean de prueba y que **no estén ya registrados en el ERP** (si lo están, ya salen como `pedidos_canal_venta` y no se cuentan dos veces). Los pedidos digitales **sí** cuentan (la membresía es Agenda). Un `producto_id` que no exista en inventario no define casa y se omite.
