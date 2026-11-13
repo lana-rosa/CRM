@@ -44,7 +44,7 @@ La opción A le parece bien al Orquestador ERP, con estas condiciones:
 
 ## Pautas para el diseño de la Fase 1 (Orquestadores ERP y WEB, 13-nov)
 - **Nombres:** tablas `crm_*` (`crm_interacciones`, `crm_tareas`, `crm_fechas_especiales`, `crm_plantillas_mensaje`, `crm_contactos`…), vistas `v_crm_*`, funciones `fn_crm_*`.
-- **Embudo:** queda `oportunidades_venta` (ERP). La tabla `oportunidades` del CRM tiene 0 filas: no hay datos que migrar; las etapas y campos que falten se proponen como columnas nuevas (sin cambiar lo que usan Personaliza ni el tablero del ERP).
+- **Embudo:** queda `oportunidades_venta` (ERP). La tabla `oportunidades` del CRM tiene 0 filas: no hay datos que migrar; los campos extra del CRM (posventa, motivo de pérdida, fecha deseada, vínculo con el pedido) van en una **tabla aparte `crm_oportunidades_detalle` (`oportunidad_id` → `oportunidades_venta.id`)**, no como columnas nuevas (acordado con ERP y avisado a WEB, 13-nov). Si una columna nueva fuera inevitable: nullable, sin default, y consultada antes.
 - **Roles:** reutilizar `fn_rol_actual()` y `fn_es_tejedora()` del ERP en RLS y RPC. Lo sensible, solo administradora. Antes de diseñar, leer cómo se usan en `docs/migraciones/` del repo `lana-rosa/ERP` (adjúntalo en modo lectura con add_repo).
 - **Funciones nuevas:** `security definer`, `set search_path = public`, `revoke execute … from public, anon`, `grant execute … to authenticated`, y adentro chequear `fn_rol_actual()`.
 - **RLS** encendida en toda tabla `crm_*` desde el primer momento; sin acceso para `anon` ni `PUBLIC`; ninguna vista que exponga datos de la web a `anon`.
