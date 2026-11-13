@@ -18,8 +18,8 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 - [x] Orquestador: cerrar funciones expuestas y apagar la copia de stock al ERP (13-nov).
 - [x] Chat 1: `search_path` fijado en las 6 funciones y RLS por rol (13-nov, migración `fase0_search_path_y_rls_por_rol`). Probado con rollback.
 - [ ] Para otro chat (Chat 5, pantallas): la tejedora ya no puede leer `clientes`; en su lista de pedidos el nombre del cliente sale vacío. Revisar que la pantalla lo muestre bien (ej. «—») y que no dé error.
-- [ ] Chat 5: quitar Stock, Producción y Envíos sobrantes; arreglar Informes y Excel; fijar versión de supabase-js.
-- [ ] Chat 3: quitar código muerto en `crearPedidoDesdeOportunidad`.
+- [x] Chat 5: quitar Stock, Producción y Envíos sobrantes; arreglar Informes y Excel; fijar versión de supabase-js (13-nov, `supabase-js@2.118.0`).
+- [x] Chat 3: quitar código muerto en `crearPedidoDesdeOportunidad` (13-nov).
 
 ## Mudanza del ERP a Cloudflare Pages (aviso del Orquestador ERP)
 - [ ] Chat 5: cuando el Orquestador CRM confirme la dirección nueva, cambiar el enlace `https://lana-rosa.github.io/ERP/` en `avisarPedidoEnERP` (index.html ~3446). Es el único enlace fijo al ERP.
@@ -43,7 +43,7 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 - 10 de los 20 `terceros` vinculados al CRM tienen `acepta_tratamiento_datos = true` sin `medio_autorizacion` ni `version_politica`.
 - Decidir: ¿se importan al ERP los 38 pagos del CRM (desglose anticipo/saldo)? Propuesta de Chat 1: no (toca caja y contabilidad).
 - Cualquier cambio en la base del ERP (`terceros`, `oportunidades_venta`, vistas nuevas para el CRM).
-- Embudo único: `oportunidades` (CRM) vs `oportunidades_venta` (ERP).
+- Embudo único: `oportunidades` (CRM) vs `oportunidades_venta` (ERP). Propuesta de etapas, vista `v_crm_embudo` y tabla `crm_oportunidades_detalle` en `docs/temas/embudo-seguimiento.md`; falta confirmar con ERP si `pedidos_canal_venta.referencia_crm_id` puede apuntar a `oportunidades_venta`.
 ### Con el Orquestador WEB
 - Carritos abandonados y formulario de personalizados → oportunidades del CRM.
 - Reseñas, cuentas web y puntos en la ficha del cliente.

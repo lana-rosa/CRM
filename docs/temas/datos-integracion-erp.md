@@ -4,7 +4,8 @@
 Base de datos del CRM, su relación con la base del ERP, permisos (RLS) y seguridad de Supabase. Es el tema que **desbloquea a los demás**.
 
 ## Situación al 13-nov-2026
-- El CRM tiene su propia base (`wcqdkccvtywiutzknskr`) casi vacía: 2 clientes, 1 pedido, 0 oportunidades.
+- El CRM tiene su propia base (`wcqdkccvtywiutzknskr`). Conteo real (13-nov): 23 clientes, 33 pedidos (último 11-nov), 39 pagos, 8 stock_items (todos ya copiados al ERP), 0 oportunidades. *(Una versión anterior decía 2 clientes y 1 pedido: eran estimaciones, no conteos.)*
+- Ya enlazados en el ERP: 20/23 clientes (`terceros.crm_cliente_id`), 26/33 pedidos (`pedidos_canal_venta.referencia_crm_id`), 8/8 stock (`inventario_items.crm_stock_item_id`).
 - Los clientes y ventas reales están en el ERP (`ngjoognzvehwjtpqwrqe`): `terceros` (49), `pedidos_canal_venta` (36), `pedidos_web` (17), `ventas_pos` (8), `ventas_academia`, `cuentas_clientes_web`, `carritos_abandonados` (12), `oportunidades_venta` (2), `movimientos_puntos_fidelizacion`, `resenas_web`.
 - El ERP ya tiene campos pensados para enlazar con el CRM: `terceros.crm_cliente_id`, `pedidos_canal_venta.referencia_crm_id`.
 - Hay una sincronización CRM → ERP con `pg_net` (`fn_trg_estado_pedido_a_erp`, `sync_stock_item_to_os`).
@@ -62,6 +63,7 @@ La opción A le parece bien al Orquestador ERP, con estas condiciones:
 - **Ley 1581:** respetar `acepta_tratamiento_datos`; prospectos sin autorización van a `crm_contactos`, no a `terceros`.
 - **Prohibido:** `DROP FUNCTION`, `ALTER … DROP COLUMN` (event triggers). Probar con `do $$ … raise exception $$` y `set_config('request.jwt.claims', …)`.
 - **Después de cada migración:** asesor de seguridad con 0 errores nuevos.
+- **Transición (ERP, 13-nov):** el CRM sigue en uso real; el puente pedido CRM → ERP debe seguir funcionando hasta que Sara pase al flujo nuevo; no se borra nada de la base del CRM sin que Sara lo confirme; la propuesta incluye plan de transición (fecha de corte, 3 clientes y 7 pedidos sin vínculo) y plan de vuelta atrás.
 - **Entrega:** el SQL completo de la Fase 1 se le pasa al Orquestador CRM, que lo manda al Orquestador ERP y al WEB (lo revisa Web Chat 5) **antes de aplicarlo**.
 
 ## Qué falta
@@ -69,6 +71,6 @@ La opción A le parece bien al Orquestador ERP, con estas condiciones:
 - [x] Fijar `search_path` en las 6 funciones; revisar RLS por rol (13-nov).
 - [x] Decisión A/B de Sara: **opción A** (13-nov).
 - [x] (13-nov, en revisión) Fase 1, diseño: SQL en `docs/fase1/propuesta.sql`, explicación, informe de lo sin vínculo, plan de transición y de vuelta atrás en `docs/fase1/LEEME.md`. Texto original de la tarea: proponer el SQL (tablas del CRM en la base del ERP referenciando `terceros.id`, vistas/RPC de solo lectura para historial de compras, RPC acordada para escribir en `terceros`, "contactos" sin autorización de datos). **El SQL se le entrega al Orquestador CRM**, que lo manda al Orquestador ERP (y avisa al WEB) para revisarlo con Sara antes de aplicarlo.
-- [ ] Migrar los clientes y pedidos del CRM: el CRM ya tiene 23 clientes y 33 pedidos (no 2 y 1). 20 clientes y 26 pedidos ya están vinculados en el ERP; el informe de los que no está en `docs/fase1/LEEME.md`, sección 3.
+- [ ] Migrar los 23 clientes, 33 pedidos y 39 pagos del CRM usando los vínculos que ya existen en el ERP (20 clientes y 26 pedidos ya vinculados); revisar uno por uno los 3 clientes y 7 pedidos sin vínculo. Informe y propuesta en `docs/fase1/LEEME.md`, sección 3.
 - [ ] Cambiar el CRM para que se conecte a la base del ERP (después del OK).
 - [ ] Diseño de la unificación (vistas de historial de compras por `tercero_id`, embudo único).
