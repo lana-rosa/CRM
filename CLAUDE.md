@@ -27,6 +27,16 @@ Decisiones vigentes:
 - Medios de pago del CRM: sin Nequi; el predeterminado es Efectivo.
 - `terceros` del ERP exige `acepta_tratamiento_datos` (Ley 1581 de 2012, Habeas Data): un prospecto sin autorización no se puede guardar ahí.
 
+## Reglas acordadas con la Web (13-nov-2026)
+- **Ley 1581:** los datos de la web (cuentas, carritos, reseñas, Personaliza) no se usan en el CRM en producción hasta que la abogada apruebe esa finalidad en la política de datos.
+- **Mensajes comerciales** (bienvenida, posventa, recompra, cumpleaños, reactivación) solo a quien marcó la casilla opcional de novedades (`cuentas_novedades` / `registrar_novedades`), siempre con enlace de baja. Recordatorio de carrito solo con autorización. La autorización del bono **no** vale como autorización de publicidad.
+- **Reseñas:** solo nombre de pila o seudónimo.
+- **Cumpleaños:** la web no pide fecha de nacimiento; pedirla es un dato nuevo con finalidad propia (consultar).
+- **Funciones nuevas nacen cerradas** (sin `anon`/`PUBLIC`), lectura con guarda de rol, asesor de seguridad después de cada migración.
+- **Marca:** nada de Navidad, santos ni Halloween en ningún mensaje.
+- Campos de dirección (E22) y consentimientos del bono (E28) están cambiando: consultar antes de usarlos.
+- Dueños en la Web: datos y Supabase de la web = Web Chat 5; Personaliza = Web Chat 4; textos de marca = Web Chat 8; textos legales = Web Chat 6.
+
 ## Forma de trabajo (igual que en el ERP)
 - Hay un **Orquestador CRM** ("Chat 0. Orquestador CRM") y chats por tema ("CRM - Chat N. …"). Las tareas que manda el Orquestador se ejecutan; lo delicado se consulta con Sara antes de publicar.
 - Trabaja solo en tu tema. Si ves algo de otro tema, anótalo en `docs/PENDIENTES.md` bajo "Para otro chat" y sigue.

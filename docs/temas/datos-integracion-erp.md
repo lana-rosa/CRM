@@ -31,6 +31,10 @@ La opción A le parece bien al Orquestador ERP, con estas condiciones:
 - **Antes de cualquier cambio en la base del ERP, el SQL propuesto se le manda al Orquestador ERP**, que lo revisa con Sara. La misma base la usa la Web: también se avisa al Orquestador WEB.
 - Dueños en el ERP: `terceros` de punto de venta = ERP Chat 1 Ventas; de pedidos = ERP Chat 2 Pedidos; `oportunidades_venta` sin dueño. Los cambios los asigna el Orquestador ERP.
 
+## Puentes CRM → ERP (no tocar sin OK del Orquestador ERP)
+- `fn_trg_estado_pedido_a_erp` (triggers `trg_estado_pedido_a_erp` y `trg_envio_pedido_a_erp` sobre `pedidos`): pg_net a la Edge Function del ERP `actualizar-pedido-desde-crm` con `x-puente-clave`. **Se deja como está** por ahora (13-nov).
+- `sync_stock_item_to_os` (trigger sobre `stock_items`): usa la **service role del ERP** guardada en el Vault del CRM (`os_service_role_key`) para escribir `inventario_items`. Propuesto al ERP: revocar execute, desactivar el trigger y decidir si rotar la clave. Esperando respuesta.
+
 ## Qué falta
 - [ ] Fase 0: cerrar las funciones expuestas, fijar `search_path`, revisar RLS por rol.
 - [ ] Decisión A/B de Sara.
