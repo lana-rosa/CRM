@@ -8,6 +8,6 @@ Lista de clientes, crear/editar, clientes por casa (Crochet, Mercería, Academy)
 - Depende de la decisión de datos (ver `datos-integracion-erp.md`). Cuando se unifique, la ficha debe mostrar todo el historial: pedidos por redes, web, tienda (POS), Academy, puntos, reseñas, carritos abandonados y cuenta web.
 
 ## Qué falta
-- [ ] Esperar decisión A/B y la unificación del Chat 1.
+- [ ] Esperar la unificación del Chat 1 (opción A decidida el 13-nov).
 - [ ] Ficha con historial unificado y línea de tiempo.
 - [ ] Detección de clientes duplicados (mismo teléfono o correo).

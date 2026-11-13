@@ -17,7 +17,8 @@ Base de datos del CRM, su relación con la base del ERP, permisos (RLS) y seguri
 - Protección de contraseñas filtradas apagada (la activa Sara en el panel de Supabase → Auth).
 - Pendiente verificar: que las políticas RLS impidan a una tejedora leer `clientes`, `pagos`, `oportunidades` (hoy el bloqueo visible está solo en la pantalla).
 
-## Decisión pendiente de Sara
+## Decisión de Sara (13-nov-2026): OPCIÓN A ✅
+(Texto original de las opciones:)
 **Opción A (recomendada):** mover el CRM a la base del ERP; el cliente es `terceros` y el CRM agrega encima sus tablas (interacciones, tareas, fechas, plantillas). Prospectos sin autorización de datos quedan como "contacto" hasta aceptar.
 **Opción B:** mantener dos bases y sincronizarlas.
 Cualquier cambio en la base del ERP se coordina antes con el Orquestador ERP.
@@ -33,7 +34,7 @@ La opción A le parece bien al Orquestador ERP, con estas condiciones:
 
 ## Puentes CRM → ERP (no tocar sin OK del Orquestador ERP)
 - `fn_trg_estado_pedido_a_erp` (triggers `trg_estado_pedido_a_erp` y `trg_envio_pedido_a_erp` sobre `pedidos`): pg_net a la Edge Function del ERP `actualizar-pedido-desde-crm` con `x-puente-clave`. **Se deja como está** por ahora (13-nov).
-- `sync_stock_item_to_os` (trigger sobre `stock_items`): usa la **service role del ERP** guardada en el Vault del CRM (`os_service_role_key`) para escribir `inventario_items`. 13-nov: **trigger desactivado** (la función se conserva). Borrar el secreto del Vault: lo decide Sara. Rotar la clave: NO por ahora (lo planea el Orquestador ERP; podría romper el Worker de ventas antes de la apertura del 13-dic).
+- `sync_stock_item_to_os` (trigger sobre `stock_items`): usa la **service role del ERP** guardada en el Vault del CRM (`os_service_role_key`) para escribir `inventario_items`. 13-nov: **trigger desactivado** (la función se conserva). **Secreto `os_service_role_key` borrado del Vault del CRM el 13-nov** (lo confirmó Sara). Queda solo `erp_puente_secreto` (puente de estados). Rotar la clave: NO por ahora (lo planea el Orquestador ERP; podría romper el Worker de ventas antes de la apertura del 13-dic).
 - 13-nov, migración `fase0_cerrar_funciones_trigger_y_apagar_sync_stock`: revocado `execute` a `public`, `anon` y `authenticated` en `fn_trg_estado_pedido_a_erp`, `handle_new_user` y `sync_stock_item_to_os`. Probado con rollback: el puente de estados sigue poniendo la solicitud en la cola de pg_net.
 
 ## Embudo único (acordado con el Orquestador WEB, 13-nov)
@@ -44,5 +45,8 @@ La opción A le parece bien al Orquestador ERP, con estas condiciones:
 ## Qué falta
 - [x] Cerrar las funciones expuestas (13-nov).
 - [ ] Fijar `search_path` en las 6 funciones; revisar RLS por rol.
-- [ ] Decisión A/B de Sara.
+- [x] Decisión A/B de Sara: **opción A** (13-nov).
+- [ ] Fase 1, diseño: proponer el SQL (tablas del CRM en la base del ERP referenciando `terceros.id`, vistas/RPC de solo lectura para historial de compras, RPC acordada para escribir en `terceros`, "contactos" sin autorización de datos). **El SQL se le entrega al Orquestador CRM**, que lo manda al Orquestador ERP (y avisa al WEB) para revisarlo con Sara antes de aplicarlo.
+- [ ] Migrar los 2 clientes y el pedido del CRM (o confirmar que ya existen en el ERP).
+- [ ] Cambiar el CRM para que se conecte a la base del ERP (después del OK).
 - [ ] Diseño de la unificación (vistas de historial de compras por `tercero_id`, embudo único).
