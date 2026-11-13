@@ -22,6 +22,15 @@ Base de datos del CRM, su relación con la base del ERP, permisos (RLS) y seguri
 **Opción B:** mantener dos bases y sincronizarlas.
 Cualquier cambio en la base del ERP se coordina antes con el Orquestador ERP.
 
+## Acuerdos con el Orquestador ERP (13-nov-2026)
+La opción A le parece bien al Orquestador ERP, con estas condiciones:
+- El CRM **no escribe** en tablas del ERP (`terceros`, `pedidos_*`, `ventas_*`): solo lee, por vistas o RPC.
+- Las tablas propias del CRM referencian `terceros.id`.
+- Lo que el CRM necesite escribir en `terceros` va por una función RPC acordada con el ERP.
+- Reglas del ERP: la lógica va en funciones RPC plpgsql `security definer` con RLS; **nunca** `DROP FUNCTION` ni `ALTER … DROP COLUMN` (se cuelgan por event triggers): se deja lo viejo y se revoca `execute`; probar con rollback (`do $$ … raise exception $$`) simulando el usuario con `set_config('request.jwt.claims', …)`; el Worker de Cloudflare no se puede editar; solo la administradora ve lo sensible; respetar `acepta_tratamiento_datos`.
+- **Antes de cualquier cambio en la base del ERP, el SQL propuesto se le manda al Orquestador ERP**, que lo revisa con Sara. La misma base la usa la Web: también se avisa al Orquestador WEB.
+- Dueños en el ERP: `terceros` de punto de venta = ERP Chat 1 Ventas; de pedidos = ERP Chat 2 Pedidos; `oportunidades_venta` sin dueño. Los cambios los asigna el Orquestador ERP.
+
 ## Qué falta
 - [ ] Fase 0: cerrar las funciones expuestas, fijar `search_path`, revisar RLS por rol.
 - [ ] Decisión A/B de Sara.

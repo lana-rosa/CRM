@@ -11,6 +11,9 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 - [ ] Chat 5: quitar Stock, Producción y Envíos sobrantes; arreglar Informes y Excel; fijar versión de supabase-js.
 - [ ] Chat 3: quitar código muerto en `crearPedidoDesdeOportunidad`.
 
+## Mudanza del ERP a Cloudflare Pages (aviso del Orquestador ERP)
+- [ ] Chat 5: cuando el Orquestador CRM confirme la dirección nueva, cambiar el enlace `https://lana-rosa.github.io/ERP/` en `avisarPedidoEnERP` (index.html ~3446). Es el único enlace fijo al ERP.
+
 ## Fases siguientes (después de la decisión)
 - [ ] Fase 1 (Chat 1): un solo cliente, enlazado con `terceros`.
 - [ ] Fase 2 (Chat 2): ficha completa con todo el historial.
