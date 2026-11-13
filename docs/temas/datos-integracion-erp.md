@@ -72,7 +72,7 @@ La opción A le parece bien al Orquestador ERP, con estas condiciones:
 - Ley 1581 (10 terceros sin constancia): el ERP se lo pasa a Sara para la abogada.
 - **Pagos del CRM: NO se importan** (de acuerdo).
 - La Fase 1 se presentó a Sara recomendando aprobar **con prueba con rollback contra la base REAL** antes de aplicar.
-- Casa (Crochet/Mercería/Academy): propuesta enviada al ERP (13-nov). `centro_costo_id` no alcanza (todo canal/POS está en 01 Tienda/Mercería); se deduce por lo vendido: Academy = `ventas_academia` o centro 04; Mercería = `inventario_items.tipo='merceria'`; Crochet = pedidos de canal sin ítem (personalizados), `producto_terminado`, `pedidos_web`. Pendiente: qué apunta `pedidos_web_items.producto_id`.
+- **Casas — regla confirmada por ERP y WEB (13-nov):** Mercería = ítem `tipo='merceria'` **y** centro 01 Tienda; Crochet = `producto_terminado` + pedidos de canal sin ítem (personalizados); Academy = `ventas_academia` o centros 04/05/06; **Agenda = casa propia** (`pedidos_web_items.producto_id` NULL en pedido web; el nombre "Membresía Agenda" solo como apoyo); el Taller (03) nunca define casa (no mezclar inventario de Taller y Tienda). `pedidos_web_items.producto_id` = `inventario_items.id`. Toda la regla en una sola función (`fn_crm_casas_cliente`).
 
 ## Qué falta
 - [x] Cerrar las funciones expuestas (13-nov).
