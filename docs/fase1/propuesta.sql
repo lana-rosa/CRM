@@ -229,9 +229,9 @@ end $$;
 --    Una compra es: pedido de canal (WhatsApp, Instagram, tienda virtual) que ya no
 --    está esperando pago, venta de punto de venta completada, o venta de academia.
 --    Las compras de la web aparecen como pedidos_canal_venta (canal tienda_virtual)
---    cuando el ERP las registra; pedidos_web no tiene tercero_id y NO se cruza por
---    correo (Ley 1581: los datos de la web no se usan en el CRM hasta que la abogada
---    apruebe esa finalidad).
+--    cuando el ERP las registra. Las tablas de la web NO se leen ni se cruzan por correo
+--    (Ley 1581: los datos de la web no se usan en el CRM hasta que la abogada apruebe
+--    esa finalidad).
 -- ----------------------------------------------------------------------------
 create or replace function public.fn_crm_historial_compras(p_tercero_id uuid)
 returns table (
@@ -392,38 +392,40 @@ grant execute on function public.fn_crm_embudo() to authenticated;
 --                  04, 05 o 06.
 --       MERCERÍA = líneas cuyo ítem es inventario_items.tipo = 'merceria' Y del centro de
 --                  costo 01 Tienda (ventas_pos_detalle, pedidos_canal_lineas,
---                  pedidos_canal_venta.inventario_item_id, pedidos_web_items.producto_id).
+--                  pedidos_canal_venta.inventario_item_id).
 --                  Un ítem de mercería de otro centro (p. ej. insumos del Taller) no
 --                  define casa: no se mezcla el inventario de Taller y Tienda.
 --       CROCHET  = pedidos de canal sin ítem de inventario (personalizados) y líneas con
 --                  tipo 'producto_terminado'.
---       AGENDA   = casa propia: ítem de un pedido web con producto_id NULO (el nombre
---                  "Membresía Agenda" solo sirve de apoyo, no se usa para decidir).
+--       AGENDA   = casa propia (la cuarta). PENDIENTE de la abogada: hoy solo se reconoce
+--                  desde los pedidos de la web (ver más abajo).
 --     El centro 03 Taller nunca define casa; el 01 tampoco, porque todo se factura desde la
 --     Tienda. Un cliente puede tener varias casas.
 --
---     Detalles de la deducción (para que el ERP los confirme):
+--     AGENDA y los pedidos de la web: ESTA VERSIÓN NO LEE NADA DE LA WEB (ni los pedidos
+--     web, ni sus ítems, ni las cuentas de clientes web, ni hay bandera para encenderlo).
+--     Así el SQL aplicado no puede usar datos de la web ni por error. Ley 1581: esa
+--     finalidad debe aprobarla primero la abogada. Hasta entonces la casa AGENDA no se puede
+--     reconocer (hoy solo se reconoce desde los pedidos de la web). El tramo de la web
+--     está listo en docs/fase1/propuesta-web-pendiente.sql, NO para aplicar todavía.
+--
+--     Detalles de la deducción (confirmados por el Orquestador ERP, 13-nov):
 --       * Un pedido de canal CON líneas se clasifica por sus líneas (una línea sin ítem es
 --         un personalizado = Crochet); sin líneas, por su propio ítem (sin ítem = Crochet).
 --         Así un pedido solo de mercería no cuenta como Crochet por tener la cabecera sin
 --         ítem. Hoy, en los datos reales, el resultado es el mismo que con la regla simple.
+--       * "Centro 01" de la Mercería = centro de costo del ÍTEM (inventario_items), no el
+--         de la venta.
+--       * Un ítem que no esté en inventario no define casa.
 --       * Venta de punto de venta fuera de 04/05/06: se clasifica por línea con ítem; una
 --         línea sin ítem no define casa y se omite.
 --       * Compras que cuentan: pedido de canal que ya no espera pago, venta POS completada,
 --         venta de academia (igual que fn_crm_clientes_resumen).
---       * Web: pedidos_web_items.producto_id es inventario_items.id (confirmado). Solo
---         pedidos pagados, que no sean de prueba y que NO hayan sido registrados ya en el
---         ERP (erp_pedidos vacío), para no contar dos veces lo que ya sale como
---         pedidos_canal_venta. Los pedidos digitales SÍ cuentan (la membresía es Agenda).
---         Un producto_id que no exista en inventario_items no define casa y se omite.
---       * LEY 1581: el cruce de pedidos web con el cliente usa cuentas_clientes_web (dato de
---         la web). Por eso va APAGADO por defecto (p_incluir_web = false) hasta que la
---         abogada apruebe esa finalidad.
+--       * Las compras de la web que el ERP ya registró salen como pedidos_canal_venta.
 --     p_tercero_id = null devuelve todos los clientes (para la lista de Clientes).
 -- ----------------------------------------------------------------------------
 create or replace function public.fn_crm_casas_cliente(
-  p_tercero_id   uuid    default null,
-  p_incluir_web  boolean default false
+  p_tercero_id  uuid default null
 )
 returns table (
   tercero_id      uuid,
@@ -506,22 +508,6 @@ begin
        where a.tercero_id is not null
          and (p_tercero_id is null or a.tercero_id = p_tercero_id)
 
-      union all
-      -- 6) Pedidos web aún no registrados en el ERP (solo si p_incluir_web = true; ver nota Ley 1581)
-      select c.tercero_id, w.id, w.created_at::date, it.precio * it.cantidad,
-             case when it.producto_id is null then 'Agenda'
-                  when i.tipo::text = 'merceria' then (case when ic.codigo = '01' then 'Mercería' end)
-                  when i.tipo::text = 'producto_terminado' then 'Crochet' end
-        from public.pedidos_web w
-        join public.cuentas_clientes_web c on c.user_id = w.user_id and c.tercero_id is not null
-        join public.pedidos_web_items it on it.pedido_id = w.id
-        left join public.inventario_items i on i.id = it.producto_id
-        left join public.centros_costo ic on ic.id = i.centro_costo_id
-       where p_incluir_web
-         and w.estado = 'pagado'
-         and not w.es_prueba
-         and coalesce(cardinality(w.erp_pedidos), 0) = 0
-         and (p_tercero_id is null or c.tercero_id = p_tercero_id)
     )
     select f.tid, f.casa, count(distinct f.doc), coalesce(sum(f.v), 0), min(f.f), max(f.f)
       from filas f
@@ -531,11 +517,10 @@ begin
 end
 $$;
 
-revoke all on function public.fn_crm_casas_cliente(uuid, boolean) from public, anon;
-grant execute on function public.fn_crm_casas_cliente(uuid, boolean) to authenticated;
+revoke all on function public.fn_crm_casas_cliente(uuid) from public, anon;
+grant execute on function public.fn_crm_casas_cliente(uuid) to authenticated;
 
 
--- ----------------------------------------------------------------------------
 -- 9. Plantillas actuales del CRM (5 filas). es_comercial: solo 'cotizacion' es
 --    seguimiento de algo que la persona pidió; las demás son publicidad.
 -- ----------------------------------------------------------------------------

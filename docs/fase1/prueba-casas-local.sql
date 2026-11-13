@@ -1,5 +1,6 @@
 -- ============================================================================
--- Prueba LOCAL de fn_crm_casas_cliente (ver stub-erp-local.sql para montar la base).
+-- Prueba LOCAL de fn_crm_casas_cliente SIN la web (ver stub-erp-local.sql para montar la base).
+-- Hay pedidos web en el escenario a propósito: la función no debe verlos.
 -- Arma un escenario con un cliente por cada regla, llama a la función como administradora
 -- y compara con lo esperado. Todo se deshace al final (rollback). Si algo no coincide,
 -- falla con un mensaje claro; si todo está bien, imprime "TODO BIEN".
@@ -116,7 +117,7 @@ begin
         ('venta anulada',   t_anulada, ''),
         ('taller sin ítem', t_taller,  ''),
         ('mercería del Taller no define casa', t_merc_taller, ''),
-        ('web apagada (por defecto)', t_web, '')
+        ('hay pedidos web pagados pero la función NO los lee', t_web, '')
       ) v(nombre, tid, esperado)
     loop
       select coalesce(string_agg(x.casa || ':' || x.n_compras || ':' || trunc(x.total_comprado), ',' order by x.casa), '')
@@ -127,11 +128,12 @@ begin
       end if;
     end loop;
 
-    -- web encendida: Agenda 45.000 + Crochet 25.000 + Mercería 30.000 (el id desconocido se omite);
-    -- NO cuentan la registrada en el ERP, la de prueba, la pendiente ni la anulada
-    select coalesce(string_agg(x.casa || ':' || x.n_compras || ':' || trunc(x.total_comprado), ',' order by x.casa), '')
-      into obtenido from public.fn_crm_casas_cliente(t_web, true) x;
-    if obtenido <> 'Agenda:1:45000,Crochet:1:25000,Mercería:1:30000' then fallas := fallas + 1; raise warning 'FALLA web encendida: obtenido [%]', obtenido; end if;
+    -- la función no puede leer la web: ni por bandera ni por error (su texto no menciona esas tablas)
+    select count(*) into n from pg_proc p where p.proname = 'fn_crm_casas_cliente'
+       and pg_get_functiondef(p.oid) ~* '(pedidos_web|cuentas_clientes_web|p_incluir_web)';
+    if n <> 0 then fallas := fallas + 1; raise warning 'FALLA: fn_crm_casas_cliente menciona tablas de la web'; end if;
+    select count(*) into n from pg_proc p where p.proname = 'fn_crm_casas_cliente' and p.pronargs <> 1;
+    if n <> 0 then fallas := fallas + 1; raise warning 'FALLA: fn_crm_casas_cliente debe tener un solo parámetro'; end if;
 
     -- sin filtro (null) devuelve a todos: al menos las 6 casas-cliente esperadas del escenario
     select count(*) into n from public.fn_crm_casas_cliente(null);
@@ -159,7 +161,7 @@ begin
      and (has_function_privilege('anon', p.oid, 'execute') or has_function_privilege('public', p.oid, 'execute'));
   if n <> 0 then fallas := fallas + 1; raise warning 'FALLA: fn_crm_casas_cliente ejecutable por anon/PUBLIC'; end if;
 
-  if fallas = 0 then raise notice 'TODO BIEN: casas por cliente, apagado de web, seguridad por rol'; else raise exception '% FALLAS', fallas; end if;
+  if fallas = 0 then raise notice 'TODO BIEN: casas por cliente, sin lectura de la web, seguridad por rol'; else raise exception '% FALLAS', fallas; end if;
 end $$;
 
 rollback;
