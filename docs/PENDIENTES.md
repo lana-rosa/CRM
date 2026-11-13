@@ -4,10 +4,12 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 
 ## Decisiones de Sara
 - [ ] ¿Unificamos el CRM en la base del ERP (opción A) o mantenemos dos bases (opción B)? Ver `docs/temas/datos-integracion-erp.md`.
+- [ ] ¿Borrar del Vault del CRM el secreto `os_service_role_key` (clave maestra del ERP que ya no se usa)?
 - [ ] Activar en Supabase (proyecto Lana Rosa CRM) → Authentication → protección de contraseñas filtradas.
 
 ## Fase 0: seguridad y limpieza (no depende de la decisión)
-- [ ] Chat 1: cerrar funciones SECURITY DEFINER expuestas, fijar `search_path`, revisar RLS por rol (admin/tejedora).
+- [x] Orquestador: cerrar funciones expuestas y apagar la copia de stock al ERP (13-nov).
+- [ ] Chat 1: fijar `search_path` en 6 funciones, revisar RLS por rol (admin/tejedora).
 - [ ] Chat 5: quitar Stock, Producción y Envíos sobrantes; arreglar Informes y Excel; fijar versión de supabase-js.
 - [ ] Chat 3: quitar código muerto en `crearPedidoDesdeOportunidad`.
 

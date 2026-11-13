@@ -10,7 +10,7 @@ Base de datos del CRM, su relación con la base del ERP, permisos (RLS) y seguri
 - Hay una sincronización CRM → ERP con `pg_net` (`fn_trg_estado_pedido_a_erp`, `sync_stock_item_to_os`).
 
 ## Avisos de seguridad (base del CRM, 13-nov)
-- `fn_trg_estado_pedido_a_erp`, `handle_new_user`, `sync_stock_item_to_os`: SECURITY DEFINER ejecutables por `anon` y `authenticated`.
+- ~~`fn_trg_estado_pedido_a_erp`, `handle_new_user`, `sync_stock_item_to_os` ejecutables por `anon`/`authenticated`~~ → cerrado el 13-nov.
 - `crm_es_admin`: SECURITY DEFINER ejecutable por `authenticated` (puede ser intencional: revisar).
 - 6 funciones sin `search_path` fijo: `generar_numero_pedido`, `set_updated_at`, `handle_new_user`, `sync_anticipo_pedido`, `fn_pedido_fecha_envio`, `crm_touch_oportunidad`.
 - `pg_net` instalado en `public`.
@@ -33,9 +33,16 @@ La opción A le parece bien al Orquestador ERP, con estas condiciones:
 
 ## Puentes CRM → ERP (no tocar sin OK del Orquestador ERP)
 - `fn_trg_estado_pedido_a_erp` (triggers `trg_estado_pedido_a_erp` y `trg_envio_pedido_a_erp` sobre `pedidos`): pg_net a la Edge Function del ERP `actualizar-pedido-desde-crm` con `x-puente-clave`. **Se deja como está** por ahora (13-nov).
-- `sync_stock_item_to_os` (trigger sobre `stock_items`): usa la **service role del ERP** guardada en el Vault del CRM (`os_service_role_key`) para escribir `inventario_items`. Propuesto al ERP: revocar execute, desactivar el trigger y decidir si rotar la clave. Esperando respuesta.
+- `sync_stock_item_to_os` (trigger sobre `stock_items`): usa la **service role del ERP** guardada en el Vault del CRM (`os_service_role_key`) para escribir `inventario_items`. 13-nov: **trigger desactivado** (la función se conserva). Borrar el secreto del Vault: lo decide Sara. Rotar la clave: NO por ahora (lo planea el Orquestador ERP; podría romper el Worker de ventas antes de la apertura del 13-dic).
+- 13-nov, migración `fase0_cerrar_funciones_trigger_y_apagar_sync_stock`: revocado `execute` a `public`, `anon` y `authenticated` en `fn_trg_estado_pedido_a_erp`, `handle_new_user` y `sync_stock_item_to_os`. Probado con rollback: el puente de estados sigue poniendo la solicitud en la cola de pg_net.
+
+## Embudo único (acordado con el Orquestador WEB, 13-nov)
+- Personaliza escribe en `oportunidades_venta` (ERP) con `crear_solicitud_personalizada_v2(...)` (abierta a anon a propósito). `depurar-fotos-referencia` borra las fotos de referencia a los 90 días.
+- El embudo único será `oportunidades_venta`. **No cambiar su firma ni la tabla sin acordarlo con el Orquestador WEB** (y el ERP: tablero de Oportunidades).
+- Puntos de fidelización: son del ERP.
 
 ## Qué falta
-- [ ] Fase 0: cerrar las funciones expuestas, fijar `search_path`, revisar RLS por rol.
+- [x] Cerrar las funciones expuestas (13-nov).
+- [ ] Fijar `search_path` en las 6 funciones; revisar RLS por rol.
 - [ ] Decisión A/B de Sara.
 - [ ] Diseño de la unificación (vistas de historial de compras por `tercero_id`, embudo único).
