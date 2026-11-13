@@ -67,6 +67,11 @@ begin
   begin perform * from public.fn_crm_casas_cliente(null); r := r || 'ADMIN fn_crm_casas_cliente: SI (esperado SI)' || E'\n';
   exception when others then r := r || 'ADMIN fn_crm_casas_cliente: NO ' || sqlerrm || E'\n'; fallas := fallas + 1; end;
 
+  select count(*) into n from pg_proc p join pg_namespace sc on sc.oid = p.pronamespace
+   where sc.nspname = 'public' and p.proname = 'fn_crm_casas_cliente'
+     and pg_get_functiondef(p.oid) ~* '(pedidos_web|cuentas_clientes_web|p_incluir_web)';
+  r := r || 'ADMIN fn_crm_casas_cliente menciona tablas de la web: ' || n || ' (esperado 0)' || E'\n'; if n <> 0 then fallas := fallas + 1; end if;
+
   select count(*) into n from public.fn_crm_casas_cliente(null) x where x.casa not in ('Crochet', 'Mercería', 'Academy', 'Agenda');
   r := r || 'ADMIN casas fuera de Crochet/Mercería/Academy/Agenda: ' || n || ' (esperado 0)' || E'\n'; if n <> 0 then fallas := fallas + 1; end if;
 

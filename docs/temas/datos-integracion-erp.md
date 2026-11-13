@@ -73,7 +73,7 @@ La opción A le parece bien al Orquestador ERP, con estas condiciones:
 - **Pagos del CRM: NO se importan** (de acuerdo).
 - La Fase 1 se presentó a Sara recomendando aprobar **con prueba con rollback contra la base REAL** antes de aplicar.
 - **Casas — regla confirmada por ERP y WEB (13-nov):** Mercería = ítem `tipo='merceria'` **y** centro 01 Tienda; Crochet = `producto_terminado` + pedidos de canal sin ítem (personalizados); Academy = `ventas_academia` o centros 04/05/06; **Agenda = casa propia** (`pedidos_web_items.producto_id` NULL en pedido web; el nombre "Membresía Agenda" solo como apoyo); el Taller (03) nunca define casa (no mezclar inventario de Taller y Tienda). `pedidos_web_items.producto_id` = `inventario_items.id`. Toda la regla en una sola función (`fn_crm_casas_cliente`).
-  **Hecho en la propuesta (13-nov):** `fn_crm_casas_cliente(tercero_id, incluir_web)` en `docs/fase1/propuesta.sql` (sección 8b), con pruebas en `docs/fase1/prueba-casas-local.sql`. La parte web va apagada por defecto (Ley 1581: liga el pedido al cliente con `cuentas_clientes_web`).
+  **Hecho en la propuesta (13-nov):** `fn_crm_casas_cliente(tercero_id)` en `docs/fase1/propuesta.sql` (sección 8b), con pruebas en `docs/fase1/prueba-casas-local.sql`. Por pedido de Web Chat 5 **no lee nada de la web**; la parte web (Agenda) está aparte y probada en `docs/fase1/propuesta-web-pendiente.sql`, a la espera de la abogada (Ley 1581).
 
 ## Aplicación de la Fase 1 (Sara aprobó el 13-nov)
 Orden acordado con ERP y WEB:
