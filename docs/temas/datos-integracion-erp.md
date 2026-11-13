@@ -68,7 +68,7 @@ La opción A le parece bien al Orquestador ERP, con estas condiciones:
 - [x] Cerrar las funciones expuestas (13-nov).
 - [x] Fijar `search_path` en las 6 funciones; revisar RLS por rol (13-nov).
 - [x] Decisión A/B de Sara: **opción A** (13-nov).
-- [ ] Fase 1, diseño: proponer el SQL (tablas del CRM en la base del ERP referenciando `terceros.id`, vistas/RPC de solo lectura para historial de compras, RPC acordada para escribir en `terceros`, "contactos" sin autorización de datos). **El SQL se le entrega al Orquestador CRM**, que lo manda al Orquestador ERP (y avisa al WEB) para revisarlo con Sara antes de aplicarlo.
-- [ ] Migrar los 2 clientes y el pedido del CRM (o confirmar que ya existen en el ERP).
+- [x] (13-nov, en revisión) Fase 1, diseño: SQL en `docs/fase1/propuesta.sql`, explicación, informe de lo sin vínculo, plan de transición y de vuelta atrás en `docs/fase1/LEEME.md`. Texto original de la tarea: proponer el SQL (tablas del CRM en la base del ERP referenciando `terceros.id`, vistas/RPC de solo lectura para historial de compras, RPC acordada para escribir en `terceros`, "contactos" sin autorización de datos). **El SQL se le entrega al Orquestador CRM**, que lo manda al Orquestador ERP (y avisa al WEB) para revisarlo con Sara antes de aplicarlo.
+- [ ] Migrar los clientes y pedidos del CRM: el CRM ya tiene 23 clientes y 33 pedidos (no 2 y 1). 20 clientes y 26 pedidos ya están vinculados en el ERP; el informe de los que no está en `docs/fase1/LEEME.md`, sección 3.
 - [ ] Cambiar el CRM para que se conecte a la base del ERP (después del OK).
 - [ ] Diseño de la unificación (vistas de historial de compras por `tercero_id`, embudo único).
