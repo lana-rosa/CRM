@@ -9,7 +9,8 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 
 ## Fase 0: seguridad y limpieza (no depende de la decisión)
 - [x] Orquestador: cerrar funciones expuestas y apagar la copia de stock al ERP (13-nov).
-- [ ] Chat 1: fijar `search_path` en 6 funciones, revisar RLS por rol (admin/tejedora).
+- [x] Chat 1: `search_path` fijado en las 6 funciones y RLS por rol (13-nov, migración `fase0_search_path_y_rls_por_rol`). Probado con rollback.
+- [ ] Para otro chat (Chat 5, pantallas): la tejedora ya no puede leer `clientes`; en su lista de pedidos el nombre del cliente sale vacío. Revisar que la pantalla lo muestre bien (ej. «—») y que no dé error.
 - [ ] Chat 5: quitar Stock, Producción y Envíos sobrantes; arreglar Informes y Excel; fijar versión de supabase-js.
 - [ ] Chat 3: quitar código muerto en `crearPedidoDesdeOportunidad`.
 

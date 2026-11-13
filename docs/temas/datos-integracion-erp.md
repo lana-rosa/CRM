@@ -12,10 +12,21 @@ Base de datos del CRM, su relación con la base del ERP, permisos (RLS) y seguri
 ## Avisos de seguridad (base del CRM, 13-nov)
 - ~~`fn_trg_estado_pedido_a_erp`, `handle_new_user`, `sync_stock_item_to_os` ejecutables por `anon`/`authenticated`~~ → cerrado el 13-nov.
 - `crm_es_admin`: SECURITY DEFINER ejecutable por `authenticated` (puede ser intencional: revisar).
-- 6 funciones sin `search_path` fijo: `generar_numero_pedido`, `set_updated_at`, `handle_new_user`, `sync_anticipo_pedido`, `fn_pedido_fecha_envio`, `crm_touch_oportunidad`.
+- ~~6 funciones sin `search_path` fijo~~ → cerrado el 13-nov (`search_path = public`).
 - `pg_net` instalado en `public`.
 - Protección de contraseñas filtradas apagada (la activa Sara en el panel de Supabase → Auth).
-- Pendiente verificar: que las políticas RLS impidan a una tejedora leer `clientes`, `pagos`, `oportunidades` (hoy el bloqueo visible está solo en la pantalla).
+- ~~Verificar RLS por rol~~ → hecho el 13-nov. La prueba mostró que una tejedora SÍ leía los 23 clientes y 39 pagos y podía cambiarse a sí misma el rol a admin. Corregido.
+
+## Fase 0: lo que se hizo (13-nov, migración `fase0_search_path_y_rls_por_rol`)
+- `search_path = public` en las 6 funciones.
+- `profiles`: `authenticated` solo puede actualizar `full_name` (no `role`); política `profiles_update_own` con `with check`.
+- `clientes`, `clientes_casas`, `pagos`: solo administradora (`crm_es_admin()`).
+- `pedidos`: administradora todo; tejedora solo SELECT/UPDATE de los suyos (`tejedora_id = auth.uid()`).
+- `anon` sin acceso a ninguna tabla/vista del CRM.
+- Sin cambios (ya estaban bien): `oportunidades`, `tareas`, `interacciones`, `fechas_especiales`, `plantillas_mensaje`, `fn_crm_*`.
+- Probado con `do $$ … raise exception $$` y `request.jwt.claims`: tejedora ve 0 clientes/pagos/oportunidades/tareas/interacciones, 1 pedido (el suyo), no crea clientes ni pagos, no puede subirse a admin, sí cambia su nombre; admin ve 23 clientes, 39 pagos, 33 pedidos y usa `fn_crm_alertas/indicadores`; visitante sin sesión: sin acceso. Asesor de seguridad: ya no marca las 6 funciones; quedan `pg_net` en `public`, `crm_es_admin` (intencional: la usan las políticas) y contraseñas filtradas (la activa Sara).
+- Efecto: la tejedora ve sus pedidos sin nombre de cliente (pedir a Chat 5 revisar la pantalla).
+- Nota para la Fase 1: `admin-create-user` (Edge Function) crea usuarios con rol por metadata; sigue funcionando porque usa service role.
 
 ## Decisión de Sara (13-nov-2026): OPCIÓN A ✅
 (Texto original de las opciones:)
@@ -55,7 +66,7 @@ La opción A le parece bien al Orquestador ERP, con estas condiciones:
 
 ## Qué falta
 - [x] Cerrar las funciones expuestas (13-nov).
-- [ ] Fijar `search_path` en las 6 funciones; revisar RLS por rol.
+- [x] Fijar `search_path` en las 6 funciones; revisar RLS por rol (13-nov).
 - [x] Decisión A/B de Sara: **opción A** (13-nov).
 - [ ] Fase 1, diseño: proponer el SQL (tablas del CRM en la base del ERP referenciando `terceros.id`, vistas/RPC de solo lectura para historial de compras, RPC acordada para escribir en `terceros`, "contactos" sin autorización de datos). **El SQL se le entrega al Orquestador CRM**, que lo manda al Orquestador ERP (y avisa al WEB) para revisarlo con Sara antes de aplicarlo.
 - [ ] Migrar los 2 clientes y el pedido del CRM (o confirmar que ya existen en el ERP).
