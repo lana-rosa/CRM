@@ -47,7 +47,7 @@ create table terceros (
   activo boolean not null default true, puntos_fidelizacion int not null default 0,
   medio_autorizacion text, version_politica text, codigo_pais text not null default 'CO');
 
-create table inventario_items (id uuid primary key default gen_random_uuid(), tipo tipo_inventario not null, nombre text not null);
+create table inventario_items (id uuid primary key default gen_random_uuid(), tipo tipo_inventario not null, nombre text not null, centro_costo_id uuid);
 
 create table pedidos_canal_venta (
   id uuid primary key default gen_random_uuid(), consecutivo text, canal canal_pedido not null,

@@ -9,14 +9,14 @@ begin;
 
 do $$
 declare
-  c_merc uuid := gen_random_uuid(); c_prod uuid := gen_random_uuid();
+  c_merc uuid := gen_random_uuid(); c_prod uuid := gen_random_uuid(); c_merc_taller uuid := gen_random_uuid();
   cc01 uuid; cc03 uuid; cc04 uuid; cc05 uuid;
   adm  uuid := gen_random_uuid(); caj uuid := gen_random_uuid(); tej uuid := gen_random_uuid();
   t_acad uuid := gen_random_uuid(); t_croc uuid := gen_random_uuid(); t_merc uuid := gen_random_uuid();
   t_mixto uuid := gen_random_uuid(); t_espera uuid := gen_random_uuid(); t_anulada uuid := gen_random_uuid();
   t_cc05 uuid := gen_random_uuid(); t_pcv_item uuid := gen_random_uuid(); t_pos_prod uuid := gen_random_uuid();
   t_pos_sin uuid := gen_random_uuid(); t_taller uuid := gen_random_uuid(); t_web uuid := gen_random_uuid();
-  t_multi uuid := gen_random_uuid();
+  t_multi uuid := gen_random_uuid(); t_merc_taller uuid := gen_random_uuid(); t_agenda uuid := gen_random_uuid();
   ped uuid; vta uuid; wid uuid; u_web uuid := gen_random_uuid();
   r text; n int; fallas int := 0;
 begin
@@ -25,12 +25,13 @@ begin
   select id into cc04 from centros_costo where codigo = '04';
   select id into cc05 from centros_costo where codigo = '05';
 
-  insert into inventario_items (id, tipo, nombre) values (c_merc, 'merceria', 'Lana'), (c_prod, 'producto_terminado', 'Oso');
+  insert into inventario_items (id, tipo, nombre, centro_costo_id) values
+    (c_merc, 'merceria', 'Lana', cc01), (c_prod, 'producto_terminado', 'Oso', cc01), (c_merc_taller, 'merceria', 'Insumo del Taller', cc03);
   insert into usuarios_roles values (adm, 'administrador', true), (caj, 'cajero', true);
   insert into tejedoras_usuarios values (tej);
   insert into terceros (id, numero_documento, nombre_completo, acepta_tratamiento_datos)
     select x, x::text, 'T', true from unnest(array[t_acad, t_croc, t_merc, t_mixto, t_espera, t_anulada, t_cc05,
-      t_pcv_item, t_pos_prod, t_pos_sin, t_taller, t_web, t_multi]) x;
+      t_pcv_item, t_pos_prod, t_pos_sin, t_taller, t_web, t_multi, t_merc_taller, t_agenda]) x;
 
   -- ACADEMY: fila de ventas_academia
   insert into ventas_academia (fecha, area_formacion, descripcion, monto, tercero_id) values (current_date, 'curso_virtual', 'Curso', 100000, t_acad);
@@ -62,6 +63,9 @@ begin
   -- ACADEMY: pedido de canal en centro 05
   insert into pedidos_canal_venta (canal, centro_costo_id, tercero_id, descripcion_producto, total_pedido, estado)
     values ('whatsapp', cc05, t_cc05, 'Curso Hotmart', 120000, 'entregado');
+  -- SIN CASA: ítem de mercería que es del centro 03 Taller (no se mezcla Taller con Tienda)
+  insert into ventas_pos (consecutivo, tercero_id, centro_costo_id, total, estado, canal) values ('V7', t_merc_taller, cc01, 9000, 'completada', 'tienda') returning id into vta;
+  insert into ventas_pos_detalle (venta_id, inventario_item_id, subtotal_linea) values (vta, c_merc_taller, 9000);
   -- NO CUENTAN: esperando pago, venta anulada, venta en 03 Taller sin ítem
   insert into pedidos_canal_venta (canal, centro_costo_id, tercero_id, descripcion_producto, total_pedido, estado)
     values ('whatsapp', cc01, t_espera, 'Sin pagar', 10000, 'esperando_pago');
@@ -70,16 +74,18 @@ begin
   insert into ventas_pos (consecutivo, tercero_id, centro_costo_id, total, estado, canal) values ('V6', t_taller, cc03, 7000, 'completada', 'tienda') returning id into vta;
   insert into ventas_pos_detalle (venta_id, inventario_item_id, subtotal_linea) values (vta, null, 7000);
 
-  -- WEB: pagada, sin registrar en el ERP, con un ítem de mercería y uno desconocido
+  -- WEB: pagada, sin registrar en el ERP: mercería de Tienda, producto terminado, un id desconocido (se omite)
   insert into cuentas_clientes_web values (u_web, t_web);
   insert into pedidos_web (id, user_id, estado) values (gen_random_uuid(), u_web, 'pagado') returning id into wid;
-  insert into pedidos_web_items (pedido_id, producto_id, precio, cantidad) values (wid, c_merc, 10000, 3), (wid, gen_random_uuid(), 25000, 1);
-  -- WEB que NO cuentan: ya registrada en el ERP, de prueba, digital, pendiente de pago, anulada
+  insert into pedidos_web_items (pedido_id, producto_id, precio, cantidad) values
+    (wid, c_merc, 10000, 3), (wid, c_prod, 25000, 1), (wid, gen_random_uuid(), 77000, 1);
+  -- WEB digital pagada con ítem SIN producto = Agenda (los digitales SÍ cuentan)
+  insert into pedidos_web (user_id, estado, es_digital) values (u_web, 'pagado', true) returning id into wid;
+  insert into pedidos_web_items (pedido_id, producto_id, nombre, precio, cantidad) values (wid, null, 'Membresía Agenda', 45000, 1);
+  -- WEB que NO cuentan: ya registrada en el ERP, de prueba, pendiente de pago, anulada
   insert into pedidos_web (user_id, estado, erp_pedidos) values (u_web, 'pagado', array[gen_random_uuid()]) returning id into wid;
   insert into pedidos_web_items (pedido_id, producto_id, precio, cantidad) values (wid, c_prod, 99000, 1);
   insert into pedidos_web (user_id, estado, es_prueba) values (u_web, 'pagado', true) returning id into wid;
-  insert into pedidos_web_items (pedido_id, producto_id, precio, cantidad) values (wid, c_prod, 99000, 1);
-  insert into pedidos_web (user_id, estado, es_digital) values (u_web, 'pagado', true) returning id into wid;
   insert into pedidos_web_items (pedido_id, producto_id, precio, cantidad) values (wid, c_prod, 99000, 1);
   insert into pedidos_web (user_id, estado) values (u_web, 'pendiente_pago') returning id into wid;
   insert into pedidos_web_items (pedido_id, producto_id, precio, cantidad) values (wid, c_prod, 99000, 1);
@@ -109,6 +115,7 @@ begin
         ('esperando pago',  t_espera,  ''),
         ('venta anulada',   t_anulada, ''),
         ('taller sin ítem', t_taller,  ''),
+        ('mercería del Taller no define casa', t_merc_taller, ''),
         ('web apagada (por defecto)', t_web, '')
       ) v(nombre, tid, esperado)
     loop
@@ -120,10 +127,11 @@ begin
       end if;
     end loop;
 
-    -- web encendida: mercería 30.000 + Crochet 25.000, y NO cuentan las otras 5 compras web
+    -- web encendida: Agenda 45.000 + Crochet 25.000 + Mercería 30.000 (el id desconocido se omite);
+    -- NO cuentan la registrada en el ERP, la de prueba, la pendiente ni la anulada
     select coalesce(string_agg(x.casa || ':' || x.n_compras || ':' || trunc(x.total_comprado), ',' order by x.casa), '')
       into obtenido from public.fn_crm_casas_cliente(t_web, true) x;
-    if obtenido <> 'Crochet:1:25000,Mercería:1:30000' then fallas := fallas + 1; raise warning 'FALLA web encendida: obtenido [%]', obtenido; end if;
+    if obtenido <> 'Agenda:1:45000,Crochet:1:25000,Mercería:1:30000' then fallas := fallas + 1; raise warning 'FALLA web encendida: obtenido [%]', obtenido; end if;
 
     -- sin filtro (null) devuelve a todos: al menos las 6 casas-cliente esperadas del escenario
     select count(*) into n from public.fn_crm_casas_cliente(null);

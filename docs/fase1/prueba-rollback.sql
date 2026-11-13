@@ -67,8 +67,8 @@ begin
   begin perform * from public.fn_crm_casas_cliente(null); r := r || 'ADMIN fn_crm_casas_cliente: SI (esperado SI)' || E'\n';
   exception when others then r := r || 'ADMIN fn_crm_casas_cliente: NO ' || sqlerrm || E'\n'; fallas := fallas + 1; end;
 
-  select count(*) into n from public.fn_crm_casas_cliente(null) x where x.casa not in ('Crochet', 'Mercería', 'Academy');
-  r := r || 'ADMIN casas fuera de Crochet/Mercería/Academy: ' || n || ' (esperado 0)' || E'\n'; if n <> 0 then fallas := fallas + 1; end if;
+  select count(*) into n from public.fn_crm_casas_cliente(null) x where x.casa not in ('Crochet', 'Mercería', 'Academy', 'Agenda');
+  r := r || 'ADMIN casas fuera de Crochet/Mercería/Academy/Agenda: ' || n || ' (esperado 0)' || E'\n'; if n <> 0 then fallas := fallas + 1; end if;
 
   -- Los clientes sin autorización de datos NO deben salir en el resumen
   select count(*) into n from public.fn_crm_clientes_resumen(null) x

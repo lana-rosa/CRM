@@ -45,7 +45,7 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 - Cualquier cambio en la base del ERP (`terceros`, `oportunidades_venta`, vistas nuevas para el CRM).
 - Embudo único: `oportunidades` (CRM) vs `oportunidades_venta` (ERP). Propuesta de etapas, vista `v_crm_embudo` y tabla `crm_oportunidades_detalle` en `docs/temas/embudo-seguimiento.md`; falta confirmar con ERP si `pedidos_canal_venta.referencia_crm_id` puede apuntar a `oportunidades_venta`.
 ### Con el Orquestador WEB
-- `fn_crm_casas_cliente` (Fase 1): ¿a qué tabla apunta `pedidos_web_items.producto_id` (no tiene llave foránea)? ¿A qué casa van los pedidos digitales (membresías/cursos)? Mientras tanto: Crochet salvo mercería; digitales sin casa. La parte web va apagada hasta la aprobación de la abogada (Ley 1581).
+- `fn_crm_casas_cliente` (Fase 1): quedó con la regla confirmada (incluye Agenda). La parte web va apagada hasta la aprobación de la abogada (Ley 1581) porque liga el pedido al cliente con `cuentas_clientes_web`.
 - Carritos abandonados y formulario de personalizados → oportunidades del CRM.
 - Reseñas, cuentas web y puntos en la ficha del cliente.
 - Textos de los mensajes de fidelización (voz de marca, Web Chat 8).
