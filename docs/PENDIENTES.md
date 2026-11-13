@@ -22,5 +22,11 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 ## Para otro chat
 (Anota aquí: fecha · chat que lo vio · para qué chat · qué es.)
 
-## Para coordinar con el Orquestador ERP
+## Para coordinar (lo hace solo el Orquestador CRM)
+### Con el Orquestador ERP
 - Cualquier cambio en la base del ERP (`terceros`, `oportunidades_venta`, vistas nuevas para el CRM).
+- Embudo único: `oportunidades` (CRM) vs `oportunidades_venta` (ERP).
+### Con el Orquestador WEB
+- Carritos abandonados y formulario de personalizados → oportunidades del CRM.
+- Reseñas, cuentas web y puntos en la ficha del cliente.
+- Textos de los mensajes de fidelización (voz de marca, Web Chat 8).
