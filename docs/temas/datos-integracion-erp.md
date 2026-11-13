@@ -52,6 +52,7 @@ La opción A le parece bien al Orquestador ERP, con estas condiciones:
 - **Ley 1581:** respetar `acepta_tratamiento_datos`; prospectos sin autorización van a `crm_contactos`, no a `terceros`.
 - **Prohibido:** `DROP FUNCTION`, `ALTER … DROP COLUMN` (event triggers). Probar con `do $$ … raise exception $$` y `set_config('request.jwt.claims', …)`.
 - **Después de cada migración:** asesor de seguridad con 0 errores nuevos.
+- **Transición (ERP, 13-nov):** el CRM sigue en uso real; el puente pedido CRM → ERP debe seguir funcionando hasta que Sara pase al flujo nuevo; no se borra nada de la base del CRM sin que Sara lo confirme; la propuesta incluye plan de transición (fecha de corte, 3 clientes y 7 pedidos sin vínculo) y plan de vuelta atrás.
 - **Entrega:** el SQL completo de la Fase 1 se le pasa al Orquestador CRM, que lo manda al Orquestador ERP y al WEB (lo revisa Web Chat 5) **antes de aplicarlo**.
 
 ## Qué falta
