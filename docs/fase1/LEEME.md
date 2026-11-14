@@ -1,6 +1,6 @@
 # Fase 1 — El CRM pasa a la base del ERP (propuesta, 13-nov-2026)
 
-**Estado: aprobada por Sara el 13-nov-2026; todavía NO se aplicó nada en el ERP.** Antes de aplicar: prueba con rollback contra la base real (o rama de Supabase) y el go del Orquestador ERP.
+**Estado: APLICADA en la base del ERP el 14-nov-2026** (migración `20261114004646 fase1_crm_tablas_y_funciones`, con `propuesta.sql` del commit `f25ed54`: versión **sin web** y sin `fn_crm_promover_contacto`). Aprobada por Sara el 13-nov, con prueba con rollback previa (31/31) y OK de los Orquestadores ERP y WEB. Las pantallas del CRM **todavía no usan** estas tablas y funciones: el CRM actual sigue siendo el oficial.
 
 Archivos:
 - `propuesta.sql`: el SQL completo. Solo **crea** objetos nuevos; no cambia ni borra nada del ERP.
@@ -97,7 +97,7 @@ Principio: **el CRM actual sigue funcionando igual hasta el día del corte**, in
 | Cuándo | Qué pasa |
 |---|---|
 | 16–20 nov | Revisión del SQL por Orquestador ERP, WEB (Web Chat 5) y Sara. La abogada recibe las preguntas de la sección 5 |
-| 23 nov | Con OK: aplicar `propuesta.sql` en el ERP (rama de Supabase primero), correr `prueba-rollback.sql`, asesor de seguridad. No cambia nada visible |
+| ~~23 nov~~ **14-nov (hecho)** | Prueba con rollback en la base real (31/31) y aplicación de `propuesta.sql` en el ERP (migración `fase1_crm_tablas_y_funciones`). No cambia nada visible. Ver sección 9 |
 | 24 nov – 11 dic | Pantallas del CRM conectadas al ERP **en modo prueba**, solo lectura; el CRM actual sigue siendo el oficial. Decidir con Sara los 3 clientes de la sección 3 |
 | 12–13 dic | **No tocar nada**: apertura del ERP el 13-dic |
 | **Corte propuesto: lunes 11-ene-2027** | Pasada la temporada y la apertura. Ese día: el CRM viejo queda en **solo lectura**, la app apunta al ERP y se mueven a `crm_contactos` o `terceros` los clientes acordados |
@@ -125,6 +125,18 @@ Principio: **el CRM actual sigue funcionando igual hasta el día del corte**, in
 - ~~Sustituir `clientes_casas`~~ → hecho en la propuesta con `fn_crm_casas_cliente` (sección 1b). El ERP confirmó los detalles (13-nov). Falta la aprobación de la abogada para activar la parte web (`propuesta-web-pendiente.sql`), que es lo único que reconoce la Agenda.
 - Editar datos de un cliente (`terceros`): irá por la RPC acordada con el ERP (el borrador comentado `fn_crm_promover_contacto` es el primer caso).
 - Ver pedidos del ERP desde la pantalla Pedidos del CRM (`fn_crm_pedidos`).
+
+## 9. Resultado de la aplicación (14-nov-2026, viernes ~7:46 p. m. Colombia)
+
+- **Prueba previa con rollback en la base real (7:35 p. m.):** 31 comprobaciones, 0 fallas, sin dejar objetos. Un solo bloque `do $$`, `lock_timeout` de 3 s.
+- **Aplicación:** `apply_migration` con `propuesta.sql` tal cual. Quedaron 6 tablas `crm_*` con RLS (1 política por tabla, solo `authenticated`, solo administrador), 0 permisos para `anon`/`PUBLIC`, 5 funciones `fn_crm_*` con `search_path` fijo (4 de lectura `security definer`, solo para `authenticated`; `fn_crm_set_updated_at` sin permisos), 5 plantillas cargadas. Filas del ERP sin cambio (50 terceros, 36 pedidos de canal, 2 oportunidades, 4 roles).
+- **Asesor de seguridad** (comparado con la foto de antes): 392 → 396 hallazgos, **0 de nivel ERROR**, 0 desaparecidos y 4 nuevos, los esperados: `authenticated_security_definer_function_executable` de `fn_crm_casas_cliente`, `fn_crm_clientes_resumen`, `fn_crm_embudo` y `fn_crm_historial_compras` (cada una revisa que sea administrador). Ningún aviso nuevo de `anon`.
+- **Asesor de rendimiento:** 560 → 571, 0 de nivel ERROR; los 11 nuevos son `unused_index` (INFO), de índices en tablas nuevas y vacías.
+- **Prueba sobre lo ya aplicado:** 31/31, 0 fallas; no quedó ningún dato de prueba.
+- **Lectura con datos reales** (como administrador, deshecha): resumen de clientes = 37 con autorización y 18 con compras; casas = 19 clientes, todas Crochet (19 compras, $2.000.400); embudo = 2 oportunidades.
+
+### Hallazgo: faltan clientes asignados en el ERP
+El historial por cliente sale **incompleto** porque a muchas ventas del ERP les falta `tercero_id`: solo 18 de 36 `pedidos_canal_venta` lo tienen (de los 26 ligados al CRM, **16 no**), 1 de 8 `ventas_pos` y 0 de 1 `ventas_academia`. Por eso las casas muestran una compra por cliente aunque en el CRM varios tienen 3 o 4 pedidos. No es un fallo de las funciones: es un dato por llenar, y escribir en `pedidos_canal_venta` le toca al ERP (ERP Chat 2 Pedidos). Propuesta de Chat 1 (a revisar por el Orquestador ERP, sin aplicar): un `UPDATE ... where tercero_id is null` solo en los pedidos con vínculo CRM, tomando el cliente del pedido en el CRM → `terceros.crm_cliente_id`, con conteos de verificación y plan de vuelta atrás. Las ventas de mostrador sin cliente probablemente no deban llenarse.
 
 ## 8. Lo que vi en el ERP (para el Orquestador ERP; no lo toqué)
 

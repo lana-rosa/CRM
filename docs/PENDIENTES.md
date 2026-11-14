@@ -10,13 +10,12 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 ## Fase 1: llevar el CRM a la base del ERP (Chat 1)
 - [x] Diseño: SQL y explicación en `docs/fase1/` (13-nov). Probado en Postgres local con tablas de mentira: 31 comprobaciones, 0 fallas.
 - [x] Revisión del Orquestador ERP (confirmó los 4 detalles de `docs/fase1/LEEME.md` 1b y que la parte web quede fuera) y OK de Sara a la Fase 1 (13-nov). Falta el OK del Orquestador WEB / Web Chat 5 si lo requiere.
-- [ ] **En espera (13-nov):** la Fase 1 no se aplica ni se prueba en el ERP hasta que (1) la Web aplique su migración 45 (cierra la política abierta de `oportunidades_venta`), (2) Web Chat 5 revise el SQL y (3) el Orquestador CRM avise con el OK de ERP y WEB y la hora. **No crear ramas de Supabase.**
-- [x] **Paso 1 hecho (14-nov 00:34 UTC, viernes 7:35 p. m. Colombia):** prueba con rollback en la base REAL del ERP, un solo bloque `do $$`, `lock_timeout` 3 s. **31 comprobaciones, 0 fallas; no quedó ningún objeto `crm_*`/`fn_crm_*`; no se aplicó nada ni se tocó ninguna tabla del ERP.** Nota: las 3 tejedoras del ERP tienen además otro rol, así que la prueba usó una usuaria con sesión y sin ningún rol (equivale a una clienta de la web); `prueba-rollback.sql` ya lo hace solo. Resultado enviado al Orquestador CRM (que se lo pasa al ERP).
-- [ ] **Paso 2 (aplicar con `apply_migration`, `propuesta.sql` tal cual) en espera del go del Orquestador ERP/CRM y de la hora.** Después: `get_advisors` (0 errores nuevos) y repetir `prueba-rollback.sql` ya aplicada.
-- [ ] Reglas para el paso 1 (prueba con rollback en la base REAL del ERP, OK técnico del ERP 13-nov): el rollback es seguro (solo event triggers estándar de Supabase); `execute_sql` del MCP devuelve solo la última sentencia, así que va **un único bloque `do $$ … $$`** que termina con `raise exception` con el resumen (eso fuerza el rollback); `lock_timeout` corto (las llaves foráneas hacia `terceros` y `oportunidades_venta` piden un bloqueo breve: si falla por `lock_timeout`, reintentar más tarde, no alargarlo); solo se crean tablas, funciones y permisos `crm_*`/`fn_crm_*`; **horarios prohibidos: sábados de 9 a. m. a 7 p. m. y los días 12 y 13 de diciembre**; el resultado se le manda al Orquestador ERP **antes** de aplicar.
+- [x] **Fase 1 aplicada en el ERP el 14-nov** (migración `20261114004646 fase1_crm_tablas_y_funciones`; `propuesta.sql` de `f25ed54`, sin web). Prueba previa con rollback 31/31; asesor de seguridad 392→396 hallazgos, 0 ERROR (los 4 nuevos son las 4 funciones de lectura ejecutables por `authenticated`, esperado); rendimiento 560→571 (11 `unused_index` INFO en tablas vacías); prueba sobre lo aplicado 31/31. Detalle en `docs/fase1/LEEME.md`, sección 9.
+- [x] Reglas que se siguieron en el paso 1 (OK técnico del ERP, 13-nov): un solo bloque `do $$ … $$` que termina en `raise exception`, `lock_timeout` corto, horarios prohibidos (sábados 9 a. m.–7 p. m. y 12–13 de diciembre), resultado al ERP antes de aplicar. Siguen valiendo para cualquier cambio futuro en el ERP.
 - [ ] Decisión de Sara: los 3 clientes sin vínculo y el corte propuesto (11-ene-2027). Ver `docs/fase1/LEEME.md`.
 - [ ] Preguntas a la abogada (Ley 1581): `docs/fase1/LEEME.md`, sección 6.
-- [ ] Aplicar en el ERP (rama de Supabase primero) y correr `docs/fase1/prueba-rollback.sql`.
+- [ ] **Llenar `tercero_id` en el ERP** (lo hace el ERP): 16 de los 26 `pedidos_canal_venta` ligados al CRM no lo tienen; el historial por cliente sale incompleto. Chat 1 puede preparar la propuesta de `UPDATE` si el Orquestador ERP la pide (`docs/fase1/LEEME.md`, sección 9).
+- [ ] Cambiar las pantallas del CRM para usar `fn_crm_clientes_resumen`, `fn_crm_historial_compras`, `fn_crm_embudo` y `fn_crm_casas_cliente` (temas de los otros chats; el CRM actual sigue siendo el oficial hasta el corte propuesto del 11-ene-2027).
 
 ## Fase 0: seguridad y limpieza (no depende de la decisión)
 - [x] Orquestador: cerrar funciones expuestas y apagar la copia de stock al ERP (13-nov).
@@ -41,6 +40,7 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 
 ## Para coordinar (lo hace solo el Orquestador CRM)
 ### Con el Orquestador ERP
+- **`tercero_id` faltante (14-nov, Chat 1, lectura):** solo 18 de 36 `pedidos_canal_venta` lo tienen (16 de los 26 ligados al CRM no), 1 de 8 `ventas_pos` y 0 de 1 `ventas_academia`. Sin eso, `fn_crm_historial_compras`, `fn_crm_clientes_resumen` y `fn_crm_casas_cliente` muestran historial incompleto. Hay que llenarlo (dueño: ERP Chat 2 Pedidos); Chat 1 prepara la propuesta si se la piden.
 - Fase 1 propuesta lista para revisión: `docs/fase1/propuesta.sql` + `LEEME.md` (13-nov). No se aplicó nada.
 - **Revisar `oportunidades_venta`:** su política "Acceso total via service role" está puesta para `authenticated` con `true` (no para `service_role`). Por lectura, cualquier usuario con sesión podría ver/modificar todas las oportunidades. No probado.
 - `anon` tiene permisos de tabla (leer/insertar) sobre `terceros`, `pedidos_canal_*`, `pedidos_web`, `ventas_*`, `oportunidades_venta`; hoy los frena la RLS.
