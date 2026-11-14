@@ -25,8 +25,14 @@ begin
    where not exists (select 1 from public.usuarios_roles u where u.user_id = t.user_id and u.activo) limit 1;
 
   if v_admin is null then raise exception 'No hay un usuario administrador para probar'; end if;
+  -- Si todas las tejedoras reales tienen además otro rol, se prueba con una usuaria con sesión pero SIN
+  -- ningún rol: es lo mismo que ve el CRM de una tejedora sin rol o de una clienta de la web con cuenta.
+  if v_tejedora is null then
+    v_tejedora := gen_random_uuid();
+    r := r || 'Aviso: no hay tejedora sin otro rol; se prueba con una usuaria con sesión y SIN ROL (cuenta web o tejedora)' || E'\n';
+  end if;
   r := r || 'Usuarios de prueba: administrador=SI cajero=' || case when v_cajero is null then 'NO HAY' else 'SI' end
-         || ' tejedora=' || case when v_tejedora is null then 'NO HAY' else 'SI' end || E'\n';
+         || ' tejedora/sin rol=SI' || E'\n';
 
   -- Un contacto de prueba, creado como dueño de la base (se deshace al final)
   insert into public.crm_contactos (nombre, telefono) values ('PRUEBA ROLLBACK', '0000000000') returning id into v_contacto;
