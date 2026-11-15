@@ -43,7 +43,7 @@ create table terceros (
   id uuid primary key default gen_random_uuid(), tipo tipo_tercero not null default 'cliente',
   tipo_documento tipo_documento not null default 'CC', numero_documento text not null,
   nombre_completo text not null, email text, telefono text, ciudad text,
-  acepta_tratamiento_datos boolean not null default false, fecha_aceptacion_datos timestamptz,
+  acepta_tratamiento_datos boolean not null default false, fecha_aceptacion_datos timestamptz, crm_cliente_id uuid,
   activo boolean not null default true, puntos_fidelizacion int not null default 0,
   medio_autorizacion text, version_politica text, codigo_pais text not null default 'CO');
 
@@ -53,7 +53,7 @@ create table pedidos_canal_venta (
   id uuid primary key default gen_random_uuid(), consecutivo text, canal canal_pedido not null,
   centro_costo_id uuid not null, tercero_id uuid, inventario_item_id uuid,
   descripcion_producto text not null, total_pedido numeric not null, estado estado_pedido not null,
-  created_at timestamptz not null default now());
+  created_at timestamptz not null default now(), referencia_crm_id uuid);
 create table pedidos_canal_lineas (
   id uuid primary key default gen_random_uuid(), pedido_id uuid not null, inventario_item_id uuid,
   descripcion text, cantidad numeric not null, valor_unitario numeric not null);

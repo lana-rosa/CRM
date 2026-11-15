@@ -7,6 +7,7 @@ Archivos:
 - `prueba-rollback.sql`: la prueba con usuarios simulados. No deja nada guardado.
 - `stub-erp-local.sql`, `prueba-casas-local.sql`: tablas de mentira y prueba de las casas, para repetirlas en un Postgres local.
 - `propuesta-web-pendiente.sql` y `prueba-web-pendiente-local.sql`: la parte de la web de las casas (Agenda), **guardada aparte y NO para aplicar** hasta que la abogada apruebe (ver 1b).
+- `propuesta-vinculo-pedidos.sql`, `semilla-vinculo-local.sql` y `prueba-vinculo-local.sh`: **propuesta para llenar el cliente (`tercero_id`) de 16 pedidos del ERP**, y su prueba local. **NO aplicada**: espera el go del Orquestador ERP (ver sección 10).
 
 ## 1. Qué crea y por qué
 
@@ -137,6 +138,36 @@ Principio: **el CRM actual sigue funcionando igual hasta el día del corte**, in
 
 ### Hallazgo: faltan clientes asignados en el ERP
 El historial por cliente sale **incompleto** porque a muchas ventas del ERP les falta `tercero_id`: solo 18 de 36 `pedidos_canal_venta` lo tienen (de los 26 ligados al CRM, **16 no**), 1 de 8 `ventas_pos` y 0 de 1 `ventas_academia`. Por eso las casas muestran una compra por cliente aunque en el CRM varios tienen 3 o 4 pedidos. No es un fallo de las funciones: es un dato por llenar, y escribir en `pedidos_canal_venta` le toca al ERP (ERP Chat 2 Pedidos). Propuesta de Chat 1 (a revisar por el Orquestador ERP, sin aplicar): un `UPDATE ... where tercero_id is null` solo en los pedidos con vínculo CRM, tomando el cliente del pedido en el CRM → `terceros.crm_cliente_id`, con conteos de verificación y plan de vuelta atrás. Las ventas de mostrador sin cliente probablemente no deban llenarse.
+
+## 10. Propuesta: llenar el cliente de 16 pedidos del ERP (15-nov-2026) — NO aplicada
+
+**Estado: solo documento, para revisión del Orquestador ERP (con ERP Chat 2 Pedidos, dueño de `pedidos_canal_venta`) y de Sara. No se aplicó nada.**
+
+**Qué pasa hoy.** En el ERP, 16 de los 26 pedidos que vienen del CRM no tienen cliente asignado (`tercero_id` vacío). Por eso el historial por cliente sale incompleto.
+
+**Qué propone** (`propuesta-vinculo-pedidos.sql`): poner `tercero_id` solo en esos 16 pedidos. Para cada uno se toma el cliente que el pedido tenía en el CRM y se busca al tercero del ERP que tiene ese mismo `crm_cliente_id`. **Prueba de que el método sirve:** aplicado a los 10 pedidos que ya tenían cliente, da el mismo tercero en los 10 (10 de 10). Los 16 son los consecutivos PED-2026-00469, 00470, 00471, 00472, 00490, 00506, 00507, 00508, 00510, 00511, 00512, 00513, 00514, 00515, 00516, 00517; la lista completa con ids (pedido y tercero) está en el encabezado del archivo.
+
+**Qué NO hace:** no cambia estado, totales ni ninguna otra columna; no toca otros pedidos, ni `terceros`, ni `ventas_pos`, ni `ventas_academia`; no crea ni borra nada. **Ningún disparador se activa:** los 8 de la tabla son de tipo "cambio de estado" y aquí solo cambia `tercero_id`; no hay disparadores de fecha de actualización.
+
+**Seguridad (todas o ninguna).** Antes de cambiar nada se comprueba que: la lista tenga 16 pedidos; cada pedido exista con el mismo consecutivo y el mismo vínculo con el CRM; cada pedido tenga `tercero_id` **vacío** (nunca se pisa un cliente ya asignado); y cada tercero exista, esté activo, haya autorizado el tratamiento de datos (Ley 1581) y tenga el `crm_cliente_id` esperado. Si **una** falla, no se cambia nada. Después se verifica: +16 pedidos con cliente, −16 sin cliente, mismo total de pedidos y una huella de toda la tabla (sin `tercero_id`) idéntica antes y después.
+
+**Conteos esperados (hoy):** con cliente 18 → 34; sin cliente 18 → 2. Quedan 2 sin cliente: los 2 pedidos de canal sin vínculo con el CRM (abajo).
+
+**Cómo se prueba.** El archivo trae `v_aplicar := false`: corre todo, muestra los conteos antes y después y termina con un error a propósito que **deshace todo** ("RESULTADO DE LA PRUEBA"). Para aplicar de verdad (solo con el go) se cambia a `true` y se corre como migración, en un solo bloque, con `lock_timeout` corto. Si se corre la prueba en la base real, hay que respetar los horarios prohibidos del ERP (sábados 9 a. m.–7 p. m. y 12–13 de diciembre).
+
+**Vuelta atrás.** Bloque comentado al final del archivo: deja `tercero_id` vacío solo en esos 16 pedidos y solo donde todavía vale el tercero asignado (si alguien lo cambió a mano, no lo toca). No borra nada. Los ids que se tocan están en el encabezado del archivo.
+
+**Qué se probó** (`prueba-vinculo-local.sh`, Postgres local con los 26 pedidos y 21 terceros reales reducidos a ids y consecutivos, más un vigilante de disparadores): 22 comprobaciones, 0 fallas. Modo prueba (muestra 10→26 con cliente y 18→2 sin cliente, no deja cambios, huella igual); aplicar (quedan sin cliente solo PED-2026-00553 y PED-2026-00562; ningún disparador de estado se activó); una **segunda aplicación la frena la guarda**; la vuelta atrás devuelve los 16 y deja la tabla **exactamente como al inicio** sin tocar los 10 que ya tenían cliente; y tres casos de error (tercero con otro `crm_cliente_id`, tercero sin autorización de datos, pedido que ya tiene cliente) donde la guarda frena y no pisa nada. **No se probó contra el ERP real** (el ERP aprobó preparar la propuesta, no correrla).
+
+### Lo que queda sin cliente y se deja así
+- **2 pedidos de canal sin vínculo con el CRM** (el ERP se los muestra a Sara para que decida quién es el cliente):
+
+| Consecutivo | Fecha | Estado |
+|---|---|---|
+| PED-2026-00553 | 02-nov-2026 | entregado |
+| PED-2026-00562 | 11-nov-2026 | en preparación |
+
+- **7 ventas de punto de venta sin cliente** (de 8): son de mostrador o consumidor final y **se dejan así**; solo 1 venta POS tiene cliente. Tampoco se llena la venta de academia sin cliente.
 
 ## 8. Lo que vi en el ERP (para el Orquestador ERP; no lo toqué)
 

@@ -1,0 +1,57 @@
+-- Semilla LOCAL para prueba-vinculo-local.sh: imita (solo ids y consecutivos) los 26 pedidos y
+-- los 21 terceros ligados al CRM del ERP al 15-nov-2026. Sin datos personales. NO es el ERP.
+insert into terceros (id, numero_documento, nombre_completo, acepta_tratamiento_datos, crm_cliente_id) values
+  ('dc779ff0-9c4b-40cc-97da-b49ca3e0ac84', 'doc-0', 'Tercero 0', true, '4c5c0911-c13a-4a08-8183-e330e71bc0ae'),
+  ('2d9635c1-b977-4cc1-a74f-cd4a867754d1', 'doc-1', 'Tercero 1', true, '505e2c53-f92e-4f66-ba34-b0407c985158'),
+  ('d55d3d7b-9111-4931-b961-30d62e5fdce7', 'doc-2', 'Tercero 2', true, '57b25e6f-0773-468c-9fc7-720c2a8ccdf9'),
+  ('1971d945-7239-4c7f-a764-44047fbe5058', 'doc-3', 'Tercero 3', true, '6131dd72-438c-4985-83fe-c56b08b5a62f'),
+  ('167c1403-f9b4-4164-8430-06185c9e2819', 'doc-4', 'Tercero 4', true, '64684bd7-a769-4110-a49d-f5e3f2a46b59'),
+  ('b90646ef-8c1e-41d1-9a05-69ec97228091', 'doc-5', 'Tercero 5', true, '6cf316e6-fe95-4c31-802f-f4b32e2e9aff'),
+  ('a82804bf-36b8-4902-a22c-45f508a4870f', 'doc-6', 'Tercero 6', true, '83e0fdbc-f16e-43c3-b116-23ae3f355686'),
+  ('812d22d6-a5da-4c4e-91ac-08ce1256dfe5', 'doc-7', 'Tercero 7', true, '88934652-5d7a-4d06-ac72-4ffa3735ae8a'),
+  ('5b357a68-f0c7-4365-b440-48ed9d6acd2b', 'doc-8', 'Tercero 8', true, '8b7dbd4b-ad4c-460f-a30f-26e5a4b577f6'),
+  ('da7b5f3a-8483-4b8f-983a-c54d7162933a', 'doc-9', 'Tercero 9', true, '8e0b7588-e0c2-4056-abdb-84fc813d7a3c'),
+  ('71ce6aa5-a8dd-478e-9c93-79fd2e1b392e', 'doc-10', 'Tercero 10', true, '9136fbb0-9b43-4e02-ae48-62c42a266273'),
+  ('c7cd739a-f894-4c75-b7b0-e695869c07af', 'doc-11', 'Tercero 11', true, '9aaca1d8-2cee-4ad1-8c44-8ebad990b804'),
+  ('24a84e7e-162e-401b-9587-c79546efdd8e', 'doc-12', 'Tercero 12', true, 'a7f7ef15-1b68-4d4d-9814-794792a41f9c'),
+  ('8c7984b1-01f1-404f-ab49-7c313642b831', 'doc-13', 'Tercero 13', true, 'af497eda-0b07-40f1-9565-425d351c7f19'),
+  ('3d2e9ba7-decc-42b0-9cf9-312d83feacab', 'doc-14', 'Tercero 14', true, 'b9a6b695-8273-4118-97bf-11a55ea8f026'),
+  ('482f4e19-2cf6-444f-ac48-248cb87cce60', 'doc-15', 'Tercero 15', true, 'cca95e60-1540-4647-987a-0a3e9bfc9a8c'),
+  ('6070bab2-3af3-4d6b-a376-f366dadbcaf7', 'doc-16', 'Tercero 16', true, 'cf184697-0c5a-444b-a10c-c91c3d902a17'),
+  ('2ae126ba-0def-4cf7-aa6f-ad0f9bfb2371', 'doc-17', 'Tercero 17', true, 'cf2d9204-2efc-4523-a22b-7c216e3e680e'),
+  ('df6a96be-c9df-4f61-804f-3886113140f9', 'doc-18', 'Tercero 18', true, 'd1a1b721-f00a-4e41-98a3-1cf949ad0ddb'),
+  ('a377db54-e4e3-446c-a50a-088215ef06dc', 'doc-19', 'Tercero 19', true, 'f187803f-3eef-464f-b4be-005da4654509'),
+  ('49afb3d2-d379-4be3-96a3-570caa0b22d7', 'doc-20', 'Tercero 20', true, 'f42c1793-f067-4b86-9c7d-bde80058c041');
+insert into pedidos_canal_venta (id, consecutivo, canal, centro_costo_id, tercero_id, descripcion_producto, total_pedido, estado, referencia_crm_id, created_at) values
+  ('cfa38dc4-8d57-46cb-b8f1-7c4c88c55f47', 'PED-2026-00469', 'whatsapp', (select id from centros_costo where codigo='01'), null, 'Pedido', 1000, 'entregado', '47d2b2ed-a0ec-4f28-b46f-8ab1748831aa', '2026-08-09'),
+  ('df70efae-9d5c-48fe-8830-de045c7cba30', 'PED-2026-00470', 'whatsapp', (select id from centros_costo where codigo='01'), null, 'Pedido', 1000, 'entregado', '29a673af-b857-4974-b43c-14f21d6ea9a7', '2026-08-09'),
+  ('77d133bd-2683-453e-b681-78c299bd67a5', 'PED-2026-00471', 'whatsapp', (select id from centros_costo where codigo='01'), null, 'Pedido', 1000, 'entregado', '1bc4e56c-7f77-4e61-aabc-40f23f54a336', '2026-08-09'),
+  ('53e284a8-bf3c-4830-a95d-5edcb8973a59', 'PED-2026-00472', 'whatsapp', (select id from centros_costo where codigo='01'), null, 'Pedido', 1000, 'entregado', 'a3dfb6fe-dff7-43b7-aa71-81835b2a0514', '2026-08-09'),
+  ('ad57faf4-25dd-4ae2-8eb3-d2720c35e7cc', 'PED-2026-00490', 'whatsapp', (select id from centros_costo where codigo='01'), null, 'Pedido', 1000, 'entregado', '1057629d-01fd-45f3-a466-9685345d19ea', '2026-09-08'),
+  ('0686f242-e10e-45d3-a659-e79a0e0d6d46', 'PED-2026-00506', 'whatsapp', (select id from centros_costo where codigo='01'), null, 'Pedido', 1000, 'entregado', 'fb366c5d-80c4-4808-87ea-e1523383fb76', '2026-09-20'),
+  ('553c0dc7-93e3-4f9b-98c5-0eb3025f2b1a', 'PED-2026-00507', 'whatsapp', (select id from centros_costo where codigo='01'), null, 'Pedido', 1000, 'entregado', '89586a9b-c9b0-40d7-8401-56938e95fb18', '2026-09-20'),
+  ('dda278e0-9236-474d-9dd5-375084f06465', 'PED-2026-00508', 'whatsapp', (select id from centros_costo where codigo='01'), null, 'Pedido', 1000, 'entregado', '930f3b70-c03a-435f-86ac-2e03ab04da52', '2026-09-20'),
+  ('f9053e26-0f79-47f6-b405-7b60f49abbc9', 'PED-2026-00510', 'whatsapp', (select id from centros_costo where codigo='01'), null, 'Pedido', 1000, 'entregado', '13c88c5f-7be7-4fd7-8353-6d39369f58b9', '2026-09-20'),
+  ('79842bf8-2106-49f1-a467-6e5a6ef241b8', 'PED-2026-00511', 'whatsapp', (select id from centros_costo where codigo='01'), null, 'Pedido', 1000, 'entregado', '15a544e6-4dfb-4e85-a59d-ff1a8251187a', '2026-09-20'),
+  ('f0234937-1fec-4d0c-9776-5967d4ee7c79', 'PED-2026-00512', 'whatsapp', (select id from centros_costo where codigo='01'), null, 'Pedido', 1000, 'entregado', '7d6d0cca-9c8b-4324-94a8-9e19ad27a6a6', '2026-09-20'),
+  ('1c8b02bf-489f-4585-accc-714b6b34db9b', 'PED-2026-00513', 'whatsapp', (select id from centros_costo where codigo='01'), null, 'Pedido', 1000, 'entregado', 'd32af191-19fa-4add-bc81-83f7126f85c2', '2026-09-20'),
+  ('2791b08a-6567-4dc7-b30e-2b04e13e1423', 'PED-2026-00514', 'whatsapp', (select id from centros_costo where codigo='01'), null, 'Pedido', 1000, 'entregado', '9d8e103c-a9ae-48ed-815e-8df633e1966e', '2026-09-20'),
+  ('70df37de-558b-4acb-a101-4c6b623988ce', 'PED-2026-00515', 'whatsapp', (select id from centros_costo where codigo='01'), null, 'Pedido', 1000, 'entregado', 'ec30461e-c9f3-46ed-a046-5efdb0c91c67', '2026-09-20'),
+  ('55e9a870-bfe9-4c50-9567-6a25155af577', 'PED-2026-00516', 'whatsapp', (select id from centros_costo where codigo='01'), null, 'Pedido', 1000, 'entregado', '42341a3a-548b-4a55-a8ee-4a2d0aa18be9', '2026-09-20'),
+  ('5306b29f-67a2-4879-b457-ed2d1aaa0158', 'PED-2026-00517', 'whatsapp', (select id from centros_costo where codigo='01'), null, 'Pedido', 1000, 'entregado', '920b1c51-0c08-4acb-96e1-fe4870c30752', '2026-09-20'),
+  ('b2196a46-34bc-4fcb-8695-fba1ccb0c1f7', 'PED-2026-00383', 'whatsapp', (select id from centros_costo where codigo='01'), 'da7b5f3a-8483-4b8f-983a-c54d7162933a', 'Pedido', 1000, 'entregado', '287b15bd-af1d-47b4-9de4-505fdb1713de', '2026-09-01'),
+  ('ca1334ec-926e-4ce3-8354-cd499b7efd0b', 'PED-2026-00384', 'whatsapp', (select id from centros_costo where codigo='01'), 'a377db54-e4e3-446c-a50a-088215ef06dc', 'Pedido', 1000, 'entregado', '9402152b-a98a-435c-90d4-b11b0e116a85', '2026-09-01'),
+  ('66a7afbc-9db0-4c33-bd21-958cab138ad9', 'PED-2026-00385', 'whatsapp', (select id from centros_costo where codigo='01'), '8c7984b1-01f1-404f-ab49-7c313642b831', 'Pedido', 1000, 'entregado', 'f939249b-4765-44c3-aae1-46e6b5d69349', '2026-09-01'),
+  ('17710b46-bb7b-46c0-9970-a79c06f529dc', 'PED-2026-00386', 'whatsapp', (select id from centros_costo where codigo='01'), '49afb3d2-d379-4be3-96a3-570caa0b22d7', 'Pedido', 1000, 'entregado', 'f97ae19c-1fec-469e-abdc-aaab7439aaf8', '2026-09-01'),
+  ('21147d9a-9040-48e4-9739-80266bb58eb7', 'PED-2026-00387', 'whatsapp', (select id from centros_costo where codigo='01'), '167c1403-f9b4-4164-8430-06185c9e2819', 'Pedido', 1000, 'entregado', 'b7c845ac-d836-47d8-abcb-23becd9d0c25', '2026-09-01'),
+  ('c5718233-1097-4072-b365-ec4f735e761b', 'PED-2026-00388', 'whatsapp', (select id from centros_costo where codigo='01'), 'd55d3d7b-9111-4931-b961-30d62e5fdce7', 'Pedido', 1000, 'entregado', '3cc6ae6f-4889-40b6-92f4-1a7ffae418fd', '2026-09-01'),
+  ('14559f40-da70-43b2-b422-5669751d1a83', 'PED-2026-00491', 'whatsapp', (select id from centros_costo where codigo='01'), '5b357a68-f0c7-4365-b440-48ed9d6acd2b', 'Pedido', 1000, 'entregado', '50af1cfc-e0b0-4794-9dae-109b8f1ebcf9', '2026-09-01'),
+  ('a5c13f75-6f12-4659-9ed1-80250e8242c4', 'PED-2026-00509', 'whatsapp', (select id from centros_costo where codigo='01'), '2d9635c1-b977-4cc1-a74f-cd4a867754d1', 'Pedido', 1000, 'entregado', '32a6df46-e08f-40a8-a0ee-9cc22f452af2', '2026-09-01'),
+  ('df9257d9-cd76-4241-8cb1-adc59c1f5355', 'PED-2026-00531', 'whatsapp', (select id from centros_costo where codigo='01'), 'dc779ff0-9c4b-40cc-97da-b49ca3e0ac84', 'Pedido', 1000, 'entregado', '0ee80716-49f3-460d-ab93-b4666aabf7cd', '2026-09-01'),
+  ('a463ed48-c80c-4cd4-9bf5-0d48862f4154', 'PED-2026-00559', 'whatsapp', (select id from centros_costo where codigo='01'), '3d2e9ba7-decc-42b0-9cf9-312d83feacab', 'Pedido', 1000, 'entregado', '9634ba6c-2d3f-4e48-9e09-3b119633723a', '2026-09-01'),
+  ('7fdb0432-2609-4f12-99a6-2372309419ba', 'PED-2026-00553', 'whatsapp', (select id from centros_costo where codigo='01'), null, 'Pedido', 1000, 'entregado', null, '2026-11-02'),
+  ('96a49423-b11e-44ac-beb2-1520ae20783e', 'PED-2026-00562', 'whatsapp', (select id from centros_costo where codigo='01'), null, 'Pedido', 1000, 'en_preparacion', null, '2026-11-11');
+-- Vigilante: si algún disparador de estado se activara, quedaría una fila aquí.
+create table _disparos (n serial, cuando timestamptz default now());
+create function _vigilante() returns trigger language plpgsql as $$ begin insert into _disparos default values; return new; end $$;
+create trigger trg_vigilante_estado after update of estado on pedidos_canal_venta for each row execute function _vigilante();

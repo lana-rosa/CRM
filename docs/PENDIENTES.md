@@ -14,7 +14,7 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 - [x] Reglas que se siguieron en el paso 1 (OK técnico del ERP, 13-nov): un solo bloque `do $$ … $$` que termina en `raise exception`, `lock_timeout` corto, horarios prohibidos (sábados 9 a. m.–7 p. m. y 12–13 de diciembre), resultado al ERP antes de aplicar. Siguen valiendo para cualquier cambio futuro en el ERP.
 - [ ] Decisión de Sara: los 3 clientes sin vínculo y el corte propuesto (11-ene-2027). Ver `docs/fase1/LEEME.md`.
 - [ ] Preguntas a la abogada (Ley 1581): `docs/fase1/LEEME.md`, sección 6.
-- [ ] **Llenar `tercero_id` en el ERP** (lo hace el ERP): 16 de los 26 `pedidos_canal_venta` ligados al CRM no lo tienen; el historial por cliente sale incompleto. Chat 1 puede preparar la propuesta de `UPDATE` si el Orquestador ERP la pide (`docs/fase1/LEEME.md`, sección 9).
+- [ ] **Llenar `tercero_id` en el ERP:** propuesta lista en `docs/fase1/propuesta-vinculo-pedidos.sql` (15-nov; `LEEME.md` sección 10): solo 16 pedidos con vínculo CRM, guardas "todas o ninguna", conteos antes/después, vuelta atrás. Probada en local (22/22). **NO aplicada: espera el go del Orquestador ERP (con ERP Chat 2 Pedidos) y de Sara.** Las 7 ventas POS sin cliente (mostrador) se dejan así; los 2 pedidos de canal sin vínculo (PED-2026-00553 y PED-2026-00562) los decide Sara.
 - [ ] Cambiar las pantallas del CRM para usar `fn_crm_clientes_resumen`, `fn_crm_historial_compras`, `fn_crm_embudo` y `fn_crm_casas_cliente` (temas de los otros chats; el CRM actual sigue siendo el oficial hasta el corte propuesto del 11-ene-2027).
 
 ## Fase 0: seguridad y limpieza (no depende de la decisión)
