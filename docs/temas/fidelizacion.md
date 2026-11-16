@@ -28,4 +28,10 @@ Bienvenida · posventa (pedir foto/reseña) · recompra según tiempo típico en
 - Encuesta: página de la web (Web Chat 4 o 6), enlace único por pedido (token aleatorio con vencimiento), sin iniciar sesión; respuestas en tabla `crm_` con RLS solo administradora; escritura **solo** por una función SECURITY DEFINER que valida el token (anon ejecuta esa función, no la tabla). Datos mínimos. **El diseño se envía al Orquestador WEB antes de construir.**
 - Ley 1581: pregunta enviada a la abogada (Web Chat 6): ¿agradecimiento + encuesta = servicio o comercial? **Hasta que responda: tratarlo como comercial** (solo a quien aceptó novedades, con enlace de baja).
 
-**Pendiente de Sara:** canal (WhatsApp con un clic + correo automático recomendado), días después de la entrega (sugerido 5), preguntas de la encuesta, enlace directo de Google.
+**Decisiones de Sara (15/16-nov):**
+- Canal: **WhatsApp con un clic** (desde Seguimiento) **+ correo automático**.
+- Momento: **5 días después de la entrega**.
+- Encuesta (4 preguntas): 1) ¿Qué tan feliz estás con tu amigurumi? (1 a 5 ⭐) · 2) ¿Cómo fue la atención? · 3) ¿Llegó a tiempo? · 4) **¿Algo que podamos mejorar?** (texto libre, opcional; Sara pidió dejarla con ese texto).
+- El correo de compra web (`fn_correo_compra_web`) ya pide la reseña de Google: coordinar para que no se pida dos veces (que ese correo deje de pedirla o que la posventa la reemplace).
+- La pregunta servicio/comercial está en el punto 17 del documento de la abogada (Web Chat 6).
+- Pendiente: enlace directo de reseñas de Google ("Pedir una reseña", g.page/r/…), lo envía Sara.
