@@ -29,3 +29,5 @@ Bienvenida · posventa (pedir foto/reseña) · recompra según tiempo típico en
 - Ley 1581: pregunta enviada a la abogada (Web Chat 6): ¿agradecimiento + encuesta = servicio o comercial? **Hasta que responda: tratarlo como comercial** (solo a quien aceptó novedades, con enlace de baja).
 
 **Pendiente de Sara:** canal (WhatsApp con un clic + correo automático recomendado), días después de la entrega (sugerido 5), preguntas de la encuesta, enlace directo de Google.
+
+**Diseño entregado (16-nov-2026):** `docs/fidelizacion/posventa.md` + `posventa.sql` (propuesta, nada aplicado; prueba local 37/37). Objetos propuestos: `crm_posventa_config`, `crm_posventa`, `crm_posventa_respuestas`, `v_crm_posventa_candidatas`, `fn_crm_posventa_programar/enviar_correos/pendientes/marcar_whatsapp/resultados`, `encuesta_posventa_ver/responder` (las dos únicas ejecutables por `anon`). Nace apagado. **Hallazgo:** con la regla de novedades solo 1 de 33 pedidos entregados tendría clienta elegible (la autorización vive en `cuentas_novedades`, solo cuentas web). Falta: decisiones de Sara (punto 13 del diseño), respuesta de la abogada, revisión de WEB y ERP.

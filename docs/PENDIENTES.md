@@ -53,3 +53,5 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 - Carritos abandonados y formulario de personalizados → oportunidades del CRM.
 - Reseñas, cuentas web y puntos en la ficha del cliente.
 - Textos de los mensajes de fidelización (voz de marca, Web Chat 8).
+- **Posventa automática (16-nov, Chat 4):** diseño listo en `docs/fidelizacion/posventa.md` (+ `posventa.sql`, no aplicado). Para WEB: página `encuesta.html` y `baja.html` (baja de novedades por token), quitar el enlace de Google del correo de compra, decidir `fn_correo_calificar` (posible fallo: usa `terceros.nombre`, que no existe), remitente oficial. Para ERP: crear las tablas/funciones `crm_posventa*` con el protocolo de siempre. Detalle de preguntas en el punto 14 del diseño.
+- **Chat 3 (embudo):** la tarea «entregado → posventa a 7 días» se propone reemplazar por la alerta a los 5 días de la posventa automática.
