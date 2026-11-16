@@ -34,4 +34,4 @@ Bienvenida · posventa (pedir foto/reseña) · recompra según tiempo típico en
 - Encuesta (4 preguntas): 1) ¿Qué tan feliz estás con tu amigurumi? (1 a 5 ⭐) · 2) ¿Cómo fue la atención? · 3) ¿Llegó a tiempo? · 4) **¿Algo que podamos mejorar?** (texto libre, opcional; Sara pidió dejarla con ese texto).
 - El correo de compra web (`fn_correo_compra_web`) ya pide la reseña de Google: coordinar para que no se pida dos veces (que ese correo deje de pedirla o que la posventa la reemplace).
 - La pregunta servicio/comercial está en el punto 17 del documento de la abogada (Web Chat 6).
-- Pendiente: enlace directo de reseñas de Google ("Pedir una reseña", g.page/r/…), lo envía Sara.
+- **Enlace directo de reseñas de Google (lo dio Sara el 16-nov): https://g.page/r/Cae2iIji5j_XEAI/review** — usar este en la posventa (reemplaza al `share.google/...` que usa hoy la web).
