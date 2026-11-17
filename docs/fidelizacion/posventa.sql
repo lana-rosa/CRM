@@ -35,7 +35,7 @@ create table public.crm_posventa_config (
   url_encuesta        text not null default 'https://lanarosacrochet.com/encuesta.html',  -- WEB lo construye
   url_baja            text not null default 'https://lanarosacrochet.com/baja.html',      -- WEB lo construye
   url_resena_web      text not null default 'https://lanarosacrochet.com/cuenta.html',
-  url_google          text not null default 'https://share.google/0JoGMBgdPvaKHMRCu',    -- cambiar por el enlace directo de la ficha
+  url_google          text not null default 'https://g.page/r/Cae2iIji5j_XEAI/review',    -- enlace directo de la ficha (Sara, 16-nov)
   updated_at          timestamptz not null default now(),
   constraint crm_posventa_config_activar_chk check (not activo or desde_entregados is not null)
 );

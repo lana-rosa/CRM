@@ -1,7 +1,7 @@
 # Posventa automática: agradecimiento + encuesta + reseñas
 
 **Estado:** DISEÑO (16-nov-2026, CRM - Chat 4 Fidelización). No se aplicó nada en ninguna base ni se tocó `index.html`.
-**Para:** Orquestador CRM, que lo pasa al Orquestador WEB y al Orquestador ERP antes de construir.
+**Para:** Orquestador General (desde el 17-nov, único; el Orquestador CRM quedó archivado), que lo pasa a Web Chat 5 y al ERP antes de construir.
 **SQL propuesto:** `docs/fidelizacion/posventa.sql` · **Prueba local:** `prueba-posventa-local.sh` (37 comprobaciones, 0 fallas, Postgres con tablas de mentira; falta probarlo contra el ERP real con `begin … rollback`).
 **Origen del pedido:** `docs/temas/fidelizacion.md`, sección «Automatización de posventa».
 
@@ -106,7 +106,7 @@ Sara solo dio el nombre de las preguntas; el **formato** de la 2 y la 3 es propu
 
 - Está en el **correo** (siempre) y en la **página de gracias** (siempre, para todas las respuestas). No depende de las notas.
 - No se ofrece nada a cambio (ni descuento, ni puntos, ni bono). Reglas de Google contra reseñas con incentivo y contra filtrar a quién se le pide según su satisfacción.
-- **Enlace de Google:** hoy `https://share.google/0JoGMBgdPvaKHMRCu`; falta el enlace directo de la ficha (lo envía Sara) → se cambia en `crm_posventa_config.url_google`.
+- **Enlace de Google:** `https://g.page/r/Cae2iIji5j_XEAI/review` (lo dio Sara el 16-nov; queda en `crm_posventa_config.url_google`). La web ya lo usa en su correo de compra: por eso se propone pedir la reseña **solo** en la posventa y no dos veces.
 - **Reseña en la web:** hoy apunta a `cuenta.html`, que exige iniciar sesión por enlace al correo. Pregunta a WEB: ¿la página de reseña puede aceptar el mismo token (sin sesión)? Si no, se deja `cuenta.html`.
 - Reseñas en la web: solo nombre de pila o seudónimo (regla vigente).
 
@@ -152,7 +152,6 @@ Nota: la plantilla `posventa` es `es_comercial = true`: no se envía a quien no 
 | Alerta «Posventa para enviar», botón WhatsApp, pantalla de resultados | **CRM Chat 5** (`index.html`, sección Seguimiento ~1625; plantillas ~2475) | Solo lee/llama funciones; no escribe tablas del ERP. |
 | Textos | **Web Chat 8** | Punto 9. |
 | Pregunta Ley 1581 | **Web Chat 6** / abogada | Punto 3. |
-| Enlace directo de Google | **Sara** | `url_google`. |
 
 ## 11. Cómo se enciende sin riesgo
 
@@ -181,9 +180,8 @@ Probado (Postgres 16 local, tablas de mentira, **no** el ERP real): 37 comprobac
 1. **Sobre el punto 3:** ¿esperamos a la abogada (A), mandamos solo WhatsApp manual a quien tú sepas que aceptó (B), o pedimos la casilla de novedades también por WhatsApp/mostrador (C)?
 2. **Pregunta 2 y 3 de la encuesta:** ¿atención con 1–5 estrellas y «¿a tiempo?» con Sí / Más o menos / No? ¿O prefieres otras opciones?
 3. **Cuando alguien marque algo por mejorar,** ¿te parece bien que te salga una tarea «escribirle personalmente»? (Es interno; no cambia lo que ve la clienta.)
-4. **Enlace directo de Google** de la ficha de Lana Rosa.
-5. **Un solo correo, sin recordatorio:** ¿de acuerdo, o prefieres un recordatorio a los 10 días a quien no contestó?
-6. Reemplazar la tarea de posventa a 7 días del embudo por esta alerta a los 5.
+4. **Un solo correo, sin recordatorio:** ¿de acuerdo, o prefieres un recordatorio a los 10 días a quien no contestó?
+5. Reemplazar la tarea de posventa a 7 días del embudo por esta alerta a los 5.
 
 ## 14. Preguntas para otros Orquestadores
 
