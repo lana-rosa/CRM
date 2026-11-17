@@ -14,13 +14,11 @@ La dueña es **Sara**: no es programadora. Responde siempre en español, claro y
 | **Lana Rosa CRM** | `wcqdkccvtywiutzknskr` | Tablas del CRM: `clientes`, `clientes_casas`, `pedidos`, `pagos`, `oportunidades`, `tareas`, `interacciones`, `fechas_especiales`, `plantillas_mensaje`, `profiles`, vista `v_clientes_crm`, funciones `fn_crm_alertas`, `fn_crm_indicadores`. Conteo real 13-nov: 23 clientes, 33 pedidos (último 11-nov), 39 pagos, 8 stock_items, 0 oportunidades/tareas/interacciones. |
 | **Lana Rosa ERP + SO** | `ngjoognzvehwjtpqwrqe` | El negocio real: `terceros` (clientes), `pedidos_canal_venta`, `pedidos_web`, `ventas_pos`, `ventas_academia`, `oportunidades_venta`, `carritos_abandonados`, puntos, reseñas… |
 
-**El ERP (`lana-rosa/ERP`) y la Web tienen cada uno su propio Orquestador.** Si un cambio toca algo de sus funciones (tablas, funciones, permisos o pantallas del ERP; tienda web, carritos, cuentas web, reseñas, formulario de personalizados, Rosina, textos de marca), **no lo hagas tú**: anótalo en `docs/PENDIENTES.md` bajo "Para coordinar" y avísale al Orquestador CRM, que es el único que habla con ellos. Leer (SELECT) sí puedes.
-
-| Orquestador | Sesión |
-|---|---|
-| Chat 0. Orquestador CRM | `session_01H2X8gbEkPKtZwG74rfVzkM` |
-| Chat 0. Orquestador ERP | `session_01H2X8gbHYKGsVHH1dKbt8dt` |
-| Chat 0. Orquestador WEB | `session_01H2X8gaahfucSR9WM7L1zXM` |
+**Desde el 17-nov hay UN SOLO Orquestador General** para Web, ERP, CRM y SO (los orquestadores por área quedaron archivados). Reglas:
+- Pregúntale a Sara **directo en tu propio chat** lo que sea decisión suya.
+- Al Orquestador General **solo** le escribes (send_message a `session_01H2X8ga1Y8UMd7QfnSkEjLR`) si la tarea toca otra área (ERP, Web, SO) o la base compartida, si chocas con otro chat, o al terminar un encargo suyo (una línea). Nada de «recibido».
+- Los acuerdos ya tomados con ERP y Web (abajo y en `docs/temas/`) siguen vigentes: no cambies tablas, funciones ni permisos del ERP o de la Web sin pasar por el Orquestador General. Leer (SELECT) sí puedes.
+- Estado general del CRM: `docs/RESUMEN-ORQUESTADOR.md`.
 
 Decisiones vigentes:
 - Producción, Envíos y la creación de pedidos nuevos **ya viven en el ERP**. El CRM no los vuelve a crear.
