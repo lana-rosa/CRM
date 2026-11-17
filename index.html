@@ -883,25 +883,14 @@
     .filter-select:focus { border-color: var(--rosa-principal); }
 
     /* SETUP SCREEN */
-    #setup-screen {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #fce4f5 0%, #f9ddf4 40%, #ffe4f0 100%);
-      padding: 24px;
+    .password-wrap { position: relative; }
+    .password-wrap input { padding-right: 46px; }
+    .password-eye {
+      position: absolute; top: 50%; right: 6px; transform: translateY(-50%);
+      width: 36px; height: 36px; border: none; background: transparent;
+      cursor: pointer; font-size: 1.1rem; border-radius: 8px; opacity: 0.7;
     }
-    .setup-card {
-      background: var(--blanco);
-      border-radius: 24px;
-      padding: 40px 44px;
-      width: 100%;
-      max-width: 500px;
-      box-shadow: 0 20px 60px rgba(216,1,124,0.15);
-    }
-    .setup-card h1 { font-size: 1.4rem; font-weight: 700; color: var(--rosa-principal); margin-bottom: 6px; }
-    .setup-card p { font-size: 0.85rem; color: var(--texto-medio); margin-bottom: 24px; }
-
+    .password-eye:hover, .password-eye:focus-visible { opacity: 1; background: var(--rosa-suave); }
     .price-display { font-weight: 600; color: var(--rosa-principal); }
 
     /* MOBILE */
@@ -1317,33 +1306,6 @@
 <body>
 
 <!-- ═══════════════════════════════════════════════
-     SETUP SCREEN (first-time config)
-═══════════════════════════════════════════════ -->
-<div id="setup-screen" style="display:none;">
-  <div class="setup-card">
-    <div style="text-align:center;margin-bottom:24px;">
-      <div class="auth-logo-icon" style="margin:0 auto 12px;background:white;padding:4px;"><img src="/CRM/logo-192.png" style="width:100%;height:100%;object-fit:contain;" /></div>
-      <h1>Configuración inicial</h1>
-      <p>Conecta tu base de datos Supabase para comenzar a usar el CRM de Lana Rosa Crochet.</p>
-    </div>
-    <div class="form-group">
-      <label>URL del proyecto Supabase</label>
-      <input type="url" id="setup-url" placeholder="https://xyzxyz.supabase.co" />
-    </div>
-    <div class="form-group">
-      <label>Clave anónima (anon key)</label>
-      <input type="text" id="setup-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..." />
-    </div>
-    <div class="auth-error" id="setup-error"></div>
-    <button class="btn-primary" onclick="saveConfig()">Guardar y continuar →</button>
-    <p style="font-size:0.75rem;color:var(--texto-medio);text-align:center;margin-top:16px;">
-      Estas credenciales se guardan solo en tu navegador.<br>
-      Las encuentras en tu proyecto Supabase → Settings → API.
-    </p>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════
      AUTH SCREEN
 ═══════════════════════════════════════════════ -->
 <div id="auth-screen" style="display:none;">
@@ -1357,19 +1319,19 @@
     <div id="login-form">
       <div class="form-group">
         <label>Correo electrónico</label>
-        <input type="email" id="login-email" placeholder="sara@lanarosacrochet.co" />
+        <input type="email" id="login-email" placeholder="tucorreo@ejemplo.com" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" />
       </div>
       <div class="form-group">
         <label>Contraseña</label>
-        <input type="password" id="login-password" placeholder="••••••••" />
+        <div class="password-wrap">
+          <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+          <button type="button" class="password-eye" id="login-eye" onclick="toggleLoginPassword()" aria-label="Mostrar contraseña" aria-pressed="false">👁️</button>
+        </div>
       </div>
       <button class="btn-primary" id="btn-login" onclick="handleLogin()">Ingresar</button>
     </div>
     <p style="font-size:0.72rem;color:var(--texto-medio);text-align:center;margin-top:16px;">
       ¿No tienes cuenta? Pídele a tu administradora que te la cree desde Equipo.
-    </p>
-    <p style="font-size:0.72rem;color:var(--texto-medio);text-align:center;margin-top:8px;">
-      <a href="#" onclick="showSetup()" style="color:var(--rosa-principal);text-decoration:none;">⚙️ Cambiar configuración de Supabase</a>
     </p>
   </div>
 </div>
@@ -2280,42 +2242,55 @@ let imageFile       = null;
 let editingPedidoId = null;
 let editingClienteId = null;
 
-function getConfig() {
-  return {
-    url: localStorage.getItem('sb_url') || '',
-    key: localStorage.getItem('sb_key') || ''
-  };
-}
+// ── Conexión: UN solo lugar. Cuando las plataformas pasen a una sola dirección
+//    con un solo ingreso, se cambia aquí (y la pantalla de ingreso de abajo).
+//    La clave "anon" es pública por diseño: los datos los protege la base (RLS) y el inicio de sesión.
+const CONEXION = {
+  url: 'https://wcqdkccvtywiutzknskr.supabase.co',
+  key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjcWRrY2N2dHl3aXV0emtuc2tyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDU1NzYsImV4cCI6MjA5NTM4MTU3Nn0.o86x0CkbuzsgHoupFnX-r6gw3Ny5q6UilXkU-gfFIFE'
+};
+const CLAVE_CORREO = 'lr_crm_correo';
+
+// Limpieza: versiones anteriores guardaban aquí la URL y la clave que se escribían a mano
+try { localStorage.removeItem('sb_url'); localStorage.removeItem('sb_key'); } catch(e) {}
 
 function initSupabase() {
-  const cfg = getConfig();
-  if (!cfg.url || !cfg.key) return false;
   try {
-    supabase_client = supabase.createClient(cfg.url, cfg.key);
+    supabase_client = supabase.createClient(CONEXION.url, CONEXION.key);
     return true;
   } catch(e) { return false; }
 }
 
-function saveConfig() {
-  const url = document.getElementById('setup-url').value.trim();
-  const key = document.getElementById('setup-key').value.trim();
-  const err = document.getElementById('setup-error');
-  if (!url || !key) { showSetupError('Por favor completa ambos campos.'); return; }
-  if (!url.startsWith('https://')) { showSetupError('La URL debe comenzar con https://'); return; }
-  localStorage.setItem('sb_url', url);
-  localStorage.setItem('sb_key', key);
-  if (!initSupabase()) { showSetupError('No se pudo conectar. Verifica las credenciales.'); return; }
-  document.getElementById('setup-screen').style.display = 'none';
-  document.getElementById('auth-screen').style.display  = 'flex';
+// Correo recordado en este aparato (solo el correo, nunca la contraseña)
+function correoRecordado() {
+  try { return localStorage.getItem(CLAVE_CORREO) || ''; } catch(e) { return ''; }
+}
+function recordarCorreo(email) {
+  try { localStorage.setItem(CLAVE_CORREO, email); } catch(e) {}
 }
 
-function showSetupError(msg) {
-  const el = document.getElementById('setup-error');
-  el.textContent = msg; el.classList.add('show');
+// Pantalla de ingreso: si ya hay correo recordado, solo pide la contraseña
+function mostrarIngreso(mensaje) {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('bottom-nav').style.display = 'none';
+  const emailEl = document.getElementById('login-email');
+  const passEl  = document.getElementById('login-password');
+  const recordado = correoRecordado();
+  if (recordado) emailEl.value = recordado;
+  passEl.value = '';
+  document.getElementById('auth-screen').style.display = 'flex';
+  if (mensaje) showAuthError(mensaje);
+  (recordado ? passEl : emailEl).focus();
 }
-function showSetup() {
-  document.getElementById('auth-screen').style.display = 'none';
-  document.getElementById('setup-screen').style.display = 'flex';
+
+function toggleLoginPassword() {
+  const passEl = document.getElementById('login-password');
+  const eye    = document.getElementById('login-eye');
+  const ver = passEl.type === 'password';
+  passEl.type = ver ? 'text' : 'password';
+  eye.textContent = ver ? '🙈' : '👁️';
+  eye.setAttribute('aria-pressed', ver ? 'true' : 'false');
+  eye.setAttribute('aria-label', ver ? 'Ocultar contraseña' : 'Mostrar contraseña');
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2327,21 +2302,22 @@ window.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('header-date').textContent =
     now.toLocaleDateString('es-CO', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
 
-  const ok = initSupabase();
-  if (!ok) {
-    document.getElementById('setup-screen').style.display = 'flex';
+  if (!initSupabase()) {
+    mostrarIngreso('No se pudo cargar el CRM. Recarga la página.');
     return;
   }
 
-  // Check session
+  // Sin sesión no se muestra ningún dato: solo la pantalla de ingreso
   const { data: { session } } = await supabase_client.auth.getSession();
-  if (session) {
-    currentUser = session.user;
-    await loadProfile();
-    showApp();
-  } else {
-    document.getElementById('auth-screen').style.display = 'flex';
+  if (!session) { mostrarIngreso(); return; }
+  currentUser = session.user;
+  if (!(await loadProfile())) {
+    await supabase_client.auth.signOut();
+    currentUser = null;
+    mostrarIngreso('Tu cuenta no tiene permiso para entrar al CRM.');
+    return;
   }
+  showApp();
 });
 
 // ══════════════════════════════════════════════════════════
@@ -2357,7 +2333,14 @@ async function handleLogin() {
   btn.disabled = false; btn.textContent = 'Ingresar';
   if (error) { showAuthError(error.message); return; }
   currentUser = data.user;
-  await loadProfile();
+  if (!(await loadProfile())) {
+    await supabase_client.auth.signOut();
+    currentUser = null;
+    showAuthError('Tu cuenta no tiene permiso para entrar al CRM.');
+    return;
+  }
+  recordarCorreo(email);
+  document.getElementById('auth-error').classList.remove('show');
   document.getElementById('auth-screen').style.display = 'none';
   showApp();
 }
@@ -2365,9 +2348,7 @@ async function handleLogin() {
 async function handleLogout() {
   await supabase_client.auth.signOut();
   currentUser = null; currentProfile = null;
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('bottom-nav').style.display = 'none';
-  document.getElementById('auth-screen').style.display = 'flex';
+  mostrarIngreso();
 }
 
 function showAuthError(msg, type='error') {
@@ -2381,9 +2362,13 @@ function showAuthError(msg, type='error') {
 //  PROFILE
 // ══════════════════════════════════════════════════════════
 async function loadProfile() {
-  if (!currentUser) return;
-  const { data } = await supabase_client.from('profiles').select('*').eq('id', currentUser.id).single();
-  currentProfile = data || { full_name: currentUser.email, role: 'tejedora' };
+  currentProfile = null;
+  if (!currentUser) return false;
+  const { data } = await supabase_client.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+  // Solo entra quien tiene perfil con rol (administradora o tejedora)
+  if (!data || !['admin','tejedora'].includes(data.role)) return false;
+  currentProfile = data;
+  return true;
 }
 
 // ══════════════════════════════════════════════════════════
@@ -3848,9 +3833,7 @@ async function crearUsuarioAdmin() {
   btn.disabled = true; btn.textContent = '⏳ Creando...';
 
   try {
-    const cfg = getConfig();
-    const projectRef = cfg.url.replace('https://', '').split('.')[0];
-    const fnUrl = `https://${projectRef}.supabase.co/functions/v1/admin-create-user`;
+    const fnUrl = `${CONEXION.url}/functions/v1/admin-create-user`;
     const { data: { session } } = await supabase_client.auth.getSession();
 
     const res = await fetch(fnUrl, {
