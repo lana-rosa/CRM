@@ -1,10 +1,10 @@
-# Resumen del Orquestador CRM (17-nov-2026)
+# Resumen del Orquestador CRM (17-nov-2026) — entregado al Orquestador General
 
 **Chats del CRM** (repo `lana-rosa/CRM`; reglas en `CLAUDE.md`, pendientes en `docs/PENDIENTES.md`):
 - **Chat 1. Datos e integración ERP** — Fase 0 (seguridad) cerrada; **Fase 1 aplicada en el ERP el 14-nov** (tablas `crm_*`, funciones `fn_crm_*`, 31/31 pruebas, 0 errores del asesor). Lista sin aplicar: `docs/fase1/propuesta-vinculo-pedidos.sql` (llenar `tercero_id` en 16 pedidos).
 - **Chat 5. Indicadores e interfaz** — limpieza hecha (sin Stock/Producción/Envíos, supabase-js fijo). Pendiente: nombre de cliente vacío para tejedoras; enlace al ERP tras la mudanza.
 - **Chat 3. Embudo y seguimiento** — propuesta de embudo único sobre `oportunidades_venta` + `crm_oportunidades_detalle` en `docs/temas/embudo-seguimiento.md`.
-- **Chat 4. Fidelización** — sin abrir; encargo listo: diseño de posventa (`docs/temas/fidelizacion.md`).
+- **Chat 4. Fidelización** — diseño de posventa hecho (`docs/fidelizacion/posventa.md` y `.sql`, 37 pruebas locales); falta probar contra ERP, Resend, web y Seguimiento, y revisión de la Web antes de construir.
 - **Chat 2. Clientes y ficha** — sin abrir; espera pasar las pantallas a la base del ERP.
 
 **Decisiones vigentes de la dueña:**
@@ -16,7 +16,7 @@
 
 **Pendientes de la dueña:**
 - Go a `propuesta-vinculo-pedidos.sql`; decidir PED-2026-00553 y 00562; los 3 clientes sin vínculo; fecha de corte (propuesta 11-ene-2027).
-- Copiar los textos en el Perfil de Google y corregir el pin del mapa; abrir el Chat 4.
+- Copiar los textos en el Perfil de Google y corregir el pin del mapa.
 - Activar la protección de contraseñas filtradas en Supabase (proyecto CRM).
 - Abogada (Ley 1581): datos web en el CRM, prospectos sin autorización, posventa servicio vs. comercial (punto 17), 10 terceros sin constancia.
 

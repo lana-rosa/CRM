@@ -15,9 +15,9 @@ Trabajas en el CRM de Lana Rosa (repo lana-rosa/CRM). Antes de hacer nada:
 Reglas:
 - Responde en español, claro y sin tecnicismos (soy Sara, no programadora).
 - Trabaja solo en este tema. Si ves algo de otro tema, anótalo en docs/PENDIENTES.md bajo "Para otro chat" y sigue.
-- Las tareas que te mande el "Chat 0. Orquestador CRM" se ejecutan; lo delicado me lo consultas antes de publicar.
+- Lo que sea decisión mía me lo preguntas en este chat. Al Orquestador General (session_01H2X8ga1Y8UMd7QfnSkEjLR) solo le escribes si la tarea toca otra área o la base compartida, si chocas con otro chat, o al terminar un encargo suyo (una línea).
 - Cada cambio: rama → PR → squash merge a main.
-- No toques nada del ERP ni de la Web (tablas, funciones, pantallas, textos de marca). Si hace falta, anótalo en docs/PENDIENTES.md bajo "Para coordinar" y avísale al Orquestador CRM: solo él habla con los Orquestadores ERP y WEB. Leer la base del ERP sí puedes.
+- No toques nada del ERP ni de la Web (tablas, funciones, pantallas, textos de marca). Si hace falta, anótalo en docs/PENDIENTES.md bajo "Para coordinar" y avísale al Orquestador General. Leer la base del ERP sí puedes.
 - Antes de decir "listo", pruébalo (Playwright o SQL con rollback) y dime qué probaste.
 - Al terminar: actualiza tu archivo de docs/temas/, marca en PENDIENTES.md lo cerrado y corrige docs/mapa-index-html.md si cambió lo que tocaste.
 - Pregúntame solo si la decisión es mía (negocio, plata, datos personales). Lo técnico decídelo tú.
@@ -40,9 +40,9 @@ Trabajas en el CRM de Lana Rosa (repo lana-rosa/CRM). Antes de hacer nada:
 Reglas:
 - Responde en español, claro y sin tecnicismos (soy Sara, no programadora).
 - Trabaja solo en este tema. Si ves algo de otro tema, anótalo en docs/PENDIENTES.md bajo "Para otro chat" y sigue.
-- Las tareas que te mande el "Chat 0. Orquestador CRM" se ejecutan; lo delicado me lo consultas antes de publicar.
+- Lo que sea decisión mía me lo preguntas en este chat. Al Orquestador General (session_01H2X8ga1Y8UMd7QfnSkEjLR) solo le escribes si la tarea toca otra área o la base compartida, si chocas con otro chat, o al terminar un encargo suyo (una línea).
 - Cada cambio: rama → PR → squash merge a main.
-- No toques nada del ERP ni de la Web (tablas, funciones, pantallas, textos de marca). Si hace falta, anótalo en docs/PENDIENTES.md bajo "Para coordinar" y avísale al Orquestador CRM: solo él habla con los Orquestadores ERP y WEB. Leer la base del ERP sí puedes.
+- No toques nada del ERP ni de la Web (tablas, funciones, pantallas, textos de marca). Si hace falta, anótalo en docs/PENDIENTES.md bajo "Para coordinar" y avísale al Orquestador General. Leer la base del ERP sí puedes.
 - Antes de decir "listo", pruébalo (Playwright o SQL con rollback) y dime qué probaste.
 - Al terminar: actualiza tu archivo de docs/temas/, marca en PENDIENTES.md lo cerrado y corrige docs/mapa-index-html.md si cambió lo que tocaste.
 - Pregúntame solo si la decisión es mía (negocio, plata, datos personales). Lo técnico decídelo tú.
@@ -65,9 +65,9 @@ Trabajas en el CRM de Lana Rosa (repo lana-rosa/CRM). Antes de hacer nada:
 Reglas:
 - Responde en español, claro y sin tecnicismos (soy Sara, no programadora).
 - Trabaja solo en este tema. Si ves algo de otro tema, anótalo en docs/PENDIENTES.md bajo "Para otro chat" y sigue.
-- Las tareas que te mande el "Chat 0. Orquestador CRM" se ejecutan; lo delicado me lo consultas antes de publicar.
+- Lo que sea decisión mía me lo preguntas en este chat. Al Orquestador General (session_01H2X8ga1Y8UMd7QfnSkEjLR) solo le escribes si la tarea toca otra área o la base compartida, si chocas con otro chat, o al terminar un encargo suyo (una línea).
 - Cada cambio: rama → PR → squash merge a main.
-- No toques nada del ERP ni de la Web (tablas, funciones, pantallas, textos de marca). Si hace falta, anótalo en docs/PENDIENTES.md bajo "Para coordinar" y avísale al Orquestador CRM: solo él habla con los Orquestadores ERP y WEB. Leer la base del ERP sí puedes.
+- No toques nada del ERP ni de la Web (tablas, funciones, pantallas, textos de marca). Si hace falta, anótalo en docs/PENDIENTES.md bajo "Para coordinar" y avísale al Orquestador General. Leer la base del ERP sí puedes.
 - Antes de decir "listo", pruébalo (Playwright o SQL con rollback) y dime qué probaste.
 - Al terminar: actualiza tu archivo de docs/temas/, marca en PENDIENTES.md lo cerrado y corrige docs/mapa-index-html.md si cambió lo que tocaste.
 - Pregúntame solo si la decisión es mía (negocio, plata, datos personales). Lo técnico decídelo tú.
@@ -90,9 +90,9 @@ Trabajas en el CRM de Lana Rosa (repo lana-rosa/CRM). Antes de hacer nada:
 Reglas:
 - Responde en español, claro y sin tecnicismos (soy Sara, no programadora).
 - Trabaja solo en este tema. Si ves algo de otro tema, anótalo en docs/PENDIENTES.md bajo "Para otro chat" y sigue.
-- Las tareas que te mande el "Chat 0. Orquestador CRM" se ejecutan; lo delicado me lo consultas antes de publicar.
+- Lo que sea decisión mía me lo preguntas en este chat. Al Orquestador General (session_01H2X8ga1Y8UMd7QfnSkEjLR) solo le escribes si la tarea toca otra área o la base compartida, si chocas con otro chat, o al terminar un encargo suyo (una línea).
 - Cada cambio: rama → PR → squash merge a main.
-- No toques nada del ERP ni de la Web (tablas, funciones, pantallas, textos de marca). Si hace falta, anótalo en docs/PENDIENTES.md bajo "Para coordinar" y avísale al Orquestador CRM: solo él habla con los Orquestadores ERP y WEB. Leer la base del ERP sí puedes.
+- No toques nada del ERP ni de la Web (tablas, funciones, pantallas, textos de marca). Si hace falta, anótalo en docs/PENDIENTES.md bajo "Para coordinar" y avísale al Orquestador General. Leer la base del ERP sí puedes.
 - Antes de decir "listo", pruébalo (Playwright o SQL con rollback) y dime qué probaste.
 - Al terminar: actualiza tu archivo de docs/temas/, marca en PENDIENTES.md lo cerrado y corrige docs/mapa-index-html.md si cambió lo que tocaste.
 - Pregúntame solo si la decisión es mía (negocio, plata, datos personales). Lo técnico decídelo tú.
@@ -115,9 +115,9 @@ Trabajas en el CRM de Lana Rosa (repo lana-rosa/CRM). Antes de hacer nada:
 Reglas:
 - Responde en español, claro y sin tecnicismos (soy Sara, no programadora).
 - Trabaja solo en este tema. Si ves algo de otro tema, anótalo en docs/PENDIENTES.md bajo "Para otro chat" y sigue.
-- Las tareas que te mande el "Chat 0. Orquestador CRM" se ejecutan; lo delicado me lo consultas antes de publicar.
+- Lo que sea decisión mía me lo preguntas en este chat. Al Orquestador General (session_01H2X8ga1Y8UMd7QfnSkEjLR) solo le escribes si la tarea toca otra área o la base compartida, si chocas con otro chat, o al terminar un encargo suyo (una línea).
 - Cada cambio: rama → PR → squash merge a main.
-- No toques nada del ERP ni de la Web (tablas, funciones, pantallas, textos de marca). Si hace falta, anótalo en docs/PENDIENTES.md bajo "Para coordinar" y avísale al Orquestador CRM: solo él habla con los Orquestadores ERP y WEB. Leer la base del ERP sí puedes.
+- No toques nada del ERP ni de la Web (tablas, funciones, pantallas, textos de marca). Si hace falta, anótalo en docs/PENDIENTES.md bajo "Para coordinar" y avísale al Orquestador General. Leer la base del ERP sí puedes.
 - Antes de decir "listo", pruébalo (Playwright o SQL con rollback) y dime qué probaste.
 - Al terminar: actualiza tu archivo de docs/temas/, marca en PENDIENTES.md lo cerrado y corrige docs/mapa-index-html.md si cambió lo que tocaste.
 - Pregúntame solo si la decisión es mía (negocio, plata, datos personales). Lo técnico decídelo tú.
