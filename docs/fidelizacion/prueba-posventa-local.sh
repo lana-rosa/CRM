@@ -65,7 +65,7 @@ echo "5) Correos"
 eq "select fn_crm_posventa_enviar_correos()" "2" "envía 2"
 eq "select fn_crm_posventa_enviar_correos()" "0" "no reenvía"
 eq "select count(*) from net._llamadas where headers->>'Idempotency-Key' like 'posventa-%' and body->'headers'->>'List-Unsubscribe' like '<https://lanarosacrochet.com/baja.html?t=%'" "2" "Idempotency-Key y enlace de baja en cada correo"
-eq "select count(*) from net._llamadas where body->>'html' like '%share.google%' and body->>'html' like '%cuenta.html%' and body->>'html' like '%encuesta.html?t=%'" "2" "cada correo trae encuesta + web + Google"
+eq "select count(*) from net._llamadas where body->>'html' like '%g.page/r/Cae2iIji5j_XEAI%' and body->>'html' like '%cuenta.html%' and body->>'html' like '%encuesta.html?t=%'" "2" "cada correo trae encuesta + web + Google"
 eq "select count(*) from net._llamadas where body->>'html' ~* 'navidad|halloween|santo'" "0" "sin Navidad/santos/Halloween"
 echo "6) Seguridad: anon"
 T=$(q "select token from crm_posventa s join pedidos_canal_venta p on p.id=s.pedido_id where consecutivo='PED-A'")
@@ -87,7 +87,7 @@ T2=$(q "select token from crm_posventa s join pedidos_canal_venta p on p.id=s.pe
 eq "set role anon; select encuesta_posventa_responder('$T2',9,5,'si',null)::jsonb->>'estado'" "datos_invalidos" "estrellas fuera de 1-5: rechazada"
 R=$(q "set role anon; select encuesta_posventa_responder('$T2',2,5,'no','llegó tarde')" | tail -1)
 echo "$R" | grep -q '"ok": true' && ok "respuesta con notas bajas se acepta" || mal "notas bajas: $R"
-echo "$R" | grep -q 'share.google' && echo "$R" | grep -q 'cuenta.html' && ok "con notas bajas igual recibe la invitación a Google y a la web" || mal "con notas bajas NO recibió la invitación"
+echo "$R" | grep -q 'g.page/r/Cae2iIji5j_XEAI' && echo "$R" | grep -q 'cuenta.html' && ok "con notas bajas igual recibe la invitación a Google y a la web" || mal "con notas bajas NO recibió la invitación"
 eq "select count(*) from crm_tareas where titulo like 'Posventa%'" "1" "nota baja: crea tarea interna"
 echo "8) Vencida"
 q "insert into pedidos_canal_venta(id,consecutivo,canal,centro_costo_id,tercero_id,descripcion_producto,total_pedido,estado) select '10000000-0000-0000-0000-0000000000aa','PED-V','whatsapp',centro_costo_id,tercero_id,'Oso',1,'entregado' from pedidos_canal_venta where consecutivo='PED-A'" >/dev/null
