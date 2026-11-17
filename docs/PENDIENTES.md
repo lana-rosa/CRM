@@ -21,6 +21,7 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 - [x] Orquestador: cerrar funciones expuestas y apagar la copia de stock al ERP (13-nov).
 - [x] Chat 1: `search_path` fijado en las 6 funciones y RLS por rol (13-nov, migración `fase0_search_path_y_rls_por_rol`). Probado con rollback.
 - [ ] Para otro chat (Chat 5, pantallas): la tejedora ya no puede leer `clientes`; en su lista de pedidos el nombre del cliente sale vacío. Revisar que la pantalla lo muestre bien (ej. «—») y que no dé error.
+- [x] Chat 5 (17-nov, opción A): ingreso sin pantalla de configuración; URL y clave públicas fijas del CRM; solo entran roles con perfil. Falta la opción B con la Fase 1.
 - [x] Chat 5: quitar Stock, Producción y Envíos sobrantes; arreglar Informes y Excel; fijar versión de supabase-js (13-nov, `supabase-js@2.118.0`).
 - [x] Chat 3: quitar código muerto en `crearPedidoDesdeOportunidad` (13-nov).
 
@@ -37,6 +38,7 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 
 ## Para otro chat
 (Anota aquí: fecha · chat que lo vio · para qué chat · qué es.)
+- 17-nov · Chat 5 · Chat 1 (base): en la base del CRM `produccion_progreso`, `profiles` y `stock_items` tienen políticas para el rol `public`/`anon` (hoy sin efecto porque `anon` no tiene permiso de lectura en las tablas), y `crm_touch_oportunidad` es ejecutable por `anon`. Revisar y cerrar. `stock_items` y `produccion_progreso` ya no las lee nadie en el CRM.
 
 ## Para coordinar (lo hace solo el Orquestador CRM)
 ### Con el Orquestador ERP
