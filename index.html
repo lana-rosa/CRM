@@ -2465,18 +2465,35 @@ async function enviarEnlaceRecuperacion() {
   const btn = document.getElementById('btn-reset');
   if (btn.disabled) return;
   btn.disabled = true;
-  const { error } = await supabase_client.auth.resetPasswordForEmail(email, { redirectTo: CONEXION.urlCrm });
-  if (error && (error.status === 429 || /rate|seconds|too many/i.test(error.message || ''))) {
-    showAuthError('Espera un momento antes de pedir otro enlace.');
-    bloquearBotonReset(30); return;
-  }
-  if (error && (!error.status || error.status >= 500)) {
+
+  // La revisión (¿es colaborador?) y el límite de 3 intentos por hora las hace el servidor; la pantalla solo muestra el resultado.
+  let estado = 'error';
+  try {
+    const resp = await fetch(`${CONEXION.url}/functions/v1/recuperar-contrasena`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const datos = await resp.json().catch(() => ({}));
+    estado = datos.estado || 'error';
+  } catch (e) { estado = 'error'; }
+
+  if (estado === 'enviado') {
+    showAuthError('Te enviamos un enlace a tu correo registrado. Revisa también la carpeta de spam.', 'info');
+    bloquearBotonReset(30);
+  } else if (estado === 'no_existe') {
+    showAuthError('Ese usuario no existe en el sistema');
     btn.disabled = false;
-    showAuthError('No pudimos enviar el correo. Revisa tu conexión e inténtalo de nuevo.'); return;
+  } else if (estado === 'limite') {
+    showAuthError('Llegaste al máximo de 3 intentos por hora. Inténtalo más tarde.');
+    bloquearBotonReset(30);
+  } else if (estado === 'espera') {
+    showAuthError('Espera un momento antes de pedir otro enlace.');
+    bloquearBotonReset(30);
+  } else {
+    showAuthError('No pudimos enviar el correo. Revisa tu conexión e inténtalo de nuevo.');
+    btn.disabled = false;
   }
-  // Mensaje neutro: no se revela si el correo tiene cuenta o no
-  showAuthError('Si el correo existe, te llegó un enlace para crear una nueva contraseña. Revisa también la carpeta de spam.', 'info');
-  bloquearBotonReset(30);
 }
 
 function mostrarNuevaContrasena() {
