@@ -22,6 +22,7 @@ Cada chat marca aquí lo que cierra y anota lo que ve de otros temas.
 - [x] Chat 1: `search_path` fijado en las 6 funciones y RLS por rol (13-nov, migración `fase0_search_path_y_rls_por_rol`). Probado con rollback.
 - [ ] Para otro chat (Chat 5, pantallas): la tejedora ya no puede leer `clientes`; en su lista de pedidos el nombre del cliente sale vacío. Revisar que la pantalla lo muestre bien (ej. «—») y que no dé error.
 - [x] Chat 5 (17-nov, opción A): ingreso sin pantalla de configuración; URL y clave públicas fijas del CRM; solo entran roles con perfil. Falta la opción B con la Fase 1.
+- [ ] Chat 5 (18-nov): «¿Olvidaste tu contraseña?» preparada en el PR 36 (con el cambio de pantalla completa); falta el «sí» de Sara, que Jennifer agregue la dirección del CRM en Redirect URLs de Supabase y la plantilla «Reset password» en español, y que Sara o Jennifer hagan el recorrido con una cuenta real.
 - [x] Chat 5: quitar Stock, Producción y Envíos sobrantes; arreglar Informes y Excel; fijar versión de supabase-js (13-nov, `supabase-js@2.118.0`).
 - [x] Chat 3: quitar código muerto en `crearPedidoDesdeOportunidad` (13-nov).
 

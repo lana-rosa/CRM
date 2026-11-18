@@ -326,6 +326,8 @@
     /* MAIN */
     .main-content {
       margin-left: var(--sidebar-w);
+      flex: 1 1 auto;       /* ocupa todo el ancho que deja el menú lateral */
+      min-width: 0;         /* y deja que las tablas anchas se desplacen dentro de su tarjeta */
       height: 100vh;
       overflow-y: auto;
       background: var(--blanco-hueso);
@@ -883,6 +885,12 @@
     .filter-select:focus { border-color: var(--rosa-principal); }
 
     /* SETUP SCREEN */
+    .auth-olvido { text-align: center; margin-top: 14px; font-size: 0.8rem; }
+    .auth-olvido a { color: var(--rosa-principal); text-decoration: none; font-weight: 600; }
+    .auth-olvido a:hover, .auth-olvido a:focus-visible { text-decoration: underline; }
+    .auth-olvido a.deshabilitado { color: var(--texto-medio); pointer-events: none; font-weight: 500; }
+    .auth-subtitulo { font-size: 1.1rem; font-weight: 700; color: var(--texto-oscuro); text-align: center; margin-bottom: 6px; }
+    .auth-ayuda { font-size: 0.8rem; color: var(--texto-medio); text-align: center; margin-bottom: 18px; line-height: 1.5; }
     .password-wrap { position: relative; }
     .password-wrap input { padding-right: 46px; }
     .password-eye {
@@ -1329,8 +1337,29 @@
         </div>
       </div>
       <button class="btn-primary" id="btn-login" onclick="handleLogin()">Ingresar</button>
+      <p class="auth-olvido"><a href="#" id="link-olvido" onclick="olvideContrasena(event)">¿Olvidaste tu contraseña?</a></p>
     </div>
-    <p style="font-size:0.72rem;color:var(--texto-medio);text-align:center;margin-top:16px;">
+    <div id="newpass-form" style="display:none;">
+      <h2 class="auth-subtitulo">Crea tu nueva contraseña</h2>
+      <p class="auth-ayuda">Elige una contraseña de al menos 10 caracteres. La vas a usar para ingresar al CRM.</p>
+      <div class="form-group">
+        <label>Nueva contraseña</label>
+        <div class="password-wrap">
+          <input type="password" id="newpass-1" placeholder="Mínimo 10 caracteres" autocomplete="new-password" minlength="10" />
+          <button type="button" class="password-eye" id="newpass-1-eye" onclick="togglePassword('newpass-1','newpass-1-eye')" aria-label="Mostrar contraseña" aria-pressed="false">👁️</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Confirma tu contraseña</label>
+        <div class="password-wrap">
+          <input type="password" id="newpass-2" placeholder="Escríbela otra vez" autocomplete="new-password" minlength="10" />
+          <button type="button" class="password-eye" id="newpass-2-eye" onclick="togglePassword('newpass-2','newpass-2-eye')" aria-label="Mostrar contraseña" aria-pressed="false">👁️</button>
+        </div>
+      </div>
+      <button class="btn-primary" id="btn-newpass" onclick="guardarNuevaContrasena()">Guardar contraseña y entrar</button>
+      <p class="auth-olvido"><a href="#" onclick="cancelarRecuperacion(event)">Cancelar y volver al ingreso</a></p>
+    </div>
+    <p id="auth-pie" style="font-size:0.72rem;color:var(--texto-medio);text-align:center;margin-top:16px;">
       ¿No tienes cuenta? Pídele a tu administradora que te la cree desde Equipo.
     </p>
   </div>
@@ -1428,7 +1457,7 @@
             <p>Total de pedidos</p>
           </div>
           <div class="stat-card">
-            <div class="stat-card-icon light-pink">🧵</div>
+            <div class="stat-card-icon light-pink">🔄</div>
             <h3 id="stat-proceso">0</h3>
             <p>En proceso</p>
           </div>
@@ -1494,8 +1523,8 @@
               <div class="filter-row">
                 <select class="filter-select" id="filter-casa" onchange="loadPedidos()" aria-label="Filtrar por casa">
                   <option value="">Todas las casas</option>
-                  <option value="crochet">🧸 Crochet</option>
-                  <option value="merceria">🧶 Mercería</option>
+                  <option value="crochet">🎀 Crochet</option>
+                  <option value="merceria">✂️ Mercería</option>
                   <option value="academy">🎓 Academy</option>
                 </select>
               </div>
@@ -1542,8 +1571,8 @@
               <div class="filter-row">
                 <select class="filter-select" id="filter-casa-clientes" onchange="loadClientes()" aria-label="Filtrar clientes por casa">
                   <option value="">Todas las casas</option>
-                  <option value="crochet">🧸 Crochet</option>
-                  <option value="merceria">🧶 Mercería</option>
+                  <option value="crochet">🎀 Crochet</option>
+                  <option value="merceria">✂️ Mercería</option>
                   <option value="academy">🎓 Academy</option>
                 </select>
               </div>
@@ -1714,7 +1743,7 @@
               <p>Pedidos últimos 12 meses</p>
             </div>
             <div class="stat-card">
-              <div class="stat-card-icon light-pink">🧾</div>
+              <div class="stat-card-icon light-pink">🏷️</div>
               <h3 id="dash-ticket-promedio">$0</h3>
               <p>Valor promedio por pedido</p>
             </div>
@@ -2247,9 +2276,16 @@ let editingClienteId = null;
 //    La clave "anon" es pública por diseño: los datos los protege la base (RLS) y el inicio de sesión.
 const CONEXION = {
   url: 'https://wcqdkccvtywiutzknskr.supabase.co',
+  // Dirección a la que vuelve el enlace del correo de recuperación (debe estar en Supabase → Authentication → URL Configuration → Redirect URLs)
+  urlCrm: 'https://lana-rosa.github.io/CRM/',
   key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjcWRrY2N2dHl3aXV0emtuc2tyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MDU1NzYsImV4cCI6MjA5NTM4MTU3Nn0.o86x0CkbuzsgHoupFnX-r6gw3Ny5q6UilXkU-gfFIFE'
 };
 const CLAVE_CORREO = 'lr_crm_correo';
+const CLAVE_MIN_CONTRASENA = 10;
+
+// ¿Se llegó desde el enlace del correo de recuperación? Se lee ahora, antes de que Supabase limpie la dirección.
+let enRecuperacion = /[#&?]type=recovery/.test(location.hash + location.search);
+const enlaceVencido = /error_code=otp_expired|error=access_denied/.test(location.hash + location.search);
 
 // Limpieza: versiones anteriores guardaban aquí la URL y la clave que se escribían a mano
 try { localStorage.removeItem('sb_url'); localStorage.removeItem('sb_key'); } catch(e) {}
@@ -2270,7 +2306,13 @@ function recordarCorreo(email) {
 }
 
 // Pantalla de ingreso: si ya hay correo recordado, solo pide la contraseña
+function vistaIngreso() {
+  document.getElementById('login-form').style.display = '';
+  document.getElementById('newpass-form').style.display = 'none';
+  document.getElementById('auth-pie').style.display = '';
+}
 function mostrarIngreso(mensaje) {
+  vistaIngreso();
   document.getElementById('app').style.display = 'none';
   document.getElementById('bottom-nav').style.display = 'none';
   const emailEl = document.getElementById('login-email');
@@ -2283,9 +2325,10 @@ function mostrarIngreso(mensaje) {
   (recordado ? passEl : emailEl).focus();
 }
 
-function toggleLoginPassword() {
-  const passEl = document.getElementById('login-password');
-  const eye    = document.getElementById('login-eye');
+function toggleLoginPassword() { togglePassword('login-password', 'login-eye'); }
+function togglePassword(inputId, eyeId) {
+  const passEl = document.getElementById(inputId);
+  const eye    = document.getElementById(eyeId);
   const ver = passEl.type === 'password';
   passEl.type = ver ? 'text' : 'password';
   eye.textContent = ver ? '🙈' : '👁️';
@@ -2307,8 +2350,25 @@ window.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
+  // Al volver por el enlace del correo, Supabase avisa con PASSWORD_RECOVERY: se pide la nueva contraseña
+  supabase_client.auth.onAuthStateChange((evento) => {
+    if (evento === 'PASSWORD_RECOVERY') { enRecuperacion = true; mostrarNuevaContrasena(); }
+  });
+
+  if (enlaceVencido) {
+    limpiarUrl(); enRecuperacion = false;
+    await supabase_client.auth.signOut();
+    mostrarIngreso('El enlace venció o ya se usó. Pide uno nuevo con «¿Olvidaste tu contraseña?».');
+    return;
+  }
+
   // Sin sesión no se muestra ningún dato: solo la pantalla de ingreso
   const { data: { session } } = await supabase_client.auth.getSession();
+  if (enRecuperacion) {
+    if (session) { mostrarNuevaContrasena(); }
+    else { enRecuperacion = false; limpiarUrl(); mostrarIngreso('El enlace venció o ya se usó. Pide uno nuevo con «¿Olvidaste tu contraseña?».'); }
+    return;
+  }
   if (!session) { mostrarIngreso(); return; }
   currentUser = session.user;
   if (!(await loadProfile())) {
@@ -2343,6 +2403,94 @@ async function handleLogin() {
   document.getElementById('auth-error').classList.remove('show');
   document.getElementById('auth-screen').style.display = 'none';
   showApp();
+}
+
+// ── Recuperar contraseña ──
+let bloqueoOlvidoHasta = 0;
+
+function limpiarUrl() {
+  try { history.replaceState(null, '', location.pathname); } catch(e) {}
+}
+
+async function olvideContrasena(ev) {
+  if (ev) ev.preventDefault();
+  const email = document.getElementById('login-email').value.trim();
+  if (!email || !email.includes('@')) {
+    showAuthError('Escribe tu correo arriba y toca de nuevo «¿Olvidaste tu contraseña?».');
+    document.getElementById('login-email').focus();
+    return;
+  }
+  if (Date.now() < bloqueoOlvidoHasta) { showAuthError('Ya te enviamos un enlace. Espera un minuto antes de pedir otro.', 'info'); return; }
+  const link = document.getElementById('link-olvido');
+  link.classList.add('deshabilitado');
+  const { error } = await supabase_client.auth.resetPasswordForEmail(email, { redirectTo: CONEXION.urlCrm });
+  let msg = 'Si el correo existe, te llegó un enlace para crear una nueva contraseña. Revisa también la carpeta de spam.';
+  if (error && (error.status === 429 || /rate|seconds|too many/i.test(error.message || ''))) {
+    msg = 'Espera un minuto antes de pedir otro enlace.';
+  } else if (error && (!error.status || error.status >= 500)) {
+    msg = 'No pudimos enviar el correo. Revisa tu conexión e inténtalo de nuevo.';
+    link.classList.remove('deshabilitado');
+    showAuthError(msg); return;
+  }
+  // Mensaje neutro: no se revela si el correo tiene cuenta o no
+  bloqueoOlvidoHasta = Date.now() + 60000;
+  showAuthError(msg, 'info');
+  setTimeout(() => link.classList.remove('deshabilitado'), 60000);
+}
+
+function mostrarNuevaContrasena() {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('bottom-nav').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('login-form').style.display = 'none';
+  document.getElementById('auth-pie').style.display = 'none';
+  document.getElementById('newpass-form').style.display = 'block';
+  document.getElementById('auth-error').classList.remove('show');
+  document.getElementById('newpass-1').focus();
+}
+
+function traducirErrorContrasena(error) {
+  const m = (error && error.message) || '';
+  if (/different from the old|same as the old/i.test(m)) return 'La nueva contraseña debe ser distinta de la anterior.';
+  if (/weak|pwned|compromised|at least|characters/i.test(m)) return 'Esa contraseña es muy fácil de adivinar. Elige otra más larga o con números y símbolos.';
+  if (/session|expired|jwt|not authenticated/i.test(m)) return 'El enlace venció. Vuelve al ingreso y pide uno nuevo.';
+  return 'No pudimos guardar la contraseña. Inténtalo de nuevo.';
+}
+
+async function guardarNuevaContrasena() {
+  const a = document.getElementById('newpass-1').value;
+  const b = document.getElementById('newpass-2').value;
+  const btn = document.getElementById('btn-newpass');
+  if (a.length < CLAVE_MIN_CONTRASENA) { showAuthError(`La contraseña debe tener mínimo ${CLAVE_MIN_CONTRASENA} caracteres.`); return; }
+  if (a !== b) { showAuthError('Las dos contraseñas no coinciden.'); return; }
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  const { error } = await supabase_client.auth.updateUser({ password: a });
+  btn.disabled = false; btn.textContent = 'Guardar contraseña y entrar';
+  if (error) { showAuthError(traducirErrorContrasena(error)); return; }
+
+  enRecuperacion = false; limpiarUrl();
+  document.getElementById('newpass-1').value = ''; document.getElementById('newpass-2').value = '';
+  const { data: { session } } = await supabase_client.auth.getSession();
+  currentUser = session ? session.user : null;
+  // Mismo requisito que el ingreso normal: solo entra quien tiene perfil con rol
+  if (!currentUser || !(await loadProfile())) {
+    await supabase_client.auth.signOut();
+    currentUser = null;
+    mostrarIngreso('Tu contraseña quedó guardada, pero tu cuenta no tiene permiso para entrar al CRM.');
+    return;
+  }
+  vistaIngreso();
+  document.getElementById('auth-error').classList.remove('show');
+  document.getElementById('auth-screen').style.display = 'none';
+  showApp();
+}
+
+async function cancelarRecuperacion(ev) {
+  if (ev) ev.preventDefault();
+  enRecuperacion = false; limpiarUrl();
+  await supabase_client.auth.signOut();
+  currentUser = null; currentProfile = null;
+  mostrarIngreso();
 }
 
 async function handleLogout() {
@@ -2680,7 +2828,7 @@ async function crearTareaSeguimiento() {
 // ── Embudo de ventas ──
 const ETAPAS_EMBUDO = [
   ['consulta','💬 Consulta','Preguntó por un producto'], ['cotizacion','💌 Cotización','Se le envió precio'], ['anticipo','💳 Anticipo','Pagó el anticipo'],
-  ['produccion','🧵 Producción','Se está tejiendo'], ['listo','📦 Listo','Terminado, por entregar'], ['entregado','✅ Entregado','Ya lo recibió'], ['posventa','🌟 Posventa','Pedimos opinión'], ['perdida','❌ Perdida','No se concretó']
+  ['produccion','🛠️ Producción','Se está tejiendo'], ['listo','📦 Listo','Terminado, por entregar'], ['entregado','✅ Entregado','Ya lo recibió'], ['posventa','🌟 Posventa','Pedimos opinión'], ['perdida','❌ Perdida','No se concretó']
 ];
 let oportunidadesCache = [];
 async function loadEmbudo() {
@@ -2813,10 +2961,10 @@ async function loadCrmIndicadores() {
     <div class="ficha-cols">
       <div class="ficha-caja"><h4>👥 Clientes por segmento</h4>${data.segmentos.map(s => filaBarra(segmentoTag(s.segmento), s.clientes, maxSeg, ' · ' + formatCOP(s.total))).join('')}<div style="font-size:0.72rem;color:var(--texto-medio);">${SEGMENTOS_AYUDA}</div></div>
       <div class="ficha-caja"><h4>📲 Clientes por canal</h4>${data.por_canal.map(s => filaBarra(escCrm(s.canal), s.clientes, maxCanal, ' · ' + formatCOP(s.total))).join('')}
-        <h4 style="margin-top:12px;">🧭 Cómo llegaron</h4>${data.por_como_llego.map(s => filaBarra(escCrm(s.origen), s.clientes, maxLlego)).join('')}</div>
+        <h4 style="margin-top:12px;">🔎 Cómo llegaron</h4>${data.por_como_llego.map(s => filaBarra(escCrm(s.origen), s.clientes, maxLlego)).join('')}</div>
       <div class="ficha-caja"><h4>🎯 Embudo actual</h4>${data.embudo.length ? data.embudo.map(e => `<div style="font-size:0.82rem;">${(ETAPAS_EMBUDO.find(x => x[0] === e.etapa) || [0, e.etapa])[1]}: <strong>${e.n}</strong> · ${formatCOP(e.valor)}</div>`).join('') : '<div style="font-size:0.82rem;color:var(--texto-medio);">Aún no hay oportunidades. Empieza en Embudo de ventas registrando cada consulta.</div>'}
         ${data.oportunidades_perdidas.length ? '<h4 style="margin-top:12px;">❌ Por qué se pierden</h4>' + data.oportunidades_perdidas.map(m => `<div style="font-size:0.82rem;">${escCrm(m.motivo)}: <strong>${m.n}</strong></div>`).join('') : ''}</div>
-      <div class="ficha-caja"><h4>🧹 Calidad de los datos</h4>
+      <div class="ficha-caja"><h4>✨ Calidad de los datos</h4>
         <div style="font-size:0.82rem;line-height:1.8;">📱 Sin teléfono: <strong>${di.sin_telefono}</strong><br>✉️ Sin correo: <strong>${di.sin_correo}</strong><br>🎂 Sin cumpleaños: <strong>${di.sin_cumple}</strong></div>
         <div style="font-size:0.72rem;color:var(--texto-medio);margin-top:4px;">Mientras más completos, más alertas útiles (cumpleaños, posventa, reactivación).</div></div>
     </div>`;
@@ -2844,12 +2992,12 @@ function daysUntil(d) {
 }
 function badgeEstado(estado) {
   const map    = { 'en proceso':'badge-proceso', 'en produccion':'badge-produccion-est', 'listo':'badge-listo', 'enviado':'badge-enviado', 'entregado':'badge-entregado', 'cancelado':'badge-cancelado' };
-  const icons  = { 'en proceso':'📋', 'en produccion':'🧵', 'listo':'📦', 'enviado':'🚚', 'entregado':'✅', 'cancelado':'❌' };
+  const icons  = { 'en proceso':'📋', 'en produccion':'🛠️', 'listo':'📦', 'enviado':'🚚', 'entregado':'✅', 'cancelado':'❌' };
   const labels = { 'en proceso':'En proceso', 'en produccion':'En producción', 'listo':'Listo', 'enviado':'Enviado', 'entregado':'Entregado', 'cancelado':'Cancelado' };
   return `<span class="badge ${map[estado]||'badge-proceso'}">${icons[estado]||''} ${labels[estado]||estado}</span>`;
 }
 // Casas de Lana Rosa (9-oct-2026): cada pedido de la web trae su casa y cada cliente suma su historial por casa en `clientes_casas`.
-const CASAS = { crochet: { icono: '🧸', nombre: 'Crochet' }, merceria: { icono: '🧶', nombre: 'Mercería' }, academy: { icono: '🎓', nombre: 'Academy' } };
+const CASAS = { crochet: { icono: '🎀', nombre: 'Crochet' }, merceria: { icono: '✂️', nombre: 'Mercería' }, academy: { icono: '🎓', nombre: 'Academy' } };
 function casaTag(casa, n) {
   const c = CASAS[casa] || CASAS.crochet;
   return `<span class="channel-tag channel-otro" title="${c.nombre}">${c.icono} ${c.nombre}${n ? ' · ' + n : ''}</span>`;
@@ -2921,7 +3069,7 @@ async function loadDashboard() {
     .gte('fecha_pedido', desde).lte('fecha_pedido', hasta)
     .order('fecha_pedido', { ascending: false }).limit(6);
   const tb = document.getElementById('tb-recientes');
-  if (!recent.data?.length) { tb.innerHTML = '<tr><td colspan="5"><div class="table-empty"><div class="table-empty-icon">🧶</div><p>No hay pedidos aún</p></div></td></tr>'; return; }
+  if (!recent.data?.length) { tb.innerHTML = '<tr><td colspan="5"><div class="table-empty"><div class="table-empty-icon">🐑</div><p>No hay pedidos aún</p></div></td></tr>'; return; }
   tb.innerHTML = recent.data.map(p => `
     <tr>
       <td><div style="font-size:0.78rem;font-weight:700;color:var(--rosa-principal);">${p.numero_pedido||'—'}</div></td>
@@ -4007,11 +4155,11 @@ async function openDetail(p) {
     const { data: pagos } = await supabase_client
       .from('pagos').select('*').eq('pedido_id', p.id).order('fecha_pago', { ascending: true });
 
-    const tipoLabel = { anticipo: '🟣 Anticipo', abono: '🔵 Abono', saldo_final: '✅ Saldo final' };
+    const tipoLabel = { anticipo: '🔶 Anticipo', abono: '🔵 Abono', saldo_final: '✅ Saldo final' };
 
     pagosHtml = `
     <div class="detail-section">
-      <h3>🧾 Historial de pagos</h3>
+      <h3>💳 Historial de pagos</h3>
       ${(!pagos || !pagos.length) ? '<p style="font-size:0.8rem;color:var(--texto-medio);">Todavía no hay pagos registrados.</p>' : pagos.map(pg => `
         <div class="detail-row">
           <span class="detail-label">${tipoLabel[pg.tipo] || pg.tipo} · ${formatDate(pg.fecha_pago)}${pg.metodo_pago ? ' · ' + pg.metodo_pago : ''}</span>
