@@ -54,6 +54,7 @@
       background: linear-gradient(135deg, #fce4f5 0%, #f9ddf4 40%, #ffe4f0 100%);
       position: relative;
       overflow: hidden;
+      overflow: clip;   /* no se puede desplazar ni por foco ni por clic: los adornos de fondo no mueven la tarjeta */
     }
     #auth-screen::before {
       content: '';
@@ -1337,7 +1338,17 @@
         </div>
       </div>
       <button class="btn-primary" id="btn-login" onclick="handleLogin()">Ingresar</button>
-      <p class="auth-olvido"><a href="#" id="link-olvido" onclick="olvideContrasena(event)">¿Olvidaste tu contraseña?</a></p>
+      <p class="auth-olvido"><a href="#" id="link-olvido" onclick="mostrarRecuperar(event)">¿Olvidaste tu contraseña?</a></p>
+    </div>
+    <div id="reset-form" style="display:none;">
+      <h2 class="auth-subtitulo">Recupera tu contraseña</h2>
+      <p class="auth-ayuda">Escribe tu correo y te enviamos un enlace para crear una nueva contraseña.</p>
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="reset-email" placeholder="tucorreo@ejemplo.com" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" />
+      </div>
+      <button class="btn-primary" id="btn-reset" onclick="enviarEnlaceRecuperacion()">Enviar enlace de recuperación</button>
+      <p class="auth-olvido"><a href="#" onclick="volverAIngresar(event)">Volver a ingresar</a></p>
     </div>
     <div id="newpass-form" style="display:none;">
       <h2 class="auth-subtitulo">Crea tu nueva contraseña</h2>
@@ -2307,6 +2318,7 @@ function recordarCorreo(email) {
 
 // Pantalla de ingreso: si ya hay correo recordado, solo pide la contraseña
 function vistaIngreso() {
+  document.getElementById('reset-form').style.display = 'none';
   document.getElementById('login-form').style.display = '';
   document.getElementById('newpass-form').style.display = 'none';
   document.getElementById('auth-pie').style.display = '';
@@ -2406,36 +2418,65 @@ async function handleLogin() {
 }
 
 // ── Recuperar contraseña ──
-let bloqueoOlvidoHasta = 0;
 
 function limpiarUrl() {
   try { history.replaceState(null, '', location.pathname); } catch(e) {}
 }
 
-async function olvideContrasena(ev) {
+// Vista de recuperación: solo título, ayuda, correo, botón y «Volver a ingresar»
+function mostrarRecuperar(ev) {
   if (ev) ev.preventDefault();
-  const email = document.getElementById('login-email').value.trim();
-  if (!email || !email.includes('@')) {
-    showAuthError('Escribe tu correo arriba y toca de nuevo «¿Olvidaste tu contraseña?».');
-    document.getElementById('login-email').focus();
-    return;
-  }
-  if (Date.now() < bloqueoOlvidoHasta) { showAuthError('Ya te enviamos un enlace. Espera un minuto antes de pedir otro.', 'info'); return; }
-  const link = document.getElementById('link-olvido');
-  link.classList.add('deshabilitado');
+  const correo = document.getElementById('login-email').value.trim();
+  document.getElementById('login-form').style.display = 'none';
+  document.getElementById('auth-pie').style.display = 'none';
+  document.getElementById('newpass-form').style.display = 'none';
+  document.getElementById('reset-form').style.display = 'block';
+  document.getElementById('auth-error').classList.remove('show');
+  const campo = document.getElementById('reset-email');
+  if (correo) campo.value = correo;
+  campo.focus();
+}
+
+function volverAIngresar(ev) {
+  if (ev) ev.preventDefault();
+  const correo = document.getElementById('reset-email').value.trim();
+  if (correo) document.getElementById('login-email').value = correo;
+  mostrarIngreso();
+}
+
+let temporizadorReset = null;
+function bloquearBotonReset(segundos) {
+  const btn = document.getElementById('btn-reset');
+  const texto = 'Enviar enlace de recuperación';
+  clearInterval(temporizadorReset);
+  let restante = segundos;
+  btn.disabled = true; btn.textContent = `${texto} (${restante} s)`;
+  temporizadorReset = setInterval(() => {
+    restante--;
+    if (restante <= 0) { clearInterval(temporizadorReset); btn.disabled = false; btn.textContent = texto; }
+    else btn.textContent = `${texto} (${restante} s)`;
+  }, 1000);
+}
+
+async function enviarEnlaceRecuperacion() {
+  const campo = document.getElementById('reset-email');
+  const email = campo.value.trim();
+  if (!email || !email.includes('@')) { showAuthError('Escribe tu correo para enviarte el enlace.'); campo.focus(); return; }
+  const btn = document.getElementById('btn-reset');
+  if (btn.disabled) return;
+  btn.disabled = true;
   const { error } = await supabase_client.auth.resetPasswordForEmail(email, { redirectTo: CONEXION.urlCrm });
-  let msg = 'Si el correo existe, te llegó un enlace para crear una nueva contraseña. Revisa también la carpeta de spam.';
   if (error && (error.status === 429 || /rate|seconds|too many/i.test(error.message || ''))) {
-    msg = 'Espera un minuto antes de pedir otro enlace.';
-  } else if (error && (!error.status || error.status >= 500)) {
-    msg = 'No pudimos enviar el correo. Revisa tu conexión e inténtalo de nuevo.';
-    link.classList.remove('deshabilitado');
-    showAuthError(msg); return;
+    showAuthError('Espera un momento antes de pedir otro enlace.');
+    bloquearBotonReset(30); return;
+  }
+  if (error && (!error.status || error.status >= 500)) {
+    btn.disabled = false;
+    showAuthError('No pudimos enviar el correo. Revisa tu conexión e inténtalo de nuevo.'); return;
   }
   // Mensaje neutro: no se revela si el correo tiene cuenta o no
-  bloqueoOlvidoHasta = Date.now() + 60000;
-  showAuthError(msg, 'info');
-  setTimeout(() => link.classList.remove('deshabilitado'), 60000);
+  showAuthError('Si el correo existe, te llegó un enlace para crear una nueva contraseña. Revisa también la carpeta de spam.', 'info');
+  bloquearBotonReset(30);
 }
 
 function mostrarNuevaContrasena() {
@@ -2443,6 +2484,7 @@ function mostrarNuevaContrasena() {
   document.getElementById('bottom-nav').style.display = 'none';
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('login-form').style.display = 'none';
+  document.getElementById('reset-form').style.display = 'none';
   document.getElementById('auth-pie').style.display = 'none';
   document.getElementById('newpass-form').style.display = 'block';
   document.getElementById('auth-error').classList.remove('show');
