@@ -31,4 +31,5 @@ Pedido de Jennifer (18-nov-2026) vía Orquestador General; Sara aprobó la base 
 - SQL con rollback (`prueba-rollback.sql`): todo bien, 0 filas quedan.
 - Lógica de la función de borde con piezas simuladas (`prueba-funcion-borde.mjs`).
 - Pantalla con Playwright a 1280 y 390 px.
-- **Pendiente:** llamada en vivo a la función y correo real (este entorno no tiene red hacia Supabase).
+- **Hecho por Sara (19-nov):** dirección del CRM en Redirect URLs y plantilla «Reset password» en español.
+- **Pendiente de confirmar:** llamada en vivo a la función y correo real (colaborador y no colaborador); el chat de interfaz no tiene red hacia Supabase.
