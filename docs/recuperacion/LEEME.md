@@ -17,7 +17,7 @@ Pedido de Jennifer (18-nov-2026) vía Orquestador General; Sara aprobó la base 
 ## Textos (iguales en el ERP)
 - Colaborador: «Te enviamos un enlace a tu correo registrado. Revisa también la carpeta de spam.»
 - No colaborador: «Ese usuario no existe en el sistema».
-- Límite: «Llegaste al máximo de 3 intentos por hora. Inténtalo más tarde.»
+- Límite: «Llegaste al máximo de intentos.»
 
 ## Riesgos conocidos (decididos por Jennifer, aceptados por Sara)
 1. **Se puede saber qué correos son de colaboradores** (el aviso explícito lo permite). El límite de 3 intentos por hora por aparato lo frena, pero no lo elimina: alguien con muchos aparatos o direcciones puede ir probando.
