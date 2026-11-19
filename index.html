@@ -2485,7 +2485,7 @@ async function enviarEnlaceRecuperacion() {
     showAuthError('Ese usuario no existe en el sistema');
     btn.disabled = false;
   } else if (estado === 'limite') {
-    showAuthError('Llegaste al máximo de 3 intentos por hora. Inténtalo más tarde.');
+    showAuthError('Llegaste al máximo de intentos.');
     bloquearBotonReset(30);
   } else if (estado === 'espera') {
     showAuthError('Espera un momento antes de pedir otro enlace.');
