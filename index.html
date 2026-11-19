@@ -1341,8 +1341,7 @@
       <p class="auth-olvido"><a href="#" id="link-olvido" onclick="mostrarRecuperar(event)">¿Olvidaste tu contraseña?</a></p>
     </div>
     <div id="reset-form" style="display:none;">
-      <h2 class="auth-subtitulo">Recupera tu contraseña</h2>
-      <p class="auth-ayuda">Escribe tu correo y te enviamos un enlace para crear una nueva contraseña.</p>
+      <h2 class="auth-subtitulo" style="margin-bottom:18px;">Recupera tu contraseña</h2>
       <div class="form-group">
         <label>Correo electrónico</label>
         <input type="email" id="reset-email" placeholder="tucorreo@ejemplo.com" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" />
@@ -2478,18 +2477,13 @@ async function enviarEnlaceRecuperacion() {
     estado = datos.estado || 'error';
   } catch (e) { estado = 'error'; }
 
-  if (estado === 'enviado') {
-    showAuthError('Te enviamos un enlace a tu correo registrado. Revisa también la carpeta de spam.', 'info');
-    bloquearBotonReset(30);
-  } else if (estado === 'no_existe') {
-    showAuthError('Ese usuario no existe en el sistema');
-    btn.disabled = false;
-  } else if (estado === 'limite') {
+  if (estado === 'limite') {
     showAuthError('Llegaste al máximo de intentos.');
-    bloquearBotonReset(30);
-  } else if (estado === 'espera') {
-    showAuthError('Espera un momento antes de pedir otro enlace.');
-    bloquearBotonReset(30);
+    bloquearBotonReset(10);
+  } else if (estado === 'enviado' || estado === 'no_existe' || estado === 'espera') {
+    // Mismo aviso para cualquier correo (colaborador o no): así no se descubren los correos de los colaboradores.
+    showAuthError('Si el correo está registrado, te enviamos un enlace.', 'info');
+    bloquearBotonReset(10);
   } else {
     showAuthError('No pudimos enviar el correo. Revisa tu conexión e inténtalo de nuevo.');
     btn.disabled = false;

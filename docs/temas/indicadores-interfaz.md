@@ -27,3 +27,4 @@ Valor de vida del cliente (CLV), tasa de recompra, cohortes por mes de primera c
 - [ ] Indicadores nuevos después de la unificación.
 
 - `#auth-screen` ahora usa `overflow: clip`: con `hidden`, sus adornos de fondo lo hacían más ancho que la pantalla y el navegador podía desplazarlo 44 px en celular (al enfocar un campo o tocar un botón), dejando la tarjeta cortada.
+- **Recuperación con aviso neutro (19-nov, pedido de Jennifer vía Orquestador General; preparado, pendiente del «sí» de Sara):** «Si el correo está registrado, te enviamos un enlace.» para cualquier correo; el servidor también responde igual; pausa de 10 s; límite «Llegaste al máximo de intentos.» (texto corto pedido por Sara); vista de recuperación sin línea de ayuda. Requiere aplicar `docs/recuperacion/migracion-2-neutral.sql` y volver a desplegar `recuperar-contrasena`. Detalle en `docs/recuperacion/LEEME.md`.
